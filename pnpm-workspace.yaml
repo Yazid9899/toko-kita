@@ -1,0 +1,3 @@
+# See https://docs.pnpm.io/workspaces
+packages:
+  - "client"
