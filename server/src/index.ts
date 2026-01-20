@@ -4,6 +4,9 @@ import cookieParser from "cookie-parser";
 import path from "path";
 import authRoutes from "./routes/auth";
 import userRoutes from "./routes/users";
+import productRoutes from "./routes/products";
+import attributeRoutes from "./routes/attributes";
+import variantRoutes from "./routes/variants";
 import { env } from "./env";
 import { errorHandler } from "./middleware/error";
 import { notFoundHandler } from "./middleware/error";
@@ -22,6 +25,9 @@ app.use(cookieParser());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/products", productRoutes);
+app.use("/api", attributeRoutes);
+app.use("/api", variantRoutes);
 
 if (process.env.NODE_ENV === "production") {
   const clientDist = path.resolve(__dirname, "../../client/dist");

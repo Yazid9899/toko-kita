@@ -8,6 +8,20 @@
       "when": 1768835503012,
       "tag": "0000_keen_tyrannus",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1768910000000,
+      "tag": "0001_product_variants",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1768884790787,
+      "tag": "0002_thankful_colonel_america",
+      "breakpoints": true
     }
   ]
 }
