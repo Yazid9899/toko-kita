@@ -1,3 +1,10 @@
+import { Layout } from "@/components/Layout";
+import { useOrder, useUpdateOrder } from "@/hooks/use-orders";
+import { useRoute } from "wouter";
+import { StatusBadge } from "@/components/StatusBadge";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { format } from "date-fns";
 import {
   Printer,
   Loader2,
@@ -49,7 +56,7 @@ export default function OrderDetail() {
 
   const totalAmount =
     order.items.reduce(
-      (sum, item) => sum + Number(item.quantity) * Number(item.unitPrice),
+      (sum: number, item: any) => sum + Number(item.quantity) * Number(item.unitPrice),
       0,
     ) + Number(order.deliveryFee);
 
@@ -146,7 +153,7 @@ export default function OrderDetail() {
                 Order Items
               </h2>
               <div className="space-y-4">
-                {order.items.map((item) => (
+                {order.items.map((item: any) => (
                   <div
                     key={item.id}
                     className="flex justify-between items-center p-4 bg-slate-50/50 rounded-xl border border-slate-100"
@@ -216,7 +223,7 @@ export default function OrderDetail() {
                   Procurement Items (To Buy)
                 </h2>
                 <div className="space-y-3">
-                  {order.procurements.map((p) => (
+                  {order.procurements.map((p: any) => (
                     <div
                       key={p.id}
                       className="flex justify-between items-center p-4 bg-amber-50 rounded-xl border border-amber-100"
