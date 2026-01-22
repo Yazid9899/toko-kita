@@ -29,12 +29,75 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
+import {
+  Printer,
+  Loader2,
+  ArrowLeft,
+  Package,
+  CreditCard,
+  ChevronRight,
+  User,
+  MapPin,
+  Phone,
+  FileText,
+  Pencil,
+  RotateCcw,
+  Edit2,
+  Save,
+  X,
+} from "lucide-react";
+import { Link } from "wouter";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { insertCustomerSchema } from "@shared/schema";
+import { useUpdateCustomer } from "@/hooks/use-customers";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
+
 export default function OrderDetail() {
   const [, params] = useRoute("/orders/:id");
   const id = Number(params?.id);
   const { data: order, isLoading } = useOrder(id);
   const { mutate: updateOrder } = useUpdateOrder();
+  const { mutate: updateCustomer } = useUpdateCustomer();
   const { toast } = useToast();
+  const [isEditingCustomer, setIsEditingCustomer] = useState(false);
+
+  const form = useForm({
+    resolver: zodResolver(insertCustomerSchema),
+    defaultValues: order?.customer || {
+      name: "",
+      phoneNumber: "",
+      addressLine: "",
+      kecamatan: "",
+      cityOrKabupaten: "",
+      postCode: "",
+      customerType: "RETAIL",
+    },
+  });
+
+  // Reset form when order data is loaded
+  useState(() => {
+    if (order?.customer) {
+      form.reset(order.customer);
+    }
+  });
 
   if (isLoading)
     return (
@@ -53,6 +116,21 @@ export default function OrderDetail() {
         </div>
       </Layout>
     );
+
+  const onCustomerSubmit = (data: any) => {
+    updateCustomer(
+      { id: order.customerId, data },
+      {
+        onSuccess: () => {
+          setIsEditingCustomer(false);
+          toast({
+            title: "Customer updated",
+            description: "Customer information has been successfully updated.",
+          });
+        },
+      }
+    );
+  };
 
   const totalAmount =
     order.items.reduce(
@@ -249,44 +327,158 @@ export default function OrderDetail() {
           <div className="space-y-6">
             {/* Customer Card */}
             <div className="premium-card">
-              <h2 className="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-4">
-                Customer
-              </h2>
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#5C6AC4] to-[#00848E] flex items-center justify-center text-white font-bold text-lg">
-                  {order.customer.name.charAt(0)}
-                </div>
-                <div>
-                  <p className="font-bold text-slate-900 text-lg">
-                    {order.customer.name}
-                  </p>
-                  <span
-                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                      order.customer.customerType === "RESELLER"
-                        ? "bg-purple-100 text-purple-700"
-                        : "bg-slate-100 text-slate-600"
-                    }`}
-                  >
-                    {order.customer.customerType}
-                  </span>
-                </div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xs uppercase tracking-wider text-slate-400 font-semibold">
+                  Customer
+                </h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 text-slate-400 hover:text-[#5C6AC4]"
+                  onClick={() => setIsEditingCustomer(!isEditingCustomer)}
+                >
+                  {isEditingCustomer ? (
+                    <X className="w-4 h-4" />
+                  ) : (
+                    <Edit2 className="w-4 h-4" />
+                  )}
+                </Button>
               </div>
-              <div className="space-y-3 text-sm">
-                <div className="flex items-center gap-3 text-slate-600">
-                  <Phone className="w-4 h-4 text-slate-400" />
-                  {order.customer.phoneNumber}
-                </div>
-                <div className="flex items-start gap-3 text-slate-600">
-                  <MapPin className="w-4 h-4 text-slate-400 mt-0.5" />
-                  <div>
-                    <p>{order.customer.addressLine}</p>
-                    <p>
-                      {order.customer.kecamatan}, {order.customer.cityOrKabupaten}
-                    </p>
-                    <p>{order.customer.postCode}</p>
+
+              {!isEditingCustomer ? (
+                <>
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#5C6AC4] to-[#00848E] flex items-center justify-center text-white font-bold text-lg">
+                      {order.customer.name.charAt(0)}
+                    </div>
+                    <div>
+                      <p className="font-bold text-slate-900 text-lg">
+                        {order.customer.name}
+                      </p>
+                      <span
+                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                          order.customer.customerType === "RESELLER"
+                            ? "bg-purple-100 text-purple-700"
+                            : "bg-slate-100 text-slate-600"
+                        }`}
+                      >
+                        {order.customer.customerType}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              </div>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex items-center gap-3 text-slate-600">
+                      <Phone className="w-4 h-4 text-slate-400" />
+                      {order.customer.phoneNumber}
+                    </div>
+                    <div className="flex items-start gap-3 text-slate-600">
+                      <MapPin className="w-4 h-4 text-slate-400 mt-0.5" />
+                      <div>
+                        <p>{order.customer.addressLine}</p>
+                        <p>
+                          {order.customer.kecamatan}, {order.customer.cityOrKabupaten}
+                        </p>
+                        <p>{order.customer.postCode}</p>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <Form {...form}>
+                  <form
+                    onSubmit={form.handleSubmit(onCustomerSubmit)}
+                    className="space-y-4"
+                  >
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs">Name</FormLabel>
+                          <FormControl>
+                            <Input {...field} className="h-9 rounded-lg" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="phoneNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs">Phone Number</FormLabel>
+                          <FormControl>
+                            <Input {...field} className="h-9 rounded-lg" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="addressLine"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs">Address</FormLabel>
+                          <FormControl>
+                            <Input {...field} className="h-9 rounded-lg" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="grid grid-cols-2 gap-3">
+                      <FormField
+                        control={form.control}
+                        name="kecamatan"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs">Kecamatan</FormLabel>
+                            <FormControl>
+                              <Input {...field} className="h-9 rounded-lg" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="cityOrKabupaten"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs">City/Kabupaten</FormLabel>
+                            <FormControl>
+                              <Input {...field} className="h-9 rounded-lg" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="postCode"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs">Post Code</FormLabel>
+                            <FormControl>
+                              <Input {...field} className="h-9 rounded-lg" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <Button
+                      type="submit"
+                      className="w-full h-9 rounded-lg bg-[#5C6AC4] hover:bg-[#4A57A0]"
+                    >
+                      <Save className="w-4 h-4 mr-2" /> Save Changes
+                    </Button>
+                  </form>
+                </Form>
+              )}
+            </div>
               {order.notes && (
                 <div className="mt-4 p-4 bg-amber-50 rounded-xl border border-amber-100">
                   <div className="flex items-center gap-2 text-amber-700 font-semibold text-sm mb-2">
