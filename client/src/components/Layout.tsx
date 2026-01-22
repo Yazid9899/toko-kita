@@ -7,12 +7,14 @@ import {
   ShoppingBag,
   LogOut,
   Menu,
-  X
+  Bell,
+  Search
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
+import { Input } from "@/components/ui/input";
 
 interface SidebarItemProps {
   href: string;
@@ -27,14 +29,13 @@ function SidebarItem({ href, icon: Icon, label, active, onClick }: SidebarItemPr
     <Link href={href}>
       <div 
         onClick={onClick}
+        data-testid={`nav-${label.toLowerCase().replace(' ', '-')}`}
         className={cn(
-          "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer group",
-          active 
-            ? "bg-primary/10 text-primary font-semibold shadow-sm" 
-            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+          "sidebar-item",
+          active && "sidebar-item-active"
         )}
       >
-        <Icon className={cn("w-5 h-5", active ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} />
+        <Icon className="w-5 h-5" />
         <span>{label}</span>
       </div>
     </Link>
@@ -55,11 +56,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
   ];
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-[#F8FAFC] flex">
       {/* Mobile Menu Backdrop */}
       {mobileMenuOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm"
+          className="fixed inset-0 bg-black/40 z-40 lg:hidden backdrop-blur-sm"
           onClick={() => setMobileMenuOpen(false)}
         />
       )}
@@ -67,44 +68,54 @@ export function Layout({ children }: { children: React.ReactNode }) {
       {/* Sidebar */}
       <aside 
         className={cn(
-          "fixed lg:sticky top-0 h-screen w-64 bg-card border-r border-border z-50 transition-transform duration-300 ease-in-out flex flex-col",
-          mobileMenuOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full lg:translate-x-0"
+          "fixed lg:sticky top-0 h-screen w-72 bg-white border-r border-slate-200/80 z-50 transition-transform duration-300 ease-out flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.04)]",
+          mobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
-        <div className="p-6 border-b border-border/50">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            Toko-Kita
-          </h1>
-          <p className="text-xs text-muted-foreground mt-1">Order Management</p>
+        {/* Logo */}
+        <div className="p-6 border-b border-slate-100">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#5C6AC4] to-[#6B7AC8] flex items-center justify-center shadow-[0_4px_12px_rgba(92,106,196,0.3)]">
+              <Package className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-slate-900">Toko-Kita</h1>
+              <p className="text-xs text-slate-400 font-medium">Order Management</p>
+            </div>
+          </div>
         </div>
 
-        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+        {/* Navigation */}
+        <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-4 mb-3">Menu</p>
           {navItems.map((item) => (
             <SidebarItem
               key={item.href}
               {...item}
-              active={location === item.href}
+              active={location === item.href || (item.href !== "/" && location.startsWith(item.href))}
               onClick={() => setMobileMenuOpen(false)}
             />
           ))}
         </nav>
 
-        <div className="p-4 border-t border-border/50">
-          <div className="flex items-center gap-3 px-4 py-3 mb-2">
-            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs">
+        {/* User Section */}
+        <div className="p-4 border-t border-slate-100">
+          <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50 mb-3">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#5C6AC4] to-[#00848E] flex items-center justify-center text-white font-bold text-sm shadow-md">
               {user?.firstName?.[0] || 'A'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{user?.firstName} {user?.lastName}</p>
-              <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+              <p className="text-sm font-semibold text-slate-800 truncate">{user?.firstName} {user?.lastName}</p>
+              <p className="text-xs text-slate-400 truncate">{user?.email}</p>
             </div>
           </div>
           <Button 
             variant="ghost" 
-            className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
+            className="w-full justify-start text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-xl h-11 font-medium"
             onClick={() => logout()}
+            data-testid="button-logout"
           >
-            <LogOut className="w-4 h-4 mr-2" />
+            <LogOut className="w-4 h-4 mr-3" />
             Logout
           </Button>
         </div>
@@ -112,17 +123,41 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
       {/* Main Content */}
       <main className="flex-1 min-w-0 flex flex-col h-screen overflow-hidden">
-        {/* Mobile Header */}
-        <header className="lg:hidden h-16 border-b border-border bg-card flex items-center px-4 justify-between shrink-0">
-          <h1 className="font-bold text-lg">Toko-Kita</h1>
-          <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(true)}>
-            <Menu className="w-5 h-5" />
-          </Button>
+        {/* Top Header */}
+        <header className="h-16 border-b border-slate-200/80 bg-white flex items-center px-4 lg:px-8 justify-between shrink-0 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
+          <div className="flex items-center gap-4">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="lg:hidden rounded-xl"
+              onClick={() => setMobileMenuOpen(true)}
+              data-testid="button-mobile-menu"
+            >
+              <Menu className="w-5 h-5" />
+            </Button>
+            <div className="hidden md:flex relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Input 
+                placeholder="Search..." 
+                className="pl-9 w-64 h-10 rounded-xl border-slate-200 bg-slate-50/80 focus:bg-white"
+                data-testid="input-global-search"
+              />
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" className="rounded-xl relative" data-testid="button-notifications">
+              <Bell className="w-5 h-5 text-slate-500" />
+              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
+            </Button>
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#5C6AC4] to-[#00848E] flex items-center justify-center text-white font-bold text-xs shadow-md lg:hidden">
+              {user?.firstName?.[0] || 'A'}
+            </div>
+          </div>
         </header>
 
         {/* Scrollable Page Content */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 scroll-smooth">
-          <div className="max-w-7xl mx-auto space-y-6">
+        <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 scroll-smooth custom-scrollbar">
+          <div className="max-w-7xl mx-auto">
             {children}
           </div>
         </div>

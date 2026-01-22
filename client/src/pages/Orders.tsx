@@ -2,24 +2,16 @@ import { Layout } from "@/components/Layout";
 import { useOrders } from "@/hooks/use-orders";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Plus, Filter } from "lucide-react";
+import { Plus, ShoppingCart, Package, Calendar } from "lucide-react";
 import { StatusBadge } from "@/components/StatusBadge";
 import { format } from "date-fns";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Loader2 } from "lucide-react";
 
 export default function Orders() {
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   
-  // Prepare filters for hook
   const filters = statusFilter === "ALL" 
     ? {} 
     : statusFilter === "UNPAID" 
@@ -32,66 +24,96 @@ export default function Orders() {
 
   return (
     <Layout>
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Orders</h1>
-          <p className="text-muted-foreground mt-1">Track and fulfill customer orders.</p>
+          <h1 className="page-title">Orders</h1>
+          <p className="page-subtitle">Track and fulfill customer orders</p>
         </div>
         <Link href="/orders/new">
-          <Button className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20">
+          <Button className="h-11 px-6 rounded-xl bg-gradient-to-r from-[#5C6AC4] to-[#6B7AC8] font-semibold shadow-[0_4px_15px_rgba(92,106,196,0.3)]" data-testid="button-new-order">
             <Plus className="w-4 h-4 mr-2" />
             New Order
           </Button>
         </Link>
       </div>
 
-      <div className="mt-6 space-y-4">
-        <Tabs defaultValue="ALL" onValueChange={setStatusFilter} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 max-w-[400px]">
-            <TabsTrigger value="ALL">All Orders</TabsTrigger>
-            <TabsTrigger value="UNPAID">Unpaid</TabsTrigger>
-            <TabsTrigger value="PACKING">To Pack</TabsTrigger>
+      {/* Filter Tabs */}
+      <div className="mb-6">
+        <Tabs defaultValue="ALL" onValueChange={setStatusFilter}>
+          <TabsList className="inline-flex h-12 items-center justify-center rounded-xl bg-slate-100/80 p-1.5 text-slate-500">
+            <TabsTrigger value="ALL" className="rounded-lg px-6 py-2.5 text-sm font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-[#5C6AC4] data-[state=active]:shadow-sm" data-testid="tab-all-orders">
+              All Orders
+            </TabsTrigger>
+            <TabsTrigger value="UNPAID" className="rounded-lg px-6 py-2.5 text-sm font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-amber-600 data-[state=active]:shadow-sm" data-testid="tab-unpaid">
+              Unpaid
+            </TabsTrigger>
+            <TabsTrigger value="PACKING" className="rounded-lg px-6 py-2.5 text-sm font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-[#00848E] data-[state=active]:shadow-sm" data-testid="tab-packing">
+              To Pack
+            </TabsTrigger>
           </TabsList>
         </Tabs>
+      </div>
 
-        <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/50">
-                <TableHead>Order #</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Items</TableHead>
-                <TableHead>Payment</TableHead>
-                <TableHead>Packing</TableHead>
-                <TableHead className="text-right">Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                 <TableRow><TableCell colSpan={7} className="text-center py-10">Loading...</TableCell></TableRow>
-              ) : orders?.length === 0 ? (
-                 <TableRow><TableCell colSpan={7} className="text-center py-10 text-muted-foreground">No orders found matching filters.</TableCell></TableRow>
-              ) : (
-                orders?.map((order) => (
-                  <TableRow key={order.id} className="hover:bg-muted/50 transition-colors cursor-pointer">
-                    <TableCell className="font-medium text-primary">{order.orderNumber}</TableCell>
-                    <TableCell>{format(new Date(order.createdAt), "MMM d, yyyy")}</TableCell>
-                    <TableCell>{order.customer.name}</TableCell>
-                    <TableCell>{order.items.length} items</TableCell>
-                    <TableCell><StatusBadge status={order.paymentStatus} /></TableCell>
-                    <TableCell><StatusBadge status={order.packingStatus} /></TableCell>
-                    <TableCell className="text-right">
-                      <Link href={`/orders/${order.id}`}>
-                        <Button variant="ghost" size="sm">Details</Button>
-                      </Link>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
+      {/* Orders List */}
+      <div className="premium-card p-0 overflow-hidden">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="w-8 h-8 animate-spin text-[#5C6AC4]" />
+          </div>
+        ) : orders?.length === 0 ? (
+          <div className="text-center py-16">
+            <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
+              <ShoppingCart className="w-8 h-8 text-slate-300" />
+            </div>
+            <p className="text-slate-500 mb-2">No orders found</p>
+            <Link href="/orders/new">
+              <Button variant="link" className="text-[#5C6AC4]">Create your first order</Button>
+            </Link>
+          </div>
+        ) : (
+          <div className="divide-y divide-slate-100">
+            {/* Table Header */}
+            <div className="hidden lg:grid grid-cols-12 gap-4 px-6 py-4 bg-slate-50/80 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              <div className="col-span-2">Order</div>
+              <div className="col-span-2">Date</div>
+              <div className="col-span-3">Customer</div>
+              <div className="col-span-1">Items</div>
+              <div className="col-span-2">Payment</div>
+              <div className="col-span-2">Status</div>
+            </div>
+            {/* Order Rows */}
+            {orders?.map((order) => (
+              <Link key={order.id} href={`/orders/${order.id}`}>
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 px-6 py-5 hover:bg-slate-50/60 transition-colors cursor-pointer items-center" data-testid={`order-row-${order.id}`}>
+                  <div className="lg:col-span-2 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#5C6AC4]/10 to-[#00848E]/10 flex items-center justify-center shrink-0">
+                      <Package className="w-5 h-5 text-[#5C6AC4]" />
+                    </div>
+                    <span className="font-bold text-[#5C6AC4]">{order.orderNumber}</span>
+                  </div>
+                  <div className="lg:col-span-2 hidden lg:flex items-center gap-2 text-slate-600">
+                    <Calendar className="w-4 h-4 text-slate-400" />
+                    <span className="text-sm">{format(new Date(order.createdAt), "MMM d, yyyy")}</span>
+                  </div>
+                  <div className="lg:col-span-3">
+                    <p className="font-medium text-slate-800">{order.customer.name}</p>
+                    <p className="text-sm text-slate-500 lg:hidden">{format(new Date(order.createdAt), "MMM d, yyyy")}</p>
+                  </div>
+                  <div className="lg:col-span-1 hidden lg:block">
+                    <span className="text-sm text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full font-medium">{order.items.length}</span>
+                  </div>
+                  <div className="lg:col-span-2">
+                    <StatusBadge status={order.paymentStatus} />
+                  </div>
+                  <div className="lg:col-span-2 flex items-center gap-2">
+                    <StatusBadge status={order.packingStatus} />
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
     </Layout>
   );

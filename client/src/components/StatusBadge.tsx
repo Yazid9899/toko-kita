@@ -12,31 +12,30 @@ interface StatusBadgeProps {
 }
 
 export function StatusBadge({ status, type, className }: StatusBadgeProps) {
-  let styles = "bg-gray-100 text-gray-700 border-gray-200";
+  let styles = "bg-slate-100 text-slate-600";
   let label = status.replace(/_/g, " ");
 
-  // Logic to determine color based on status
   // PAYMENT
-  if (status === "PAID") styles = "bg-green-100 text-green-700 border-green-200";
-  else if (status === "DOWN_PAYMENT") styles = "bg-amber-100 text-amber-700 border-amber-200";
-  else if (status === "NOT_PAID") styles = "bg-red-50 text-red-700 border-red-200";
+  if (status === "PAID") styles = "bg-emerald-100 text-emerald-700";
+  else if (status === "DOWN_PAYMENT") styles = "bg-amber-100 text-amber-700";
+  else if (status === "NOT_PAID") styles = "bg-red-100 text-red-700";
   
   // PACKING
-  else if (status === "PACKED") styles = "bg-blue-100 text-blue-700 border-blue-200";
-  else if (status === "PACKING") styles = "bg-indigo-100 text-indigo-700 border-indigo-200";
-  else if (status === "NOT_READY") styles = "bg-slate-100 text-slate-600 border-slate-200";
+  else if (status === "PACKED") styles = "bg-blue-100 text-blue-700";
+  else if (status === "PACKING") styles = "bg-[#5C6AC4]/10 text-[#5C6AC4]";
+  else if (status === "NOT_READY") styles = "bg-slate-100 text-slate-500";
 
   // PROCUREMENT
-  else if (status === "ARRIVED") styles = "bg-teal-100 text-teal-700 border-teal-200";
-  else if (status === "ORDERED") styles = "bg-purple-100 text-purple-700 border-purple-200";
-  else if (status === "TO_BUY") styles = "bg-orange-100 text-orange-700 border-orange-200";
+  else if (status === "ARRIVED") styles = "bg-emerald-100 text-emerald-700";
+  else if (status === "ORDERED") styles = "bg-amber-100 text-amber-700";
+  else if (status === "TO_BUY") styles = "bg-[#00848E]/10 text-[#00848E]";
 
   return (
     <span className={cn(
-      "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border uppercase tracking-wide",
+      "inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide whitespace-nowrap",
       styles,
       className
-    )}>
+    )} data-testid={`badge-status-${status.toLowerCase()}`}>
       {label}
     </span>
   );
