@@ -1,12 +1,11 @@
 import { Layout } from "@/components/Layout";
 import { useOrder, useUpdateOrder } from "@/hooks/use-orders";
 import { useRoute } from "wouter";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
-import { Printer, Loader2, ArrowLeft, Package, CreditCard } from "lucide-react";
+import { Printer, Loader2, ArrowLeft, Package, CreditCard, ChevronRight, User, MapPin, Phone, FileText } from "lucide-react";
 import { Link } from "wouter";
 
 export default function OrderDetail() {
@@ -15,8 +14,21 @@ export default function OrderDetail() {
   const { data: order, isLoading } = useOrder(id);
   const { mutate: updateOrder } = useUpdateOrder();
 
-  if (isLoading) return <Layout><div className="flex justify-center pt-20"><Loader2 className="animate-spin w-8 h-8" /></div></Layout>;
-  if (!order) return <Layout><div>Order not found</div></Layout>;
+  if (isLoading) return (
+    <Layout>
+      <div className="flex justify-center pt-20">
+        <Loader2 className="animate-spin w-8 h-8 text-[#5C6AC4]" />
+      </div>
+    </Layout>
+  );
+  
+  if (!order) return (
+    <Layout>
+      <div className="premium-card text-center py-12">
+        <p className="text-slate-500">Order not found</p>
+      </div>
+    </Layout>
+  );
 
   const totalAmount = order.items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.unitPrice)), 0) + Number(order.deliveryFee);
 
@@ -26,146 +38,243 @@ export default function OrderDetail() {
 
   return (
     <Layout>
-      <div className="flex items-center gap-4 mb-6">
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-2 mb-6 text-sm">
         <Link href="/orders">
-          <Button variant="outline" size="icon"><ArrowLeft className="w-4 h-4" /></Button>
+          <span className="text-slate-400 hover:text-slate-600 cursor-pointer transition-colors">Orders</span>
         </Link>
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-3">
-            Order {order.orderNumber}
-            <StatusBadge status={order.paymentStatus} />
-            <StatusBadge status={order.packingStatus} />
-          </h1>
-          <p className="text-muted-foreground text-sm">Created on {format(new Date(order.createdAt), "MMMM d, yyyy 'at' h:mm a")}</p>
-        </div>
-        <div className="ml-auto">
-          <Button variant="outline" onClick={() => window.print()} className="gap-2">
-            <Printer className="w-4 h-4" /> Print Invoice
-          </Button>
-        </div>
+        <ChevronRight className="w-4 h-4 text-slate-300" />
+        <span className="font-semibold text-slate-800">{order.orderNumber}</span>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2 space-y-6">
-          <Card>
-            <CardHeader><CardTitle>Items</CardTitle></CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {order.items.map((item) => (
-                  <div key={item.id} className="flex justify-between items-center border-b pb-4 last:border-0 last:pb-0">
-                    <div>
-                       <p className="font-medium">{item.variant.variantName}</p>
-                       <p className="text-sm text-muted-foreground">{item.isPreorder && <span className="text-orange-500 font-bold mr-2">[Preorder]</span>} SKU: {item.variant.barcodeOrSku || 'N/A'}</p>
+      {/* Header */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
+        <div className="flex items-center gap-4">
+          <Link href="/orders">
+            <Button variant="outline" size="icon" className="rounded-xl border-slate-200" data-testid="button-back">
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+          </Link>
+          <div>
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-2xl font-bold text-slate-900">{order.orderNumber}</h1>
+              <StatusBadge status={order.paymentStatus} />
+              <StatusBadge status={order.packingStatus} />
+            </div>
+            <p className="text-slate-500 text-sm mt-1">Created on {format(new Date(order.createdAt), "MMMM d, yyyy 'at' h:mm a")}</p>
+          </div>
+        </div>
+        <Button 
+          variant="outline" 
+          onClick={() => window.print()} 
+          className="rounded-xl border-slate-200 text-slate-600"
+          data-testid="button-print"
+        >
+          <Printer className="w-4 h-4 mr-2" /> Print Invoice
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column - Items */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="premium-card">
+            <h2 className="text-lg font-bold text-slate-900 mb-5">Order Items</h2>
+            <div className="space-y-4">
+              {order.items.map((item) => (
+                <div key={item.id} className="flex justify-between items-center p-4 bg-slate-50/50 rounded-xl border border-slate-100" data-testid={`order-item-${item.id}`}>
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#5C6AC4]/10 to-[#00848E]/10 flex items-center justify-center">
+                      <Package className="w-6 h-6 text-[#5C6AC4]" />
                     </div>
-                    <div className="text-right">
-                       <p className="font-bold">{Number(item.quantity)} x Rp {Number(item.unitPrice).toLocaleString()}</p>
-                       <p className="text-sm text-muted-foreground">Rp {(Number(item.quantity) * Number(item.unitPrice)).toLocaleString()}</p>
+                    <div>
+                      <p className="font-semibold text-slate-800">{item.variant.variantName}</p>
+                      <p className="text-sm text-slate-500">
+                        {item.isPreorder && <span className="text-amber-600 font-semibold mr-2">[Preorder]</span>}
+                        SKU: {item.variant.barcodeOrSku || 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold text-slate-800">{Number(item.quantity)} x Rp {Number(item.unitPrice).toLocaleString()}</p>
+                    <p className="text-sm text-slate-500">Rp {(Number(item.quantity) * Number(item.unitPrice)).toLocaleString()}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <Separator className="my-6 bg-slate-100" />
+            <div className="space-y-3">
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-500">Subtotal</span>
+                <span className="text-slate-700">Rp {(totalAmount - Number(order.deliveryFee)).toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-500">Delivery</span>
+                <span className="text-slate-700">Rp {Number(order.deliveryFee).toLocaleString()}</span>
+              </div>
+              <Separator className="bg-slate-100" />
+              <div className="flex justify-between items-center pt-2">
+                <span className="font-bold text-lg text-slate-900">Total</span>
+                <span className="font-bold text-xl text-[#5C6AC4]">Rp {totalAmount.toLocaleString()}</span>
+              </div>
+            </div>
+          </div>
+
+          {order.procurements.length > 0 && (
+            <div className="premium-card border-l-4 border-l-amber-500">
+              <h2 className="text-lg font-bold text-amber-700 mb-4">Procurement Items (To Buy)</h2>
+              <div className="space-y-3">
+                {order.procurements.map(p => (
+                  <div key={p.id} className="flex justify-between items-center p-4 bg-amber-50 rounded-xl border border-amber-100" data-testid={`procurement-item-${p.id}`}>
+                    <span className="font-medium text-slate-800">{p.variant.variantName}</span>
+                    <div className="flex items-center gap-4">
+                      <span className="font-bold text-amber-700">{Number(p.neededQty)} needed</span>
+                      <StatusBadge status={p.status} type="procurement" />
                     </div>
                   </div>
                 ))}
               </div>
-              <Separator className="my-6" />
-              <div className="space-y-2">
-                 <div className="flex justify-between text-sm"><span>Subtotal</span><span>Rp {(totalAmount - Number(order.deliveryFee)).toLocaleString()}</span></div>
-                 <div className="flex justify-between text-sm"><span>Delivery</span><span>Rp {Number(order.deliveryFee).toLocaleString()}</span></div>
-                 <div className="flex justify-between font-bold text-lg mt-4"><span>Total</span><span>Rp {totalAmount.toLocaleString()}</span></div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {order.procurements.length > 0 && (
-             <Card>
-               <CardHeader><CardTitle className="text-base text-orange-600">Procurement Items (To Buy)</CardTitle></CardHeader>
-               <CardContent>
-                 <div className="space-y-2">
-                   {order.procurements.map(p => (
-                     <div key={p.id} className="flex justify-between text-sm bg-orange-50 p-2 rounded border border-orange-100">
-                       <span>{p.variant.variantName}</span>
-                       <div className="flex gap-4">
-                         <span className="font-bold">{Number(p.neededQty)} needed</span>
-                         <StatusBadge status={p.status} type="procurement" />
-                       </div>
-                     </div>
-                   ))}
-                 </div>
-               </CardContent>
-             </Card>
+            </div>
           )}
         </div>
 
+        {/* Right Column - Customer & Workflow */}
         <div className="space-y-6">
-          <Card>
-            <CardHeader><CardTitle className="text-sm uppercase tracking-wide text-muted-foreground">Customer</CardTitle></CardHeader>
-            <CardContent>
-              <div className="font-medium text-lg mb-1">{order.customer.name}</div>
-              <div className="text-sm text-muted-foreground space-y-1">
-                <p>{order.customer.phoneNumber}</p>
-                <p>{order.customer.addressLine}</p>
-                <p>{order.customer.kecamatan}, {order.customer.cityOrKabupaten}</p>
-                <p>{order.customer.postCode}</p>
+          {/* Customer Card */}
+          <div className="premium-card">
+            <h2 className="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-4">Customer</h2>
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#5C6AC4] to-[#00848E] flex items-center justify-center text-white font-bold text-lg">
+                {order.customer.name.charAt(0)}
               </div>
-              {order.notes && (
-                <div className="mt-4 bg-yellow-50 p-3 rounded text-sm text-yellow-800 border border-yellow-200">
-                  <span className="font-bold block mb-1">Notes:</span>
-                  {order.notes}
+              <div>
+                <p className="font-bold text-slate-900 text-lg">{order.customer.name}</p>
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                  order.customer.customerType === 'RESELLER' ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-600'
+                }`}>
+                  {order.customer.customerType}
+                </span>
+              </div>
+            </div>
+            <div className="space-y-3 text-sm">
+              <div className="flex items-center gap-3 text-slate-600">
+                <Phone className="w-4 h-4 text-slate-400" />
+                {order.customer.phoneNumber}
+              </div>
+              <div className="flex items-start gap-3 text-slate-600">
+                <MapPin className="w-4 h-4 text-slate-400 mt-0.5" />
+                <div>
+                  <p>{order.customer.addressLine}</p>
+                  <p>{order.customer.kecamatan}, {order.customer.cityOrKabupaten}</p>
+                  <p>{order.customer.postCode}</p>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+              </div>
+            </div>
+            {order.notes && (
+              <div className="mt-4 p-4 bg-amber-50 rounded-xl border border-amber-100">
+                <div className="flex items-center gap-2 text-amber-700 font-semibold text-sm mb-2">
+                  <FileText className="w-4 h-4" />
+                  Notes
+                </div>
+                <p className="text-sm text-amber-800">{order.notes}</p>
+              </div>
+            )}
+          </div>
 
-          <Card>
-            <CardHeader><CardTitle className="text-sm uppercase tracking-wide text-muted-foreground">Workflow</CardTitle></CardHeader>
-            <CardContent className="space-y-6">
-              <div>
-                <div className="flex items-center gap-2 mb-2 font-medium"><CreditCard className="w-4 h-4" /> Payment</div>
-                <div className="grid grid-cols-2 gap-2">
-                  <Button 
-                    variant={order.paymentStatus === 'NOT_PAID' ? "destructive" : "outline"} 
-                    size="sm"
-                    className="text-xs"
-                    onClick={() => handleStatusUpdate('paymentStatus', 'NOT_PAID')}
-                  >
-                    Unpaid
-                  </Button>
-                  <Button 
-                    variant={order.paymentStatus === 'PAID' ? "default" : "outline"} 
-                    size="sm"
-                    className="text-xs bg-green-600 hover:bg-green-700"
-                    onClick={() => handleStatusUpdate('paymentStatus', 'PAID')}
-                  >
-                    Paid
-                  </Button>
+          {/* Workflow Card */}
+          <div className="premium-card">
+            <h2 className="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-5">Workflow</h2>
+            
+            {/* Payment Section */}
+            <div className="mb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-8 h-8 rounded-lg bg-[#5C6AC4]/10 flex items-center justify-center">
+                  <CreditCard className="w-4 h-4 text-[#5C6AC4]" />
                 </div>
+                <span className="font-semibold text-slate-800">Payment Status</span>
               </div>
-              <Separator />
-              <div>
-                <div className="flex items-center gap-2 mb-2 font-medium"><Package className="w-4 h-4" /> Packing</div>
-                <div className="grid grid-cols-3 gap-2">
-                  <Button 
-                     variant={order.packingStatus === 'NOT_READY' ? "secondary" : "outline"}
-                     size="sm" className="text-xs"
-                     onClick={() => handleStatusUpdate('packingStatus', 'NOT_READY')}
-                  >
-                    Not Ready
-                  </Button>
-                  <Button 
-                     variant={order.packingStatus === 'PACKING' ? "default" : "outline"}
-                     size="sm" className="text-xs"
-                     onClick={() => handleStatusUpdate('packingStatus', 'PACKING')}
-                  >
-                    Packing
-                  </Button>
-                  <Button 
-                     variant={order.packingStatus === 'PACKED' ? "default" : "outline"}
-                     size="sm" className="text-xs bg-blue-600 hover:bg-blue-700"
-                     onClick={() => handleStatusUpdate('packingStatus', 'PACKED')}
-                  >
-                    Packed
-                  </Button>
+              <div className="grid grid-cols-2 gap-2">
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  className={`rounded-xl font-medium transition-all ${
+                    order.paymentStatus === 'NOT_PAID' 
+                      ? 'bg-red-100 text-red-700 border-red-200' 
+                      : 'border-slate-200 text-slate-600'
+                  }`}
+                  onClick={() => handleStatusUpdate('paymentStatus', 'NOT_PAID')}
+                  data-testid="button-status-unpaid"
+                >
+                  Unpaid
+                </Button>
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  className={`rounded-xl font-medium transition-all ${
+                    order.paymentStatus === 'PAID' 
+                      ? 'bg-emerald-100 text-emerald-700 border-emerald-200' 
+                      : 'border-slate-200 text-slate-600'
+                  }`}
+                  onClick={() => handleStatusUpdate('paymentStatus', 'PAID')}
+                  data-testid="button-status-paid"
+                >
+                  Paid
+                </Button>
+              </div>
+            </div>
+            
+            <Separator className="bg-slate-100 mb-6" />
+            
+            {/* Packing Section */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-8 h-8 rounded-lg bg-[#00848E]/10 flex items-center justify-center">
+                  <Package className="w-4 h-4 text-[#00848E]" />
                 </div>
+                <span className="font-semibold text-slate-800">Packing Status</span>
               </div>
-            </CardContent>
-          </Card>
+              <div className="grid grid-cols-3 gap-2">
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  className={`rounded-xl font-medium text-xs transition-all ${
+                    order.packingStatus === 'NOT_READY' 
+                      ? 'bg-slate-200 text-slate-700 border-slate-300' 
+                      : 'border-slate-200 text-slate-600'
+                  }`}
+                  onClick={() => handleStatusUpdate('packingStatus', 'NOT_READY')}
+                  data-testid="button-status-not-ready"
+                >
+                  Not Ready
+                </Button>
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  className={`rounded-xl font-medium text-xs transition-all ${
+                    order.packingStatus === 'PACKING' 
+                      ? 'bg-[#5C6AC4]/10 text-[#5C6AC4] border-[#5C6AC4]/30' 
+                      : 'border-slate-200 text-slate-600'
+                  }`}
+                  onClick={() => handleStatusUpdate('packingStatus', 'PACKING')}
+                  data-testid="button-status-packing"
+                >
+                  Packing
+                </Button>
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  className={`rounded-xl font-medium text-xs transition-all ${
+                    order.packingStatus === 'PACKED' 
+                      ? 'bg-blue-100 text-blue-700 border-blue-200' 
+                      : 'border-slate-200 text-slate-600'
+                  }`}
+                  onClick={() => handleStatusUpdate('packingStatus', 'PACKED')}
+                  data-testid="button-status-packed"
+                >
+                  Packed
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </Layout>
