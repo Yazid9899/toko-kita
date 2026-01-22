@@ -43,6 +43,13 @@ shared/
 - Consistent color scheme and spacing across all pages
 - Enhanced accessibility with DialogDescription and data-testid attributes
 - Improved responsive design for mobile and desktop
+- Complete customer CRUD functionality on /customers page:
+  - Edit customer dialog with form pre-filled
+  - Delete customer with confirmation dialog
+  - Delete constraint: prevents deletion of customers with existing orders
+  - Server error messages properly propagated to user
+- UI refactored to use semantic tokens (text-foreground, bg-muted, etc.) for dark mode compatibility
+- All components now use shadcn default variants (no custom hover/active states)
 
 ## User Preferences
 - Premium, modern admin panel aesthetic

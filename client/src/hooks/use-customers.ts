@@ -88,3 +88,30 @@ export function useUpdateCustomer() {
     }
   });
 }
+
+export function useDeleteCustomer() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const url = buildUrl(api.customers.delete.path, { id });
+      const res = await fetch(url, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ message: "Failed to delete customer" }));
+        throw new Error(errorData.message || "Failed to delete customer");
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.customers.list.path] });
+      toast({ title: "Success", description: "Customer deleted successfully" });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  });
+}

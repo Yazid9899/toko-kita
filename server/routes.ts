@@ -49,6 +49,19 @@ export async function registerRoutes(
     }
   });
 
+  app.delete(api.customers.delete.path, async (req, res) => {
+    try {
+      const deleted = await storage.deleteCustomer(Number(req.params.id));
+      if (!deleted) return res.status(404).json({ message: "Customer not found" });
+      res.status(204).send();
+    } catch (err: any) {
+      if (err.message === "Cannot delete customer with existing orders") {
+        return res.status(400).json({ message: err.message });
+      }
+      throw err;
+    }
+  });
+
   // --- PRODUCTS ---
   app.get(api.products.list.path, async (req, res) => {
     const products = await storage.getProducts();
