@@ -1,0 +1,451 @@
+Build a responsive web app for a personal small business named “toko-kita”. The app is a lightweight internal system to manage customers, products with variants/attributes, inventory, orders, payments, and procurement “to-buy” tracking.
+
+Tech + Setup
+
+Use PostgreSQL as the database (via Prisma ORM).
+
+Backend: Node.js + Express (or Next.js API routes if you prefer fullstack Next.js).
+
+Frontend: React + Tailwind (or Next.js pages/app router).
+
+Create a clean admin dashboard UI.
+
+Include seed data + simple demo data.
+
+Add basic authentication (single admin user is fine; keep it simple).
+
+Core Data Model Requirements
+1) Customers
+
+Fields:
+
+id (uuid)
+
+name (required)
+
+phoneNumber (required)
+
+addressLine (string, required)
+
+kecamatan (string, required)
+
+cityOrKabupaten (string, required)
+
+postCode (string, required)
+
+note (optional text)
+
+customerType enum: PERSONAL | RESELLER
+
+timestamps
+
+CRUD screens:
+
+Customer list with search (name/phone)
+
+Customer detail shows order history
+
+2) Products + Flexible Variants / Attributes
+
+I need products that can represent:
+
+Simple items (just quantity)
+
+Items sold by weight
+
+Products with hierarchical variants like:
+
+“Buttonscarve Hijab” → series (Little Mermaid / Grand-Prix / etc.) → each series has 12 colors
+
+“Legatto Bags” → categories (handbag / backpack / laptop sleeve) and handbag can have material (leather/nylon), size (S/M/L/XL), colors, etc.
+
+Model approach (flexible)
+
+Implement this as:
+
+Product table (base info)
+
+ProductVariant table (sellable SKU-like item)
+
+VariantAttributes via JSON or via normalized tables (your choice), but it must support multi-attribute combinations.
+
+Product
+
+id
+
+name (required)
+
+description (optional)
+
+defaultPrice (number, optional; used for autofill)
+
+unitType enum: QUANTITY | WEIGHT
+
+timestamps
+
+ProductVariant
+
+id
+
+productId (FK)
+
+variantName (auto-generated readable name from attributes, e.g. “Grand-Prix / Color: Blue / Size: M / Material: Nylon”)
+
+attributes (JSON) example:
+
+{ "series": "Grand-Prix", "color": "Sky Blue" }
+
+{ "category": "handbag", "material": "leather", "size": "M", "color": "black" }
+
+barcodeOrSku (optional)
+
+defaultPrice (optional; overrides product default price)
+
+stockOnHand (integer or decimal depending on unitType; allow 0)
+
+allowPreorder (boolean)
+
+timestamps
+
+Inventory notes:
+
+Stock can be 0 and still orderable (preorder).
+
+For WEIGHT items, support decimal quantities.
+
+UI screens:
+
+Product list
+
+Product detail with variant list
+
+Variant create/edit with dynamic attributes (key/value editor is OK)
+
+Quick “add variant” flow
+
+3) Orders
+
+Fields:
+
+id
+
+orderNumber (human readable; auto incremental like TK-000001)
+
+customerId (FK)
+
+paymentType enum: MANUAL_TRANSFER | FULL_SHOPEE | SPLIT_SHOPEE
+
+paymentStatus enum: NOT_PAID | DOWN_PAYMENT | PAID
+
+deliveryFee (number; only used when paymentType = MANUAL_TRANSFER, otherwise keep 0)
+
+packingStatus enum: NOT_READY | PACKING | PACKED
+
+Logic: can be PACKED only if paymentStatus=PAID AND all items are available (not preorder and/or already procured).
+
+notes (text optional)
+
+timestamps
+
+Order Items (price changeable)
+
+Order items must store price at time of order, not fixed from product.
+OrderItem
+
+id
+
+orderId (FK)
+
+productVariantId (FK)
+
+quantity (number; integer for quantity items, decimal for weight items)
+
+unitPrice (number; autofill from variant/product defaultPrice but editable)
+
+subtotal (computed)
+
+isPreorder (boolean) automatically true if stock was 0 or allowPreorder is true and requested qty exceeds stock
+
+timestamps
+
+Order totals:
+
+Sum of subtotals + deliveryFee (manual only)
+
+UI screens:
+
+Order list (filter by payment status, packing status, customer)
+
+Create order:
+
+pick customer
+
+add items via searchable variant picker
+
+autofill unit price but allow editing
+
+show warning if preorder
+
+Order detail:
+
+item breakdown
+
+procurement/to-buy list
+
+payment + packing controls
+
+4) “To Buy” / Procurement Check (Auto-created when item stock is 0 / insufficient)
+
+Requirement:
+
+If any ordered item has 0 stock or insufficient stock, create a to-buy check so user can see what items must be bought.
+
+Implement as:
+ProcurementItem
+
+id
+
+orderId (FK)
+
+productVariantId (FK)
+
+neededQty (number)
+
+status enum: TO_BUY | ORDERED | ARRIVED
+
+notes optional
+
+timestamps
+
+Auto-logic:
+
+When an order is created/updated:
+
+Compare requested qty vs stockOnHand
+
+If insufficient, create/update ProcurementItem with needed qty
+
+When ProcurementItem marked ARRIVED:
+
+increase stockOnHand (optional) OR prompt admin to confirm stock increment
+
+allow packing status progress
+
+UI:
+
+A dedicated “To Buy” page:
+
+grouped by product
+
+filter by status
+
+show which orders need it
+
+Key Flows & Rules
+
+Price Autofill: unitPrice autofills from variant.defaultPrice else product.defaultPrice but remains editable per order item.
+
+Stock 0 is allowed: ordering still possible → treat as preorder and create procurement need.
+
+Packing:
+
+If paymentStatus != PAID → packingStatus cannot be PACKED.
+
+If any procurement items not ARRIVED and item is not available → cannot be PACKED.
+
+Split Shopee:
+
+Keep it as paymentType only; no complex Shopee integration needed.
+
+Include search, filters, and clean UX.
+
+Deliverables
+
+Working app with database migrations, seed script, and instructions to run.
+
+Clean UI pages:
+
+Customers: list / create / edit / detail
+
+Products: list / create / edit / detail + variants CRUD
+
+Orders: list / create / detail (edit payment + packing) + printable view
+
+To Buy: procurement dashboard
+
+Add basic validation and error handling.
+
+Keep it simple but reliable.
+
+If you want, I can also rewrite the prompt to match a specific stack (Next.js App Router + Prisma + shadcn UI, or Supabase, etc.), but the above is already “Agent-ready.”
+
+you dont add the tech stack and make it simpler short but clear (add the screen to).
+
+
+Sure — here’s a short, simple, clear Replit Agent prompt (no tech stack), including the screens.
+
+Replit Agent Prompt (Copy-Paste)
+
+Create a small business web app named “toko-kita” for managing Customers, Products (with flexible variants), Orders, Payments, Packing, and a “To Buy” list for items that are out of stock / preorder.
+
+Screens (UI)
+
+Dashboard
+
+Quick stats: unpaid orders, orders to pack, items to buy
+
+Customers
+
+List + search (name/phone)
+
+Add/Edit customer
+
+Customer detail (shows order history)
+
+Products
+
+Product list
+
+Product detail (variants table)
+
+Add/Edit product
+
+Add/Edit variant (dynamic attributes)
+
+Orders
+
+Order list + filters (paid status, packing status, payment type)
+
+Create order
+
+Order detail (items, payment, packing, notes, to-buy section)
+
+To Buy (Procurement)
+
+List of needed items grouped by product/variant
+
+Filter by status (TO_BUY / ORDERED / ARRIVED)
+
+Link back to related orders
+
+Data / Database Structure
+Customers
+
+id
+
+name
+
+phoneNumber
+
+addressLine
+
+kecamatan
+
+cityOrKabupaten
+
+postCode
+
+note (optional)
+
+customerType: PERSONAL or RESELLER
+
+Products
+
+Base product:
+
+id
+
+name
+
+description (optional)
+
+defaultPrice (for autofill only)
+
+unitType: QUANTITY or WEIGHT (optional, default QUANTITY)
+
+Product Variants (must support complex attributes)
+
+Examples:
+
+Hijab → series → color
+
+Bags → category, material, size, color
+
+Simple item → just quantity
+Variant fields:
+
+id
+
+productId
+
+variantName (auto readable from attributes)
+
+attributes (flexible key/value, ex: {series:"Grand-Prix", color:"Blue"})
+
+defaultPrice (optional override)
+
+stockOnHand (can be 0)
+
+allowPreorder (true/false)
+
+Orders
+
+id
+
+orderNumber (auto generated like TK-000001)
+
+customerId
+
+paymentType: MANUAL_TRANSFER / FULL_SHOPEE / SPLIT_SHOPEE
+
+paymentStatus: NOT_PAID / DOWN_PAYMENT / PAID
+
+deliveryFee (only for MANUAL_TRANSFER)
+
+packingStatus: NOT_READY / PACKING / PACKED
+
+notes (optional)
+
+Order Items (price must be changeable)
+
+id
+
+orderId
+
+productVariantId
+
+qty (integer or decimal if WEIGHT)
+
+unitPrice (autofill from variant/product but editable)
+
+isPreorder (auto)
+
+To Buy / Procurement (auto-created if stock is 0 or insufficient)
+
+id
+
+orderId
+
+productVariantId
+
+neededQty
+
+status: TO_BUY / ORDERED / ARRIVED
+
+notes (optional)
+
+Key Rules / Logic
+
+Autofill price from variant.defaultPrice → else product.defaultPrice, but user can edit per order item.
+
+If ordered qty exceeds stockOnHand or stock is 0, mark item as preorder and create/update To Buy entry with neededQty.
+
+Packing can be PACKED only if:
+
+paymentStatus = PAID, and
+
+all procurement items for that order are ARRIVED (or item is not preorder).
+
+Delivery fee is used only when payment type is MANUAL_TRANSFER.
+
+Build it clean and simple and mobile friendly, with CRUD + search/filter, and make sure the To Buy list updates automatically when orders 
