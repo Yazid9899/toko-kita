@@ -18,30 +18,6 @@ import {
   FileText,
   Pencil,
   RotateCcw,
-} from "lucide-react";
-import { Link } from "wouter";
-import { useToast } from "@/hooks/use-toast";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
-
-import {
-  Printer,
-  Loader2,
-  ArrowLeft,
-  Package,
-  CreditCard,
-  ChevronRight,
-  User,
-  MapPin,
-  Phone,
-  FileText,
-  Pencil,
-  RotateCcw,
   Edit2,
   Save,
   X,
@@ -68,7 +44,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function OrderDetail() {
   const [, params] = useRoute("/orders/:id");
@@ -81,7 +57,7 @@ export default function OrderDetail() {
 
   const form = useForm({
     resolver: zodResolver(insertCustomerSchema),
-    defaultValues: order?.customer || {
+    defaultValues: {
       name: "",
       phoneNumber: "",
       addressLine: "",
@@ -92,12 +68,11 @@ export default function OrderDetail() {
     },
   });
 
-  // Reset form when order data is loaded
-  useState(() => {
+  useEffect(() => {
     if (order?.customer) {
       form.reset(order.customer);
     }
-  });
+  }, [order?.customer, form]);
 
   if (isLoading)
     return (
@@ -479,16 +454,15 @@ export default function OrderDetail() {
                 </Form>
               )}
             </div>
-              {order.notes && (
-                <div className="mt-4 p-4 bg-amber-50 rounded-xl border border-amber-100">
-                  <div className="flex items-center gap-2 text-amber-700 font-semibold text-sm mb-2">
-                    <FileText className="w-4 h-4" />
-                    Notes
-                  </div>
-                  <p className="text-sm text-amber-800">{order.notes}</p>
+            {order.notes && (
+              <div className="mt-4 p-4 bg-amber-50 rounded-xl border border-amber-100">
+                <div className="flex items-center gap-2 text-amber-700 font-semibold text-sm mb-2">
+                  <FileText className="w-4 h-4" />
+                  Notes
                 </div>
-              )}
-            </div>
+                <p className="text-sm text-amber-800">{order.notes}</p>
+              </div>
+            )}
 
             {/* Workflow Card */}
             <div className="premium-card">
