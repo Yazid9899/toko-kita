@@ -7,7 +7,7 @@ A web-based order and inventory management system for a small WhatsApp-based bus
 - **Frontend**: React + Vite + TypeScript, Tailwind CSS, Shadcn UI components
 - **Backend**: Express.js + TypeScript
 - **Database**: PostgreSQL with Drizzle ORM
-- **Authentication**: Replit Auth (Google/GitHub/email login)
+- **Authentication**: Simple username/password (configurable via environment variables)
 
 ## Design System
 - **Primary Color**: #5C6AC4 (Indigo) - used for main actions, buttons, active states
@@ -50,6 +50,9 @@ shared/
   - Server error messages properly propagated to user
 - UI refactored to use semantic tokens (text-foreground, bg-muted, etc.) for dark mode compatibility
 - All components now use shadcn default variants (no custom hover/active states)
+- Replaced Replit Auth with simple username/password authentication
+  - Default credentials: admin/admin123
+  - Configurable via ADMIN_USERNAME and ADMIN_PASSWORD environment variables
 
 ## User Preferences
 - Premium, modern admin panel aesthetic

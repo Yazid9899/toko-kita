@@ -17,10 +17,12 @@ npm install
 
 ## Step 3: Database Setup
 1. Create a new PostgreSQL database (e.g., `toko_kita`).
-2. Create a `.env` file in the root directory and add your database connection string:
+2. Create a `.env` file in the root directory and add:
    ```env
    DATABASE_URL=postgresql://username:password@localhost:5432/toko_kita
    SESSION_SECRET=your_random_secret_here
+   ADMIN_USERNAME=admin
+   ADMIN_PASSWORD=admin123
    ```
 
 ## Step 4: Initializing the Database
@@ -59,6 +61,17 @@ npm run dev
 ```
 The app will be available at `http://localhost:5000`.
 
+## Authentication
+The app uses simple username/password authentication. 
+
+**Default credentials:**
+- Username: `admin`
+- Password: `admin123`
+
+To change credentials, update these environment variables in your `.env` file:
+- `ADMIN_USERNAME` - Your desired username
+- `ADMIN_PASSWORD` - Your desired password
+
 ## Notes
 - This project uses **Drizzle ORM** for database management.
-- **Replit Auth** is used for login. For local development, you might need to adjust the authentication flow or use a mock user if you don't have Replit Auth environment variables.
+- Sessions are stored in the PostgreSQL database.

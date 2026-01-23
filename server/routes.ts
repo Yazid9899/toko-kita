@@ -3,30 +3,29 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { api, createOrderWithItemsSchema } from "@shared/routes";
 import { z } from "zod";
-import { setupAuth, registerAuthRoutes } from "./replit_integrations/auth";
+import { setupSimpleAuth, isAuthenticated } from "./replit_integrations/auth";
 
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  // Auth setup (Replit Auth)
-  await setupAuth(app);
-  registerAuthRoutes(app);
+  // Auth setup (Simple username/password)
+  await setupSimpleAuth(app);
 
   // --- CUSTOMERS ---
-  app.get(api.customers.list.path, async (req, res) => {
+  app.get(api.customers.list.path, isAuthenticated, async (req, res) => {
     const search = req.query.search as string | undefined;
     const customers = await storage.getCustomers(search);
     res.json(customers);
   });
 
-  app.get(api.customers.get.path, async (req, res) => {
+  app.get(api.customers.get.path, isAuthenticated, async (req, res) => {
     const customer = await storage.getCustomer(Number(req.params.id));
     if (!customer) return res.status(404).json({ message: "Customer not found" });
     res.json(customer);
   });
 
-  app.post(api.customers.create.path, async (req, res) => {
+  app.post(api.customers.create.path, isAuthenticated, async (req, res) => {
     try {
       const input = api.customers.create.input.parse(req.body);
       const customer = await storage.createCustomer(input);
@@ -37,7 +36,7 @@ export async function registerRoutes(
     }
   });
 
-  app.put(api.customers.update.path, async (req, res) => {
+  app.put(api.customers.update.path, isAuthenticated, async (req, res) => {
     try {
       const input = api.customers.update.input.parse(req.body);
       const customer = await storage.updateCustomer(Number(req.params.id), input);
@@ -49,7 +48,7 @@ export async function registerRoutes(
     }
   });
 
-  app.delete(api.customers.delete.path, async (req, res) => {
+  app.delete(api.customers.delete.path, isAuthenticated, async (req, res) => {
     try {
       const deleted = await storage.deleteCustomer(Number(req.params.id));
       if (!deleted) return res.status(404).json({ message: "Customer not found" });
@@ -63,18 +62,18 @@ export async function registerRoutes(
   });
 
   // --- PRODUCTS ---
-  app.get(api.products.list.path, async (req, res) => {
+  app.get(api.products.list.path, isAuthenticated, async (req, res) => {
     const products = await storage.getProducts();
     res.json(products);
   });
 
-  app.get(api.products.get.path, async (req, res) => {
+  app.get(api.products.get.path, isAuthenticated, async (req, res) => {
     const product = await storage.getProduct(Number(req.params.id));
     if (!product) return res.status(404).json({ message: "Product not found" });
     res.json(product);
   });
 
-  app.post(api.products.create.path, async (req, res) => {
+  app.post(api.products.create.path, isAuthenticated, async (req, res) => {
     try {
       const input = api.products.create.input.parse(req.body);
       const product = await storage.createProduct(input);
@@ -85,7 +84,7 @@ export async function registerRoutes(
     }
   });
 
-  app.put(api.products.update.path, async (req, res) => {
+  app.put(api.products.update.path, isAuthenticated, async (req, res) => {
     try {
         const input = api.products.update.input.parse(req.body);
         const product = await storage.updateProduct(Number(req.params.id), input);
@@ -97,7 +96,7 @@ export async function registerRoutes(
   });
 
   // --- VARIANTS ---
-  app.post(api.variants.create.path, async (req, res) => {
+  app.post(api.variants.create.path, isAuthenticated, async (req, res) => {
     try {
         const input = api.variants.create.input.parse(req.body);
         const variant = await storage.createVariant({
@@ -111,7 +110,7 @@ export async function registerRoutes(
     }
   });
 
-  app.put(api.variants.update.path, async (req, res) => {
+  app.put(api.variants.update.path, isAuthenticated, async (req, res) => {
       try {
           const input = api.variants.update.input.parse(req.body);
           const variant = await storage.updateVariant(Number(req.params.id), input);
@@ -122,7 +121,7 @@ export async function registerRoutes(
       }
   });
   
-  app.delete(api.variants.delete.path, async (req, res) => {
+  app.delete(api.variants.delete.path, isAuthenticated, async (req, res) => {
       try {
           await storage.deleteVariant(Number(req.params.id));
           res.status(204).send();
@@ -132,19 +131,19 @@ export async function registerRoutes(
   });
 
   // --- ORDERS ---
-  app.get(api.orders.list.path, async (req, res) => {
+  app.get(api.orders.list.path, isAuthenticated, async (req, res) => {
     const { status, packingStatus } = req.query;
     const orders = await storage.getOrders(status as string, packingStatus as string);
     res.json(orders);
   });
 
-  app.get(api.orders.get.path, async (req, res) => {
+  app.get(api.orders.get.path, isAuthenticated, async (req, res) => {
     const order = await storage.getOrder(Number(req.params.id));
     if (!order) return res.status(404).json({ message: "Order not found" });
     res.json(order);
   });
 
-  app.post(api.orders.create.path, async (req, res) => {
+  app.post(api.orders.create.path, isAuthenticated, async (req, res) => {
     try {
       // 1. Create Order
       const { items, ...orderData } = createOrderWithItemsSchema.parse(req.body);
@@ -217,7 +216,7 @@ export async function registerRoutes(
     }
   });
 
-  app.put(api.orders.update.path, async (req, res) => {
+  app.put(api.orders.update.path, isAuthenticated, async (req, res) => {
     try {
         const input = api.orders.update.input.parse(req.body);
         const order = await storage.updateOrder(Number(req.params.id), input);
@@ -229,13 +228,13 @@ export async function registerRoutes(
   });
 
   // --- PROCUREMENTS ---
-  app.get(api.procurements.list.path, async (req, res) => {
+  app.get(api.procurements.list.path, isAuthenticated, async (req, res) => {
     const status = req.query.status as string | undefined;
     const procurements = await storage.getProcurements(status);
     res.json(procurements);
   });
 
-  app.put(api.procurements.update.path, async (req, res) => {
+  app.put(api.procurements.update.path, isAuthenticated, async (req, res) => {
     try {
         const input = api.procurements.update.input.parse(req.body);
         
@@ -265,7 +264,7 @@ export async function registerRoutes(
 
   // --- SEED DATA ---
   // Simple seed check endpoint (dev only)
-  app.post("/api/seed", async (req, res) => {
+  app.post("/api/seed", isAuthenticated, async (req, res) => {
       const customers = await storage.getCustomers();
       if (customers.length === 0) {
           const c = await storage.createCustomer({
