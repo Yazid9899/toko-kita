@@ -29,7 +29,30 @@ Run the following command to set up your database tables:
 npm run db:push
 ```
 
-## Step 5: Start the Application
+## Step 5: Windows Users - Fix npm Scripts
+Windows Command Prompt doesn't recognize the `NODE_ENV=...` syntax. You need to modify `package.json` scripts.
+
+Open `package.json` and change the scripts section from:
+```json
+"scripts": {
+  "dev": "NODE_ENV=development tsx server/index.ts",
+  "start": "NODE_ENV=production node dist/index.cjs",
+  ...
+}
+```
+
+To:
+```json
+"scripts": {
+  "dev": "cross-env NODE_ENV=development tsx server/index.ts",
+  "start": "cross-env NODE_ENV=production node dist/index.cjs",
+  ...
+}
+```
+
+The `cross-env` package is already installed as a dependency.
+
+## Step 6: Start the Application
 Run the development server:
 ```bash
 npm run dev
