@@ -13,6 +13,8 @@ if [ ! -f .env ]; then
     echo "Creating .env template..."
     echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/toko_kita" > .env
     echo "SESSION_SECRET=$(openssl rand -base64 32)" >> .env
+    echo "JWT_SECRET=$(openssl rand -base64 32)" >> .env
+    echo "ADMIN_SEED_USERS=admin:admin123,admin2:change_me" >> .env
     echo ".env file created. Please update DATABASE_URL with your local PostgreSQL credentials."
 fi
 
@@ -23,4 +25,5 @@ echo "Next steps:"
 echo "1. Ensure PostgreSQL is running and you have created a database named 'toko_kita'."
 echo "2. Update the DATABASE_URL in your .env file."
 echo "3. Run 'npm run db:push' to initialize the database."
-echo "4. Run 'npm run dev' to start the application."
+echo "4. Run 'npm run seed:admins' to create your admin users."
+echo "5. Run 'npm run dev' to start the application."

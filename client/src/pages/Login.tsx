@@ -1,9 +1,45 @@
+import { useState, type FormEvent } from "react";
+import { useLocation } from "wouter";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function Login() {
-  const handleLogin = () => {
-    window.location.href = "/api/login";
+  const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError(null);
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ username, password }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        setError(data?.message ?? "Login failed");
+        return;
+      }
+
+      queryClient.setQueryData(["/api/auth/user"], true);
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      setLocation("/");
+    } catch {
+      setError("Login failed");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -35,23 +71,57 @@ export default function Login() {
 
         {/* Right Side - Login */}
         <div className="w-full md:w-1/2 p-12 flex flex-col justify-center items-center">
-           <div className="w-full max-w-sm space-y-8 text-center">
-              <div>
-                 <h3 className="text-2xl font-bold text-gray-900">Welcome Back</h3>
-                 <p className="text-gray-500 mt-2">Sign in to access your dashboard</p>
-              </div>
-
-              <Button 
-                onClick={handleLogin}
-                className="w-full h-12 text-lg bg-[#5C6AC4] hover:bg-[#4d5baf] transition-all shadow-lg shadow-indigo-200"
-              >
-                Log in with Replit
-              </Button>
-              
-              <p className="text-xs text-gray-400 mt-8">
-                By logging in, you agree to our Terms of Service and Privacy Policy.
+          <form
+            onSubmit={handleLogin}
+            className="w-full max-w-sm space-y-6 text-center"
+          >
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900">Welcome Back</h3>
+              <p className="text-gray-500 mt-2">
+                Sign in to access your dashboard
               </p>
-           </div>
+            </div>
+
+            <div className="space-y-4 text-left">
+              <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
+                <Input
+                  id="username"
+                  type="text"
+                  value={username}
+                  onChange={(event) => setUsername(event.target.value)}
+                  placeholder="Enter your username"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="Enter your password"
+                  required
+                />
+              </div>
+            </div>
+
+            {error && <p className="text-sm text-red-600">{error}</p>}
+
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full h-12 text-lg bg-[#5C6AC4] hover:bg-[#4d5baf] transition-all shadow-lg shadow-indigo-200"
+            >
+              {isSubmitting ? "Signing in..." : "Sign in"}
+            </Button>
+
+            <p className="text-xs text-gray-400 mt-6">
+              By logging in, you agree to our Terms of Service and Privacy
+              Policy.
+            </p>
+          </form>
         </div>
       </div>
     </div>

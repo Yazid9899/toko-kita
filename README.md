@@ -21,12 +21,18 @@ npm install
    ```env
    DATABASE_URL=postgresql://username:password@localhost:5432/toko_kita
    SESSION_SECRET=your_random_secret_here
+   JWT_SECRET=your_jwt_secret_here
+   ADMIN_SEED_USERS=admin:admin123,admin2:change_me
    ```
 
 ## Step 4: Initializing the Database
 Run the following command to set up your database tables:
 ```bash
 npm run db:push
+```
+Then seed your admin accounts:
+```bash
+npm run seed:admins
 ```
 
 ## Step 5: Start the Application
@@ -38,4 +44,5 @@ The app will be available at `http://localhost:5000`.
 
 ## Notes
 - This project uses **Drizzle ORM** for database management.
-- **Replit Auth** is used for login. For local development, you might need to adjust the authentication flow or use a mock user if you don't have Replit Auth environment variables.
+- Login uses a local **username/password** stored in the database with a **JWT** stored in an HTTP-only cookie.
+- You can remove `ADMIN_SEED_USERS` from `.env` after seeding.

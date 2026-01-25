@@ -3,13 +3,13 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { api, createOrderWithItemsSchema } from "@shared/routes";
 import { z } from "zod";
-import { setupAuth, registerAuthRoutes } from "./replit_integrations/auth";
+import { setupAuth, registerAuthRoutes } from "./auth";
 
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  // Auth setup (Replit Auth)
+  // Auth setup (local JWT)
   await setupAuth(app);
   registerAuthRoutes(app);
 

@@ -17,7 +17,7 @@ import Login from "@/pages/Login";
 import NotFound from "@/pages/not-found";
 
 function ProtectedRoute({ component: Component, ...rest }: any) {
-  const { user, isLoading } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -27,7 +27,7 @@ function ProtectedRoute({ component: Component, ...rest }: any) {
     );
   }
 
-  if (!user) {
+  if (!isAuthenticated) {
     return <Redirect to="/login" />;
   }
 

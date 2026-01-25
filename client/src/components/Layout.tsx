@@ -44,7 +44,7 @@ function SidebarItem({ href, icon: Icon, label, active, onClick }: SidebarItemPr
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = [
@@ -102,11 +102,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <div className="p-4 border-t border-slate-100">
           <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50 mb-3">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#5C6AC4] to-[#00848E] flex items-center justify-center text-white font-bold text-sm shadow-md">
-              {user?.firstName?.[0] || 'A'}
+              A
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-slate-800 truncate">{user?.firstName} {user?.lastName}</p>
-              <p className="text-xs text-slate-400 truncate">{user?.email}</p>
+              <p className="text-sm font-semibold text-slate-800 truncate">Admin</p>
+              <p className="text-xs text-slate-400 truncate">Local account</p>
             </div>
           </div>
           <Button 
@@ -150,7 +150,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
             </Button>
             <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#5C6AC4] to-[#00848E] flex items-center justify-center text-white font-bold text-xs shadow-md lg:hidden">
-              {user?.firstName?.[0] || 'A'}
+              A
             </div>
           </div>
         </header>

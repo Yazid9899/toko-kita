@@ -3,9 +3,6 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
 
-// Export Auth Models
-export * from "./models/auth";
-
 // --- ENUMS ---
 export const customerTypeEnum = pgEnum("customer_type", ["PERSONAL", "RESELLER"]);
 export const unitTypeEnum = pgEnum("unit_type", ["QUANTITY", "WEIGHT"]);
@@ -13,6 +10,18 @@ export const paymentTypeEnum = pgEnum("payment_type", ["MANUAL_TRANSFER", "FULL_
 export const paymentStatusEnum = pgEnum("payment_status", ["NOT_PAID", "DOWN_PAYMENT", "PAID"]);
 export const packingStatusEnum = pgEnum("packing_status", ["NOT_READY", "PACKING", "PACKED"]);
 export const procurementStatusEnum = pgEnum("procurement_status", ["TO_BUY", "ORDERED", "ARRIVED"]);
+
+// --- ADMIN USERS ---
+export const adminUsers = pgTable("admin_users", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  role: text("role").default("admin").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type AdminUser = typeof adminUsers.$inferSelect;
 
 // --- CUSTOMERS ---
 export const customers = pgTable("customers", {
