@@ -1,5 +1,5 @@
 import { Layout } from "@/components/Layout";
-import { useProducts, useCreateProduct, useCreateVariant, useBrands, useCreateBrand, useCreateAttribute, useCreateAttributeOption } from "@/hooks/use-products";
+import { useProducts, useCreateProduct, useCreateVariant, useBrands, useCreateBrand, useCreateAttribute, useCreateAttributeOption, useUpdateProduct, useUpdateBrand, useUpdateVariant, useUpdateAttribute, useUpdateAttributeOption } from "@/hooks/use-products";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -49,6 +49,44 @@ function BrandForm({ onSuccess }: { onSuccess: () => void }) {
         </Button>
       </form>
     </Form>
+  );
+}
+
+function BrandEditForm({
+  brand,
+  onSuccess,
+}: {
+  brand: { id: number; name: string; slug: string };
+  onSuccess: () => void;
+}) {
+  const { mutate, isPending } = useUpdateBrand();
+  const [name, setName] = useState(brand.name);
+  const [slug, setSlug] = useState(brand.slug);
+
+  useEffect(() => {
+    setName(brand.name);
+    setSlug(brand.slug);
+  }, [brand]);
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    mutate({ id: brand.id, data: { name: name.trim(), slug: slug.trim() } }, { onSuccess });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="space-y-2">
+        <Label className="text-slate-700 font-medium">Brand Name</Label>
+        <Input value={name} onChange={(event) => setName(event.target.value)} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#5C6AC4]" />
+      </div>
+      <div className="space-y-2">
+        <Label className="text-slate-700 font-medium">Slug</Label>
+        <Input value={slug} onChange={(event) => setSlug(event.target.value)} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#5C6AC4]" />
+      </div>
+      <Button type="submit" className="w-full h-11 rounded-xl bg-gradient-to-r from-[#5C6AC4] to-[#6B7AC8] hover:opacity-90 font-semibold shadow-[0_4px_15px_rgba(92,106,196,0.3)]" disabled={isPending || !name || !slug}>
+        {isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />} Save Brand
+      </Button>
+    </form>
   );
 }
 
@@ -300,6 +338,92 @@ function VariantForm({
   );
 }
 
+function ProductEditForm({
+  product,
+  brands,
+  onSuccess,
+}: {
+  product: { id: number; name: string; description?: string | null; brandId: number; type: "apparel" | "accessory" };
+  brands: { id: number; name: string }[];
+  onSuccess: () => void;
+}) {
+  const { mutate, isPending } = useUpdateProduct();
+  const [name, setName] = useState(product.name);
+  const [description, setDescription] = useState(product.description ?? "");
+  const [brandId, setBrandId] = useState(product.brandId);
+  const [type, setType] = useState(product.type);
+
+  useEffect(() => {
+    setName(product.name);
+    setDescription(product.description ?? "");
+    setBrandId(product.brandId);
+    setType(product.type);
+  }, [product]);
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    mutate(
+      {
+        id: product.id,
+        data: {
+          name: name.trim(),
+          description: description.trim() || null,
+          brandId,
+          type,
+        },
+      },
+      { onSuccess }
+    );
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="space-y-2">
+        <Label className="text-slate-700 font-medium">Product Name</Label>
+        <Input value={name} onChange={(event) => setName(event.target.value)} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#5C6AC4]" />
+      </div>
+      <div className="space-y-2">
+        <Label className="text-slate-700 font-medium">Description</Label>
+        <Input value={description} onChange={(event) => setDescription(event.target.value)} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#5C6AC4]" />
+      </div>
+      <div className="space-y-2">
+        <Label className="text-slate-700 font-medium">Brand</Label>
+        <div className="relative">
+          <select
+            value={brandId}
+            onChange={(event) => setBrandId(Number(event.target.value))}
+            className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 pr-10 text-sm shadow-sm transition-all focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/20 appearance-none"
+          >
+            {brands.map((brand) => (
+              <option key={brand.id} value={brand.id}>
+                {brand.name}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label className="text-slate-700 font-medium">Type</Label>
+        <div className="relative">
+          <select
+            value={type}
+            onChange={(event) => setType(event.target.value as "apparel" | "accessory")}
+            className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 pr-10 text-sm shadow-sm transition-all focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/20 appearance-none"
+          >
+            <option value="apparel">Apparel</option>
+            <option value="accessory">Accessory</option>
+          </select>
+          <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        </div>
+      </div>
+      <Button type="submit" className="w-full h-11 rounded-xl bg-gradient-to-r from-[#5C6AC4] to-[#6B7AC8] hover:opacity-90 font-semibold shadow-[0_4px_15px_rgba(92,106,196,0.3)]" disabled={isPending || !name}>
+        {isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />} Save Product
+      </Button>
+    </form>
+  );
+}
+
 function AttributeForm({
   productId,
   nextSortOrder,
@@ -407,6 +531,295 @@ function OptionForm({
   );
 }
 
+function AttributeEditForm({
+  productId,
+  attribute,
+  onSuccess,
+}: {
+  productId: number;
+  attribute: { id: number; name: string; code: string; sortOrder: number; isActive: boolean };
+  onSuccess: () => void;
+}) {
+  const { mutate, isPending } = useUpdateAttribute();
+  const [name, setName] = useState(attribute.name);
+  const [code, setCode] = useState(attribute.code);
+  const [sortOrder, setSortOrder] = useState(attribute.sortOrder);
+  const [isActive, setIsActive] = useState(attribute.isActive);
+
+  useEffect(() => {
+    setName(attribute.name);
+    setCode(attribute.code);
+    setSortOrder(attribute.sortOrder);
+    setIsActive(attribute.isActive);
+  }, [attribute]);
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    mutate(
+      {
+        id: attribute.id,
+        productId,
+        data: { name, code, sortOrder, isActive },
+      },
+      { onSuccess }
+    );
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="space-y-2">
+        <Label className="text-slate-700 font-medium">Attribute Name</Label>
+        <Input value={name} onChange={(event) => setName(event.target.value)} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#5C6AC4]" />
+      </div>
+      <div className="space-y-2">
+        <Label className="text-slate-700 font-medium">Code</Label>
+        <Input value={code} onChange={(event) => setCode(event.target.value)} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#5C6AC4]" />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label className="text-slate-700 font-medium">Sort Order</Label>
+          <Input type="number" value={sortOrder} onChange={(event) => setSortOrder(Number(event.target.value))} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#5C6AC4]" />
+        </div>
+        <div className="space-y-2">
+          <Label className="text-slate-700 font-medium">Active</Label>
+          <div className="relative">
+            <select
+              value={isActive ? "yes" : "no"}
+              onChange={(event) => setIsActive(event.target.value === "yes")}
+              className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 pr-10 text-sm shadow-sm transition-all focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/20 appearance-none"
+            >
+              <option value="yes">Active</option>
+              <option value="no">Inactive</option>
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          </div>
+        </div>
+      </div>
+      <Button type="submit" className="w-full h-11 rounded-xl bg-gradient-to-r from-[#5C6AC4] to-[#6B7AC8] hover:opacity-90 font-semibold shadow-[0_4px_15px_rgba(92,106,196,0.3)]" disabled={isPending || !name || !code}>
+        {isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />} Save Attribute
+      </Button>
+    </form>
+  );
+}
+
+function OptionEditForm({
+  productId,
+  option,
+  onSuccess,
+}: {
+  productId: number;
+  option: { id: number; value: string; sortOrder: number; isActive: boolean };
+  onSuccess: () => void;
+}) {
+  const { mutate, isPending } = useUpdateAttributeOption();
+  const [value, setValue] = useState(option.value);
+  const [sortOrder, setSortOrder] = useState(option.sortOrder);
+  const [isActive, setIsActive] = useState(option.isActive);
+
+  useEffect(() => {
+    setValue(option.value);
+    setSortOrder(option.sortOrder);
+    setIsActive(option.isActive);
+  }, [option]);
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    mutate(
+      {
+        id: option.id,
+        productId,
+        data: { value, sortOrder, isActive },
+      },
+      { onSuccess }
+    );
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label className="text-slate-700 font-medium">Option Value</Label>
+        <Input value={value} onChange={(event) => setValue(event.target.value)} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#5C6AC4]" />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label className="text-slate-700 font-medium">Sort Order</Label>
+          <Input type="number" value={sortOrder} onChange={(event) => setSortOrder(Number(event.target.value))} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#5C6AC4]" />
+        </div>
+        <div className="space-y-2">
+          <Label className="text-slate-700 font-medium">Active</Label>
+          <div className="relative">
+            <select
+              value={isActive ? "yes" : "no"}
+              onChange={(event) => setIsActive(event.target.value === "yes")}
+              className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 pr-10 text-sm shadow-sm transition-all focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/20 appearance-none"
+            >
+              <option value="yes">Active</option>
+              <option value="no">Inactive</option>
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          </div>
+        </div>
+      </div>
+      <Button type="submit" className="w-full h-10 rounded-xl bg-gradient-to-r from-[#00848E] to-[#00A3AE] hover:opacity-90 font-semibold shadow-[0_4px_15px_rgba(0,132,142,0.3)]" disabled={isPending || !value}>
+        {isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />} Save Option
+      </Button>
+    </form>
+  );
+}
+
+function VariantEditForm({
+  productId,
+  variant,
+  attributes,
+  onSuccess,
+}: {
+  productId: number;
+  variant: {
+    id: number;
+    sku: string;
+    unit: string;
+    stockOnHand: string | number;
+    allowPreorder: boolean;
+    prices: { currency: string; priceCents: number }[];
+    optionValues: { attributeId: number; optionId: number }[];
+  };
+  attributes: {
+    id: number;
+    name: string;
+    options: { id: number; value: string; isActive: boolean }[];
+  }[];
+  onSuccess: () => void;
+}) {
+  const { mutate, isPending } = useUpdateVariant();
+  const [sku, setSku] = useState(variant.sku);
+  const [unit, setUnit] = useState(variant.unit);
+  const [price, setPrice] = useState(variant.prices.find((p) => p.currency === "IDR")?.priceCents ?? 0);
+  const [stockOnHand, setStockOnHand] = useState(Number(variant.stockOnHand));
+  const [allowPreorder, setAllowPreorder] = useState(variant.allowPreorder);
+  const [selections, setSelections] = useState<Record<number, number>>({});
+
+  useEffect(() => {
+    const nextSelections: Record<number, number> = {};
+    variant.optionValues.forEach((ov) => {
+      nextSelections[ov.attributeId] = ov.optionId;
+    });
+    setSelections(nextSelections);
+    setSku(variant.sku);
+    setUnit(variant.unit);
+    setPrice(variant.prices.find((p) => p.currency === "IDR")?.priceCents ?? 0);
+    setStockOnHand(Number(variant.stockOnHand));
+    setAllowPreorder(variant.allowPreorder);
+  }, [variant]);
+
+  const selectionsReady = attributes.every((attribute) => selections[attribute.id]);
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    mutate(
+      {
+        id: variant.id,
+        productId,
+        data: {
+          sku,
+          unit,
+          stockOnHand,
+          allowPreorder,
+          currency: "IDR",
+          priceCents: Math.max(0, Math.round(price)),
+          selections: attributes.map((attribute) => ({
+            attributeId: attribute.id,
+            optionId: selections[attribute.id],
+          })),
+        },
+      },
+      { onSuccess }
+    );
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col max-h-[70vh]">
+      <div className="space-y-5 overflow-y-auto pr-2">
+        <div className="space-y-4">
+          {attributes.map((attribute) => {
+            const selectedOption = selections[attribute.id];
+            const options = attribute.options.filter(
+              (option) => option.isActive || option.id === selectedOption
+            );
+            return (
+              <div key={attribute.id} className="space-y-2">
+                <Label className="text-slate-700 font-medium">{attribute.name}</Label>
+                <div className="relative">
+                  <select
+                    className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 pr-10 text-sm shadow-sm transition-all focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/20 appearance-none"
+                    value={selectedOption ?? ""}
+                    onChange={(event) =>
+                      setSelections((prev) => ({
+                        ...prev,
+                        [attribute.id]: Number(event.target.value),
+                      }))
+                    }
+                  >
+                    <option value="">Select {attribute.name}</option>
+                    {options.map((option) => (
+                      <option key={option.id} value={option.id}>
+                        {option.value}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-slate-700 font-medium">SKU</Label>
+          <Input value={sku} onChange={(event) => setSku(event.target.value)} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#5C6AC4]" />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label className="text-slate-700 font-medium">Unit</Label>
+            <Input value={unit} onChange={(event) => setUnit(event.target.value)} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#5C6AC4]" />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-slate-700 font-medium">Price (Rp)</Label>
+            <Input type="number" value={price} onChange={(event) => setPrice(Number(event.target.value))} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#5C6AC4]" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label className="text-slate-700 font-medium">Stock</Label>
+            <Input type="number" value={stockOnHand} onChange={(event) => setStockOnHand(Number(event.target.value))} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#5C6AC4]" />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-slate-700 font-medium">Allow Preorder</Label>
+            <div className="relative">
+              <select
+                value={allowPreorder ? "yes" : "no"}
+                onChange={(event) => setAllowPreorder(event.target.value === "yes")}
+                className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 pr-10 text-sm shadow-sm transition-all focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/20 appearance-none"
+              >
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="sticky bottom-0 pt-4 bg-white/95 backdrop-blur">
+        <Button type="submit" className="w-full h-11 rounded-xl bg-gradient-to-r from-[#00848E] to-[#00A3AE] hover:opacity-90 font-semibold shadow-[0_4px_15px_rgba(0,132,142,0.3)]" disabled={isPending || !sku || !selectionsReady}>
+          {isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />} Save Variant
+        </Button>
+      </div>
+    </form>
+  );
+}
+
 export default function Products() {
   const { data: products, isLoading } = useProducts();
   const { data: brands } = useBrands();
@@ -416,6 +829,11 @@ export default function Products() {
   const [activeProductId, setActiveProductId] = useState<number | null>(null);
   const [activeAttributeProductId, setActiveAttributeProductId] = useState<number | null>(null);
   const [activeOptionAttributeId, setActiveOptionAttributeId] = useState<number | null>(null);
+  const [activeEditProductId, setActiveEditProductId] = useState<number | null>(null);
+  const [activeEditBrandId, setActiveEditBrandId] = useState<number | null>(null);
+  const [activeEditAttributeId, setActiveEditAttributeId] = useState<number | null>(null);
+  const [activeEditOptionId, setActiveEditOptionId] = useState<number | null>(null);
+  const [activeEditVariantId, setActiveEditVariantId] = useState<number | null>(null);
   const hasBrands = (brands?.length || 0) > 0;
 
   const toggleItem = (id: number) => {
@@ -549,6 +967,38 @@ export default function Products() {
                 
                 <CollapsibleContent>
                   <div className="border-t border-slate-100 bg-slate-50/50 px-6 py-5 space-y-6">
+                    <div className="flex flex-wrap items-center justify-end gap-2">
+                      <Dialog open={activeEditProductId === product.id} onOpenChange={(open) => setActiveEditProductId(open ? product.id : null)}>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" size="sm" className="rounded-lg text-xs">
+                            Edit Product
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[520px] rounded-2xl">
+                          <DialogHeader>
+                            <DialogTitle className="text-xl font-bold">Edit Product</DialogTitle>
+                            <DialogDescription>Update product details.</DialogDescription>
+                          </DialogHeader>
+                          <ProductEditForm product={product} brands={brands || []} onSuccess={() => setActiveEditProductId(null)} />
+                        </DialogContent>
+                      </Dialog>
+                      {product.brand && (
+                        <Dialog open={activeEditBrandId === product.brand.id} onOpenChange={(open) => setActiveEditBrandId(open ? product.brand.id : null)}>
+                          <DialogTrigger asChild>
+                            <Button variant="outline" size="sm" className="rounded-lg text-xs">
+                              Edit Brand
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-[480px] rounded-2xl">
+                            <DialogHeader>
+                              <DialogTitle className="text-xl font-bold">Edit Brand</DialogTitle>
+                              <DialogDescription>Update brand details.</DialogDescription>
+                            </DialogHeader>
+                            <BrandEditForm brand={product.brand} onSuccess={() => setActiveEditBrandId(null)} />
+                          </DialogContent>
+                        </Dialog>
+                      )}
+                    </div>
                     <div className="space-y-3">
                       <h4 className="text-sm font-semibold text-slate-600 uppercase tracking-wide">Attributes</h4>
                       {product.attributes.length === 0 ? (
@@ -562,29 +1012,56 @@ export default function Products() {
                                   <p className="font-semibold text-slate-800">{attribute.name}</p>
                                   <p className="text-xs text-slate-400">{attribute.code}</p>
                                 </div>
-                                <Dialog open={activeOptionAttributeId === attribute.id} onOpenChange={(open) => setActiveOptionAttributeId(open ? attribute.id : null)}>
-                                  <DialogTrigger asChild>
-                                    <Button variant="outline" size="sm" className="rounded-lg text-xs">
-                                      <Plus className="w-3 h-3 mr-1" /> Add Option
-                                    </Button>
-                                  </DialogTrigger>
-                                  <DialogContent className="sm:max-w-[420px] rounded-2xl">
-                                    <DialogHeader>
-                                      <DialogTitle className="text-lg font-bold">Add Option</DialogTitle>
-                                      <DialogDescription>Add a value for {attribute.name}.</DialogDescription>
-                                    </DialogHeader>
-                                    <OptionForm productId={product.id} attributeId={attribute.id} nextSortOrder={attribute.options.length + 1} onSuccess={() => setActiveOptionAttributeId(null)} />
-                                  </DialogContent>
-                                </Dialog>
+                                <div className="flex items-center gap-2">
+                                  <Dialog open={activeEditAttributeId === attribute.id} onOpenChange={(open) => setActiveEditAttributeId(open ? attribute.id : null)}>
+                                    <DialogTrigger asChild>
+                                      <Button variant="outline" size="sm" className="rounded-lg text-xs">
+                                        Edit
+                                      </Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="sm:max-w-[450px] rounded-2xl">
+                                      <DialogHeader>
+                                        <DialogTitle className="text-lg font-bold">Edit Attribute</DialogTitle>
+                                        <DialogDescription>Update attribute details.</DialogDescription>
+                                      </DialogHeader>
+                                      <AttributeEditForm productId={product.id} attribute={attribute} onSuccess={() => setActiveEditAttributeId(null)} />
+                                    </DialogContent>
+                                  </Dialog>
+                                  <Dialog open={activeOptionAttributeId === attribute.id} onOpenChange={(open) => setActiveOptionAttributeId(open ? attribute.id : null)}>
+                                    <DialogTrigger asChild>
+                                      <Button variant="outline" size="sm" className="rounded-lg text-xs">
+                                        <Plus className="w-3 h-3 mr-1" /> Add Option
+                                      </Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="sm:max-w-[420px] rounded-2xl">
+                                      <DialogHeader>
+                                        <DialogTitle className="text-lg font-bold">Add Option</DialogTitle>
+                                        <DialogDescription>Add a value for {attribute.name}.</DialogDescription>
+                                      </DialogHeader>
+                                      <OptionForm productId={product.id} attributeId={attribute.id} nextSortOrder={attribute.options.length + 1} onSuccess={() => setActiveOptionAttributeId(null)} />
+                                    </DialogContent>
+                                  </Dialog>
+                                </div>
                               </div>
                               <div className="mt-3 flex flex-wrap gap-2">
                                 {attribute.options.length === 0 ? (
                                   <span className="text-xs text-slate-400">No options yet</span>
                                 ) : (
                                   attribute.options.map((option) => (
-                                    <span key={option.id} className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-full">
-                                      {option.value}
-                                    </span>
+                                    <Dialog key={option.id} open={activeEditOptionId === option.id} onOpenChange={(open) => setActiveEditOptionId(open ? option.id : null)}>
+                                      <DialogTrigger asChild>
+                                        <button type="button" className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-full hover:bg-slate-200 transition-colors">
+                                          {option.value}
+                                        </button>
+                                      </DialogTrigger>
+                                      <DialogContent className="sm:max-w-[420px] rounded-2xl">
+                                        <DialogHeader>
+                                          <DialogTitle className="text-lg font-bold">Edit Option</DialogTitle>
+                                          <DialogDescription>Update option details.</DialogDescription>
+                                        </DialogHeader>
+                                        <OptionEditForm productId={product.id} option={option} onSuccess={() => setActiveEditOptionId(null)} />
+                                      </DialogContent>
+                                    </Dialog>
                                   ))
                                 )}
                               </div>
@@ -612,7 +1089,18 @@ export default function Products() {
                             </div>
                             <div className="mt-4 pt-3 border-t border-dashed border-slate-200 flex justify-between items-center">
                               <span className="text-sm font-medium text-slate-600">{stockNum} in stock</span>
-                              <Button variant="ghost" size="sm" className="h-8 text-xs text-slate-500 hover:text-[#5C6AC4] rounded-lg" data-testid={`button-edit-variant-${variant.id}`}>Edit</Button>
+                              <Dialog open={activeEditVariantId === variant.id} onOpenChange={(open) => setActiveEditVariantId(open ? variant.id : null)}>
+                                <DialogTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="h-8 text-xs text-slate-500 hover:text-[#5C6AC4] rounded-lg" data-testid={`button-edit-variant-${variant.id}`}>Edit</Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-[520px] max-h-[85vh] overflow-hidden rounded-2xl">
+                                  <DialogHeader>
+                                    <DialogTitle className="text-xl font-bold">Edit Variant</DialogTitle>
+                                    <DialogDescription>Update variant details and selections.</DialogDescription>
+                                  </DialogHeader>
+                                  <VariantEditForm productId={product.id} variant={variant} attributes={product.attributes} onSuccess={() => setActiveEditVariantId(null)} />
+                                </DialogContent>
+                              </Dialog>
                             </div>
                           </div>
                         );

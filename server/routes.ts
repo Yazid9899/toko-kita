@@ -30,6 +30,17 @@ export async function registerRoutes(
     }
   });
 
+  app.put(api.brands.update.path, async (req, res) => {
+    try {
+      const input = api.brands.update.input.parse(req.body);
+      const brand = await storage.updateBrand(Number(req.params.id), input);
+      res.json(brand);
+    } catch (err) {
+      if (err instanceof z.ZodError) res.status(400).json(err.errors);
+      else throw err;
+    }
+  });
+
   // --- CUSTOMERS ---
   app.get(api.customers.list.path, async (req, res) => {
     const search = req.query.search as string | undefined;
@@ -128,6 +139,17 @@ export async function registerRoutes(
     }
   });
 
+  app.put(api.attributes.update.path, async (req, res) => {
+    try {
+      const input = api.attributes.update.input.parse(req.body);
+      const attribute = await storage.updateAttribute(Number(req.params.id), input);
+      res.json(attribute);
+    } catch (err) {
+      if (err instanceof z.ZodError) res.status(400).json(err.errors);
+      else throw err;
+    }
+  });
+
   // --- ATTRIBUTE OPTIONS ---
   app.post(api.attributeOptions.create.path, async (req, res) => {
     try {
@@ -137,6 +159,17 @@ export async function registerRoutes(
         attributeId: Number(req.params.attributeId),
       });
       res.status(201).json(option);
+    } catch (err) {
+      if (err instanceof z.ZodError) res.status(400).json(err.errors);
+      else throw err;
+    }
+  });
+
+  app.put(api.attributeOptions.update.path, async (req, res) => {
+    try {
+      const input = api.attributeOptions.update.input.parse(req.body);
+      const option = await storage.updateAttributeOption(Number(req.params.id), input);
+      res.json(option);
     } catch (err) {
       if (err instanceof z.ZodError) res.status(400).json(err.errors);
       else throw err;
@@ -166,16 +199,17 @@ export async function registerRoutes(
   });
 
   app.put(api.variants.update.path, async (req, res) => {
-      try {
-          const input = api.variants.update.input.parse(req.body);
-          const variant = await storage.updateVariant(Number(req.params.id), input);
-          res.json(variant);
-      } catch (err) {
-          if (err instanceof z.ZodError) res.status(400).json(err.errors);
-          else throw err;
-      }
+    try {
+      const input = api.variants.update.input.parse(req.body);
+      const variant = await storage.updateVariantDetails(Number(req.params.id), input);
+      res.json(variant);
+    } catch (err) {
+      if (err instanceof z.ZodError) res.status(400).json(err.errors);
+      else if (err instanceof Error) res.status(400).json({ message: err.message });
+      else throw err;
+    }
   });
-  
+
   app.delete(api.variants.delete.path, async (req, res) => {
       try {
           await storage.deleteVariant(Number(req.params.id));

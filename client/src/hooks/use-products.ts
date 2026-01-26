@@ -53,6 +53,34 @@ export function useCreateProduct() {
   });
 }
 
+export function useUpdateProduct() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: Partial<InsertProduct> }) => {
+      const url = buildUrl(api.products.update.path, { id });
+      const res = await fetch(url, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+      });
+
+      if (!res.ok) throw new Error("Failed to update product");
+      return api.products.update.responses[200].parse(await res.json());
+    },
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: [api.products.get.path, id] });
+      queryClient.invalidateQueries({ queryKey: [api.products.list.path] });
+      toast({ title: "Success", description: "Product updated" });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  });
+}
+
 export function useCreateVariant() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -90,6 +118,50 @@ export function useCreateVariant() {
       queryClient.invalidateQueries({ queryKey: [api.products.get.path, productId] });
       queryClient.invalidateQueries({ queryKey: [api.products.list.path] }); // Update list too as it might show variants
       toast({ title: "Success", description: "Variant added successfully" });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  });
+}
+
+export function useUpdateVariant() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ id, productId, data }: { id: number; productId: number; data: {
+      sku?: string;
+      unit?: string;
+      stockOnHand?: number;
+      allowPreorder?: boolean;
+      currency?: string;
+      priceCents?: number;
+      selections?: { attributeId: number; optionId: number }[];
+    } }) => {
+      const url = buildUrl(api.variants.update.path, { id });
+      const res = await fetch(url, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        const message = await res.text();
+        try {
+          const parsed = JSON.parse(message);
+          throw new Error(parsed.message || "Failed to update variant");
+        } catch {
+          throw new Error(message || "Failed to update variant");
+        }
+      }
+      return api.variants.update.responses[200].parse(await res.json());
+    },
+    onSuccess: (_, { productId }) => {
+      queryClient.invalidateQueries({ queryKey: [api.products.get.path, productId] });
+      queryClient.invalidateQueries({ queryKey: [api.products.list.path] });
+      toast({ title: "Success", description: "Variant updated" });
     },
     onError: (error: Error) => {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -154,6 +226,34 @@ export function useCreateBrand() {
   });
 }
 
+export function useUpdateBrand() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: Partial<InsertBrand> }) => {
+      const url = buildUrl(api.brands.update.path, { id });
+      const res = await fetch(url, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+      });
+
+      if (!res.ok) throw new Error("Failed to update brand");
+      return api.brands.update.responses[200].parse(await res.json());
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.brands.list.path] });
+      queryClient.invalidateQueries({ queryKey: [api.products.list.path] });
+      toast({ title: "Success", description: "Brand updated" });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  });
+}
+
 export function useCreateAttribute() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -182,6 +282,34 @@ export function useCreateAttribute() {
   });
 }
 
+export function useUpdateAttribute() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ id, productId, data }: { id: number; productId: number; data: { name?: string; code?: string; sortOrder?: number; isActive?: boolean } }) => {
+      const url = buildUrl(api.attributes.update.path, { id });
+      const res = await fetch(url, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+      });
+
+      if (!res.ok) throw new Error("Failed to update attribute");
+      return api.attributes.update.responses[200].parse(await res.json());
+    },
+    onSuccess: (_, { productId }) => {
+      queryClient.invalidateQueries({ queryKey: [api.products.get.path, productId] });
+      queryClient.invalidateQueries({ queryKey: [api.products.list.path] });
+      toast({ title: "Success", description: "Attribute updated" });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  });
+}
+
 export function useCreateAttributeOption() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -203,6 +331,34 @@ export function useCreateAttributeOption() {
       queryClient.invalidateQueries({ queryKey: [api.products.get.path, productId] });
       queryClient.invalidateQueries({ queryKey: [api.products.list.path] });
       toast({ title: "Success", description: "Option created" });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  });
+}
+
+export function useUpdateAttributeOption() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ id, productId, data }: { id: number; productId: number; data: { value?: string; sortOrder?: number; isActive?: boolean } }) => {
+      const url = buildUrl(api.attributeOptions.update.path, { id });
+      const res = await fetch(url, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+      });
+
+      if (!res.ok) throw new Error("Failed to update option");
+      return api.attributeOptions.update.responses[200].parse(await res.json());
+    },
+    onSuccess: (_, { productId }) => {
+      queryClient.invalidateQueries({ queryKey: [api.products.get.path, productId] });
+      queryClient.invalidateQueries({ queryKey: [api.products.list.path] });
+      toast({ title: "Success", description: "Option updated" });
     },
     onError: (error: Error) => {
       toast({ title: "Error", description: error.message, variant: "destructive" });

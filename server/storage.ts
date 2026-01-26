@@ -63,6 +63,61 @@ function buildVariantKey(selections: ProductVariantOption[]): string {
     .join("|");
 }
 
+async function resolveVariantSelections(
+  productId: number,
+  selections: { attributeId: number; optionId: number }[]
+): Promise<{ resolved: ProductVariantOption[]; variantKey: string }> {
+  const attributeIds = Array.from(new Set(selections.map((s) => s.attributeId)));
+  if (attributeIds.length !== selections.length) {
+    throw new Error("Each variant must have one option per attribute.");
+  }
+
+  const attributes = await db
+    .select()
+    .from(productAttributes)
+    .where(eq(productAttributes.productId, productId));
+
+  const attributeById = new Map(attributes.map((attribute) => [attribute.id, attribute]));
+  const missingAttribute = selections.find(
+    (selection) => !attributeById.has(selection.attributeId)
+  );
+  if (missingAttribute) {
+    throw new Error("Selection contains an attribute that does not belong to the product.");
+  }
+
+  const optionIds = selections.map((selection) => selection.optionId);
+  const options = optionIds.length
+    ? await db
+        .select()
+        .from(attributeOptions)
+        .where(inArray(attributeOptions.id, optionIds))
+    : [];
+  const optionById = new Map(options.map((option) => [option.id, option]));
+
+  const resolved: ProductVariantOption[] = selections.map((selection) => {
+    const attribute = attributeById.get(selection.attributeId)!;
+    const option = optionById.get(selection.optionId);
+    if (!option) {
+      throw new Error("Selection contains an option that does not exist.");
+    }
+    if (option.attributeId !== attribute.id) {
+      throw new Error("Selection contains an option that does not belong to its attribute.");
+    }
+    if (!attribute.isActive || !option.isActive) {
+      throw new Error("Selection includes an inactive attribute or option.");
+    }
+    return {
+      attributeId: attribute.id,
+      optionId: option.id,
+      attributeName: attribute.name,
+      attributeCode: attribute.code,
+      optionValue: option.value,
+    };
+  });
+
+  return { resolved, variantKey: buildVariantKey(resolved) };
+}
+
 async function mapVariantsWithRelations(
   variants: ProductVariant[]
 ): Promise<Map<number, ProductVariantWithRelations>> {
@@ -144,6 +199,7 @@ export interface IStorage {
   // Brands
   getBrands(): Promise<Brand[]>;
   createBrand(brand: InsertBrand): Promise<Brand>;
+  updateBrand(id: number, brand: Partial<InsertBrand>): Promise<Brand>;
 
   // Customers
   getCustomers(search?: string): Promise<Customer[]>;
@@ -160,7 +216,9 @@ export interface IStorage {
 
   // Attributes
   createAttribute(attribute: InsertProductAttribute): Promise<ProductAttribute>;
+  updateAttribute(id: number, attribute: Partial<InsertProductAttribute>): Promise<ProductAttribute>;
   createAttributeOption(option: InsertAttributeOption): Promise<AttributeOption>;
+  updateAttributeOption(id: number, option: Partial<InsertAttributeOption>): Promise<AttributeOption>;
 
   // Variants
   createVariant(variant: InsertProductVariant): Promise<ProductVariant>;
@@ -173,6 +231,15 @@ export interface IStorage {
     selections: { attributeId: number; optionId: number }[];
     currency: string;
     priceCents: number;
+  }): Promise<ProductVariantWithRelations>;
+  updateVariantDetails(id: number, data: {
+    sku?: string;
+    unit?: string;
+    stockOnHand?: number;
+    allowPreorder?: boolean;
+    selections?: { attributeId: number; optionId: number }[];
+    currency?: string;
+    priceCents?: number;
   }): Promise<ProductVariantWithRelations>;
   updateVariant(id: number, variant: Partial<InsertProductVariant>): Promise<ProductVariant>;
   deleteVariant(id: number): Promise<void>;
@@ -210,6 +277,11 @@ export class DatabaseStorage implements IStorage {
   async createBrand(brand: InsertBrand): Promise<Brand> {
     const [newBrand] = await db.insert(brands).values(brand).returning();
     return newBrand;
+  }
+
+  async updateBrand(id: number, brand: Partial<InsertBrand>): Promise<Brand> {
+    const [updated] = await db.update(brands).set(brand).where(eq(brands.id, id)).returning();
+    return updated;
   }
 
   // --- Customers ---
@@ -335,9 +407,27 @@ export class DatabaseStorage implements IStorage {
     return newAttribute;
   }
 
+  async updateAttribute(id: number, attribute: Partial<InsertProductAttribute>): Promise<ProductAttribute> {
+    const [updated] = await db
+      .update(productAttributes)
+      .set(attribute)
+      .where(eq(productAttributes.id, id))
+      .returning();
+    return updated;
+  }
+
   async createAttributeOption(option: InsertAttributeOption): Promise<AttributeOption> {
     const [newOption] = await db.insert(attributeOptions).values(option).returning();
     return newOption;
+  }
+
+  async updateAttributeOption(id: number, option: Partial<InsertAttributeOption>): Promise<AttributeOption> {
+    const [updated] = await db
+      .update(attributeOptions)
+      .set(option)
+      .where(eq(attributeOptions.id, id))
+      .returning();
+    return updated;
   }
 
   // --- Variants ---
@@ -371,55 +461,10 @@ export class DatabaseStorage implements IStorage {
       priceCents,
     } = params;
 
-    const attributeIds = Array.from(new Set(selections.map((s) => s.attributeId)));
-    if (attributeIds.length !== selections.length) {
-      throw new Error("Each variant must have one option per attribute.");
-    }
-
-    const attributes = await db
-      .select()
-      .from(productAttributes)
-      .where(eq(productAttributes.productId, productId));
-
-    const attributeById = new Map(attributes.map((attribute) => [attribute.id, attribute]));
-    const missingAttribute = selections.find(
-      (selection) => !attributeById.has(selection.attributeId)
+    const { resolved, variantKey } = await resolveVariantSelections(
+      productId,
+      selections
     );
-    if (missingAttribute) {
-      throw new Error("Selection contains an attribute that does not belong to the product.");
-    }
-
-    const optionIds = selections.map((selection) => selection.optionId);
-    const options = optionIds.length
-      ? await db
-          .select()
-          .from(attributeOptions)
-          .where(inArray(attributeOptions.id, optionIds))
-      : [];
-    const optionById = new Map(options.map((option) => [option.id, option]));
-
-    const resolvedSelections: ProductVariantOption[] = selections.map((selection) => {
-      const attribute = attributeById.get(selection.attributeId)!;
-      const option = optionById.get(selection.optionId);
-      if (!option) {
-        throw new Error("Selection contains an option that does not exist.");
-      }
-      if (option.attributeId !== attribute.id) {
-        throw new Error("Selection contains an option that does not belong to its attribute.");
-      }
-      if (!attribute.isActive || !option.isActive) {
-        throw new Error("Selection includes an inactive attribute or option.");
-      }
-      return {
-        attributeId: attribute.id,
-        optionId: option.id,
-        attributeName: attribute.name,
-        attributeCode: attribute.code,
-        optionValue: option.value,
-      };
-    });
-
-    const variantKey = buildVariantKey(resolvedSelections);
 
     const newVariant = await db.transaction(async (tx) => {
       const [variant] = await tx
@@ -435,7 +480,7 @@ export class DatabaseStorage implements IStorage {
         .returning();
 
       await tx.insert(variantOptionValues).values(
-        selections.map((selection) => ({
+        resolved.map((selection) => ({
           variantId: variant.id,
           attributeId: selection.attributeId,
           optionId: selection.optionId,
@@ -453,6 +498,78 @@ export class DatabaseStorage implements IStorage {
 
     const relations = await mapVariantsWithRelations([newVariant]);
     return relations.get(newVariant.id)!;
+  }
+
+  async updateVariantDetails(id: number, data: {
+    sku?: string;
+    unit?: string;
+    stockOnHand?: number;
+    allowPreorder?: boolean;
+    selections?: { attributeId: number; optionId: number }[];
+    currency?: string;
+    priceCents?: number;
+  }): Promise<ProductVariantWithRelations> {
+    const [variant] = await db.select().from(productVariants).where(eq(productVariants.id, id));
+    if (!variant) {
+      throw new Error("Variant not found");
+    }
+
+    const updateData: Partial<InsertProductVariant> = {
+      sku: data.sku ?? variant.sku,
+      unit: data.unit ?? variant.unit,
+      stockOnHand: data.stockOnHand ?? Number(variant.stockOnHand),
+      allowPreorder: data.allowPreorder ?? variant.allowPreorder,
+    };
+
+    let variantKey = variant.variantKey;
+    let resolvedSelections: ProductVariantOption[] | null = null;
+    if (data.selections) {
+      const resolved = await resolveVariantSelections(variant.productId, data.selections);
+      variantKey = resolved.variantKey;
+      resolvedSelections = resolved.resolved;
+    }
+
+    const currency = data.currency ?? "IDR";
+
+    const updatedVariant = await db.transaction(async (tx) => {
+      const [updated] = await tx
+        .update(productVariants)
+        .set({
+          ...updateData,
+          stockOnHand: updateData.stockOnHand?.toString(),
+          variantKey,
+        })
+        .where(eq(productVariants.id, id))
+        .returning();
+
+      if (resolvedSelections) {
+        await tx
+          .delete(variantOptionValues)
+          .where(eq(variantOptionValues.variantId, id));
+        await tx.insert(variantOptionValues).values(
+          resolvedSelections.map((selection) => ({
+            variantId: id,
+            attributeId: selection.attributeId,
+            optionId: selection.optionId,
+          }))
+        );
+      }
+
+      if (typeof data.priceCents === "number") {
+        await tx
+          .insert(variantPrices)
+          .values({ variantId: id, currency, priceCents: data.priceCents })
+          .onConflictDoUpdate({
+            target: [variantPrices.variantId, variantPrices.currency],
+            set: { priceCents: data.priceCents },
+          });
+      }
+
+      return updated;
+    });
+
+    const relations = await mapVariantsWithRelations([updatedVariant]);
+    return relations.get(updatedVariant.id)!;
   }
 
   async updateVariant(id: number, variant: Partial<InsertProductVariant>): Promise<ProductVariant> {

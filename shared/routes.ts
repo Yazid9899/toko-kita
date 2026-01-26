@@ -50,6 +50,15 @@ export const api = {
         400: errorSchemas.validation,
       },
     },
+    update: {
+      method: 'PUT' as const,
+      path: '/api/brands/:id',
+      input: insertBrandSchema.partial(),
+      responses: {
+        200: z.custom<typeof brands.$inferSelect>(),
+        404: errorSchemas.notFound,
+      },
+    },
   },
   customers: {
     list: {
@@ -142,6 +151,15 @@ export const api = {
         400: errorSchemas.validation,
       },
     },
+    update: {
+      method: 'PUT' as const,
+      path: '/api/attributes/:id',
+      input: insertProductAttributeSchema.partial().omit({ productId: true }),
+      responses: {
+        200: z.custom<typeof productAttributes.$inferSelect>(),
+        404: errorSchemas.notFound,
+      },
+    },
   },
   attributeOptions: {
     create: {
@@ -151,6 +169,15 @@ export const api = {
       responses: {
         201: z.custom<typeof attributeOptions.$inferSelect>(),
         400: errorSchemas.validation,
+      },
+    },
+    update: {
+      method: 'PUT' as const,
+      path: '/api/attribute-options/:id',
+      input: insertAttributeOptionSchema.partial().omit({ attributeId: true }),
+      responses: {
+        200: z.custom<typeof attributeOptions.$inferSelect>(),
+        404: errorSchemas.notFound,
       },
     },
   },
@@ -178,9 +205,20 @@ export const api = {
     update: {
       method: 'PUT' as const,
       path: '/api/variants/:id',
-      input: insertProductVariantSchema.partial().omit({ productId: true, variantKey: true }),
+      input: z.object({
+        sku: z.string().optional(),
+        unit: z.string().optional(),
+        stockOnHand: z.number().optional(),
+        allowPreorder: z.boolean().optional(),
+        currency: z.string().optional(),
+        priceCents: z.number().optional(),
+        selections: z.array(z.object({
+          attributeId: z.number(),
+          optionId: z.number(),
+        })).optional(),
+      }),
       responses: {
-        200: z.custom<typeof productVariants.$inferSelect>(),
+        200: z.custom<ProductVariantWithRelations>(),
         404: errorSchemas.notFound,
       },
     },
