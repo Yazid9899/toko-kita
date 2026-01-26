@@ -11,7 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertProductSchema, type InsertProduct } from "@shared/schema";
@@ -95,18 +95,21 @@ function ProductForm({ onSuccess, brands }: { onSuccess: () => void; brands: { i
             <FormItem>
               <FormLabel className="text-slate-700 font-medium">Brand</FormLabel>
               <FormControl>
-                <select
-                  value={field.value}
-                  onChange={(event) => field.onChange(Number(event.target.value))}
-                  className="w-full h-11 rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm focus:bg-white focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/20 transition-all"
-                  data-testid="select-brand"
-                >
-                  {brands.map((brand) => (
-                    <option key={brand.id} value={brand.id}>
-                      {brand.name}
-                    </option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <select
+                    value={field.value}
+                    onChange={(event) => field.onChange(Number(event.target.value))}
+                    className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 pr-10 text-sm shadow-sm transition-all focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/20 appearance-none"
+                    data-testid="select-brand"
+                  >
+                    {brands.map((brand) => (
+                      <option key={brand.id} value={brand.id}>
+                        {brand.name}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -119,10 +122,13 @@ function ProductForm({ onSuccess, brands }: { onSuccess: () => void; brands: { i
             <FormItem>
               <FormLabel className="text-slate-700 font-medium">Type</FormLabel>
               <FormControl>
-                <select {...field} className="w-full h-11 rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm focus:bg-white focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/20 transition-all" data-testid="select-product-type">
-                  <option value="apparel">Apparel</option>
-                  <option value="accessory">Accessory</option>
-                </select>
+                <div className="relative">
+                  <select {...field} className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 pr-10 text-sm shadow-sm transition-all focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/20 appearance-none" data-testid="select-product-type">
+                    <option value="apparel">Apparel</option>
+                    <option value="accessory">Accessory</option>
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -197,104 +203,120 @@ function VariantForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
-      {activeAttributes.length === 0 ? (
-        <div className="text-sm text-slate-500 bg-slate-50 border border-dashed border-slate-200 rounded-xl p-4">
-          Add at least one attribute with options before creating variants.
+    <form onSubmit={handleSubmit} className="flex flex-col max-h-[70vh]">
+      <div className="space-y-5 overflow-y-auto pr-2">
+        {activeAttributes.length === 0 ? (
+          <div className="text-sm text-slate-500 bg-slate-50 border border-dashed border-slate-200 rounded-xl p-4">
+            Add at least one attribute with options before creating variants.
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {activeAttributes.map((attribute) => (
+              <div key={attribute.id} className="space-y-2">
+                <Label className="text-slate-700 font-medium">{attribute.name}</Label>
+                <div className="relative">
+                  <select
+                    className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 pr-10 text-sm shadow-sm transition-all focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/20 appearance-none"
+                    value={selections[attribute.id] ?? ""}
+                    onChange={(event) =>
+                      setSelections((prev) => ({
+                        ...prev,
+                        [attribute.id]: Number(event.target.value),
+                      }))
+                    }
+                    data-testid={`select-attribute-${attribute.id}`}
+                  >
+                    <option value="">Select {attribute.name}</option>
+                    {attribute.options
+                      .filter((option) => option.isActive)
+                      .map((option) => (
+                        <option key={option.id} value={option.id}>
+                          {option.value}
+                        </option>
+                      ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="space-y-2">
+          <Label className="text-slate-700 font-medium">SKU</Label>
+          <Input value={sku} onChange={(event) => setSku(event.target.value)} placeholder="e.g. LEGATTO-BLK-M" className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#5C6AC4]" data-testid="input-variant-sku" />
         </div>
-      ) : (
-        <div className="space-y-4">
-          {activeAttributes.map((attribute) => (
-            <div key={attribute.id} className="space-y-2">
-              <Label className="text-slate-700 font-medium">{attribute.name}</Label>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label className="text-slate-700 font-medium">Unit</Label>
+            <Input value={unit} onChange={(event) => setUnit(event.target.value)} placeholder="piece" className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#5C6AC4]" data-testid="input-variant-unit" />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-slate-700 font-medium">Price (Rp)</Label>
+            <Input type="number" value={price} onChange={(event) => setPrice(Number(event.target.value))} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#5C6AC4]" data-testid="input-variant-price" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label className="text-slate-700 font-medium">Initial Stock</Label>
+            <Input type="number" value={stockOnHand} onChange={(event) => setStockOnHand(Number(event.target.value))} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#5C6AC4]" data-testid="input-variant-stock" />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-slate-700 font-medium">Allow Preorder</Label>
+            <div className="relative">
               <select
-                className="w-full h-11 rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm focus:bg-white focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/20 transition-all"
-                value={selections[attribute.id] ?? ""}
-                onChange={(event) =>
-                  setSelections((prev) => ({
-                    ...prev,
-                    [attribute.id]: Number(event.target.value),
-                  }))
-                }
-                data-testid={`select-attribute-${attribute.id}`}
+                className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 pr-10 text-sm shadow-sm transition-all focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/20 appearance-none"
+                value={allowPreorder ? "yes" : "no"}
+                onChange={(event) => setAllowPreorder(event.target.value === "yes")}
               >
-                <option value="">Select {attribute.name}</option>
-                {attribute.options
-                  .filter((option) => option.isActive)
-                  .map((option) => (
-                    <option key={option.id} value={option.id}>
-                      {option.value}
-                    </option>
-                  ))}
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
               </select>
+              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             </div>
-          ))}
-        </div>
-      )}
-
-      <div className="space-y-2">
-        <Label className="text-slate-700 font-medium">SKU</Label>
-        <Input value={sku} onChange={(event) => setSku(event.target.value)} placeholder="e.g. LEGATTO-BLK-M" className="h-11 rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#5C6AC4]" data-testid="input-variant-sku" />
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label className="text-slate-700 font-medium">Unit</Label>
-          <Input value={unit} onChange={(event) => setUnit(event.target.value)} placeholder="piece" className="h-11 rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#5C6AC4]" data-testid="input-variant-unit" />
-        </div>
-        <div className="space-y-2">
-          <Label className="text-slate-700 font-medium">Price (Rp)</Label>
-          <Input type="number" value={price} onChange={(event) => setPrice(Number(event.target.value))} className="h-11 rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#5C6AC4]" data-testid="input-variant-price" />
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label className="text-slate-700 font-medium">Initial Stock</Label>
-          <Input type="number" value={stockOnHand} onChange={(event) => setStockOnHand(Number(event.target.value))} className="h-11 rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#5C6AC4]" data-testid="input-variant-stock" />
-        </div>
-        <div className="space-y-2">
-          <Label className="text-slate-700 font-medium">Allow Preorder</Label>
-          <select
-            className="w-full h-11 rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm focus:bg-white focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/20 transition-all"
-            value={allowPreorder ? "yes" : "no"}
-            onChange={(event) => setAllowPreorder(event.target.value === "yes")}
-          >
-            <option value="no">No</option>
-            <option value="yes">Yes</option>
-          </select>
-        </div>
+      <div className="sticky bottom-0 pt-4 bg-white/95 backdrop-blur">
+        <Button
+          type="submit"
+          className="w-full h-11 rounded-xl bg-gradient-to-r from-[#00848E] to-[#00A3AE] hover:opacity-90 font-semibold shadow-[0_4px_15px_rgba(0,132,142,0.3)]"
+          disabled={
+            isPending ||
+            !sku ||
+            !hasOptions ||
+            !selectionsReady ||
+            activeAttributes.length === 0
+          }
+          data-testid="button-add-variant"
+        >
+          {isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />} Add Variant
+        </Button>
       </div>
-
-      <Button
-        type="submit"
-        className="w-full h-11 rounded-xl bg-gradient-to-r from-[#00848E] to-[#00A3AE] hover:opacity-90 font-semibold shadow-[0_4px_15px_rgba(0,132,142,0.3)]"
-        disabled={
-          isPending ||
-          !sku ||
-          !hasOptions ||
-          !selectionsReady ||
-          activeAttributes.length === 0
-        }
-        data-testid="button-add-variant"
-      >
-        {isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />} Add Variant
-      </Button>
     </form>
   );
 }
 
 function AttributeForm({
   productId,
+  nextSortOrder,
   onSuccess,
 }: {
   productId: number;
+  nextSortOrder: number;
   onSuccess: () => void;
 }) {
   const { mutate, isPending } = useCreateAttribute();
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
-  const [sortOrder, setSortOrder] = useState(0);
+  const [sortOrder, setSortOrder] = useState(nextSortOrder);
+
+  useEffect(() => {
+    setSortOrder(nextSortOrder);
+  }, [nextSortOrder]);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -336,15 +358,21 @@ function AttributeForm({
 function OptionForm({
   productId,
   attributeId,
+  nextSortOrder,
   onSuccess,
 }: {
   productId: number;
   attributeId: number;
+  nextSortOrder: number;
   onSuccess: () => void;
 }) {
   const { mutate, isPending } = useCreateAttributeOption();
   const [value, setValue] = useState("");
-  const [sortOrder, setSortOrder] = useState(0);
+  const [sortOrder, setSortOrder] = useState(nextSortOrder);
+
+  useEffect(() => {
+    setSortOrder(nextSortOrder);
+  }, [nextSortOrder]);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -489,7 +517,7 @@ export default function Products() {
                           <Plus className="w-4 h-4 mr-2" /> Add Variant
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="sm:max-w-[500px] rounded-2xl">
+                      <DialogContent className="sm:max-w-[520px] max-h-[85vh] overflow-hidden rounded-2xl">
                         <DialogHeader>
                           <DialogTitle className="text-xl font-bold">Add Variant to {product.name}</DialogTitle>
                           <DialogDescription>Create a new variant with different attributes.</DialogDescription>
@@ -508,7 +536,7 @@ export default function Products() {
                           <DialogTitle className="text-xl font-bold">Add Attribute</DialogTitle>
                           <DialogDescription>Define attributes like Color or Size.</DialogDescription>
                         </DialogHeader>
-                        <AttributeForm productId={product.id} onSuccess={() => setActiveAttributeProductId(null)} />
+                        <AttributeForm productId={product.id} nextSortOrder={product.attributes.length + 1} onSuccess={() => setActiveAttributeProductId(null)} />
                       </DialogContent>
                     </Dialog>
                     <CollapsibleTrigger asChild>
@@ -545,7 +573,7 @@ export default function Products() {
                                       <DialogTitle className="text-lg font-bold">Add Option</DialogTitle>
                                       <DialogDescription>Add a value for {attribute.name}.</DialogDescription>
                                     </DialogHeader>
-                                    <OptionForm productId={product.id} attributeId={attribute.id} onSuccess={() => setActiveOptionAttributeId(null)} />
+                                    <OptionForm productId={product.id} attributeId={attribute.id} nextSortOrder={attribute.options.length + 1} onSuccess={() => setActiveOptionAttributeId(null)} />
                                   </DialogContent>
                                 </Dialog>
                               </div>
