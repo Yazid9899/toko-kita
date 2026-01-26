@@ -1,12 +1,17 @@
 import { z } from "zod";
 import { 
   insertCustomerSchema, customers, 
+  insertBrandSchema, brands,
   insertProductSchema, products,
+  insertProductAttributeSchema, productAttributes,
+  insertAttributeOptionSchema, attributeOptions,
   insertProductVariantSchema, productVariants,
+  type ProductWithRelations,
+  type ProductVariantWithRelations,
   insertOrderSchema, orders,
   insertOrderItemSchema, orderItems,
   insertProcurementSchema, procurements,
-  unitTypeEnum, customerTypeEnum, paymentTypeEnum, paymentStatusEnum, packingStatusEnum, procurementStatusEnum
+  customerTypeEnum, paymentTypeEnum, paymentStatusEnum, packingStatusEnum, procurementStatusEnum
 } from "./schema";
 
 export const errorSchemas = {
@@ -28,6 +33,24 @@ export const createOrderWithItemsSchema = insertOrderSchema.extend({
 });
 
 export const api = {
+  brands: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/brands',
+      responses: {
+        200: z.array(z.custom<typeof brands.$inferSelect>()),
+      },
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/brands',
+      input: insertBrandSchema,
+      responses: {
+        201: z.custom<typeof brands.$inferSelect>(),
+        400: errorSchemas.validation,
+      },
+    },
+  },
   customers: {
     list: {
       method: 'GET' as const,
@@ -79,14 +102,14 @@ export const api = {
       method: 'GET' as const,
       path: '/api/products',
       responses: {
-        200: z.array(z.custom<typeof products.$inferSelect & { variants: typeof productVariants.$inferSelect[] }>()),
+        200: z.array(z.custom<ProductWithRelations>()),
       },
     },
     get: {
       method: 'GET' as const,
       path: '/api/products/:id',
       responses: {
-        200: z.custom<typeof products.$inferSelect & { variants: typeof productVariants.$inferSelect[] }>(),
+        200: z.custom<ProductWithRelations>(),
         404: errorSchemas.notFound,
       },
     },
@@ -109,20 +132,53 @@ export const api = {
       },
     },
   },
+  attributes: {
+    create: {
+      method: 'POST' as const,
+      path: '/api/products/:productId/attributes',
+      input: insertProductAttributeSchema.omit({ productId: true }),
+      responses: {
+        201: z.custom<typeof productAttributes.$inferSelect>(),
+        400: errorSchemas.validation,
+      },
+    },
+  },
+  attributeOptions: {
+    create: {
+      method: 'POST' as const,
+      path: '/api/attributes/:attributeId/options',
+      input: insertAttributeOptionSchema.omit({ attributeId: true }),
+      responses: {
+        201: z.custom<typeof attributeOptions.$inferSelect>(),
+        400: errorSchemas.validation,
+      },
+    },
+  },
   variants: {
     create: {
       method: 'POST' as const,
       path: '/api/products/:productId/variants',
-      input: insertProductVariantSchema.omit({ productId: true }),
+      input: z.object({
+        sku: z.string(),
+        unit: z.string().optional(),
+        stockOnHand: z.number().optional(),
+        allowPreorder: z.boolean().optional(),
+        currency: z.string().optional(),
+        priceCents: z.number(),
+        selections: z.array(z.object({
+          attributeId: z.number(),
+          optionId: z.number(),
+        })).min(1),
+      }),
       responses: {
-        201: z.custom<typeof productVariants.$inferSelect>(),
+        201: z.custom<ProductVariantWithRelations>(),
         400: errorSchemas.validation,
       },
     },
     update: {
       method: 'PUT' as const,
       path: '/api/variants/:id',
-      input: insertProductVariantSchema.partial().omit({ productId: true }),
+      input: insertProductVariantSchema.partial().omit({ productId: true, variantKey: true }),
       responses: {
         200: z.custom<typeof productVariants.$inferSelect>(),
         404: errorSchemas.notFound,
@@ -155,8 +211,8 @@ export const api = {
       responses: {
         200: z.custom<typeof orders.$inferSelect & { 
           customer: typeof customers.$inferSelect, 
-          items: (typeof orderItems.$inferSelect & { variant: typeof productVariants.$inferSelect })[],
-          procurements: (typeof procurements.$inferSelect & { variant: typeof productVariants.$inferSelect })[]
+          items: (typeof orderItems.$inferSelect & { variant: ProductVariantWithRelations })[],
+          procurements: (typeof procurements.$inferSelect & { variant: ProductVariantWithRelations })[]
         }>(),
         404: errorSchemas.notFound,
       },
@@ -189,7 +245,7 @@ export const api = {
       }).optional(),
       responses: {
         200: z.array(z.custom<typeof procurements.$inferSelect & { 
-            variant: typeof productVariants.$inferSelect,
+            variant: ProductVariantWithRelations,
             order: typeof orders.$inferSelect & { customer: typeof customers.$inferSelect }
         }>()),
       },

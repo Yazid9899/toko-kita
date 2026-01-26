@@ -13,6 +13,23 @@ export async function registerRoutes(
   await setupAuth(app);
   registerAuthRoutes(app);
 
+  // --- BRANDS ---
+  app.get(api.brands.list.path, async (_req, res) => {
+    const brands = await storage.getBrands();
+    res.json(brands);
+  });
+
+  app.post(api.brands.create.path, async (req, res) => {
+    try {
+      const input = api.brands.create.input.parse(req.body);
+      const brand = await storage.createBrand(input);
+      res.status(201).json(brand);
+    } catch (err) {
+      if (err instanceof z.ZodError) res.status(400).json(err.errors);
+      else throw err;
+    }
+  });
+
   // --- CUSTOMERS ---
   app.get(api.customers.list.path, async (req, res) => {
     const search = req.query.search as string | undefined;
@@ -96,17 +113,54 @@ export async function registerRoutes(
     }
   });
 
+  // --- ATTRIBUTES ---
+  app.post(api.attributes.create.path, async (req, res) => {
+    try {
+      const input = api.attributes.create.input.parse(req.body);
+      const attribute = await storage.createAttribute({
+        ...input,
+        productId: Number(req.params.productId),
+      });
+      res.status(201).json(attribute);
+    } catch (err) {
+      if (err instanceof z.ZodError) res.status(400).json(err.errors);
+      else throw err;
+    }
+  });
+
+  // --- ATTRIBUTE OPTIONS ---
+  app.post(api.attributeOptions.create.path, async (req, res) => {
+    try {
+      const input = api.attributeOptions.create.input.parse(req.body);
+      const option = await storage.createAttributeOption({
+        ...input,
+        attributeId: Number(req.params.attributeId),
+      });
+      res.status(201).json(option);
+    } catch (err) {
+      if (err instanceof z.ZodError) res.status(400).json(err.errors);
+      else throw err;
+    }
+  });
+
   // --- VARIANTS ---
   app.post(api.variants.create.path, async (req, res) => {
     try {
         const input = api.variants.create.input.parse(req.body);
-        const variant = await storage.createVariant({
-            ...input,
-            productId: Number(req.params.productId)
+        const variant = await storage.createVariantWithSelections({
+          productId: Number(req.params.productId),
+          sku: input.sku,
+          unit: input.unit,
+          stockOnHand: input.stockOnHand,
+          allowPreorder: input.allowPreorder,
+          selections: input.selections,
+          currency: input.currency ?? "IDR",
+          priceCents: input.priceCents,
         });
         res.status(201).json(variant);
     } catch (err) {
         if (err instanceof z.ZodError) res.status(400).json(err.errors);
+        else if (err instanceof Error) res.status(400).json({ message: err.message });
         else throw err;
     }
   });
@@ -278,27 +332,88 @@ export async function registerRoutes(
               customerType: "PERSONAL"
           });
 
-          const p1 = await storage.createProduct({
-              name: "Buttonscarves Hijab",
-              description: "Premium Voal",
-              defaultPrice: 350000,
-              unitType: "QUANTITY"
+          const brand = await storage.createBrand({
+              name: "Buttonscarves",
+              slug: "buttonscarves"
           });
 
-          const v1 = await storage.createVariant({
-              productId: p1.id,
-              variantName: "Grand Prix / Blue",
-              attributes: { series: "Grand Prix", color: "Blue" },
-              stockOnHand: 10,
-              defaultPrice: 350000
+          const p1 = await storage.createProduct({
+              brandId: brand.id,
+              name: "Legatto Bag",
+              description: "Signature structured bag",
+              type: "accessory"
           });
-          
-          const v2 = await storage.createVariant({
+
+          const colorAttr = await storage.createAttribute({
               productId: p1.id,
-              variantName: "Grand Prix / Red",
-              attributes: { series: "Grand Prix", color: "Red" },
-              stockOnHand: 0, // Will trigger procurement
-              defaultPrice: 350000
+              name: "Color",
+              code: "color",
+              sortOrder: 1,
+              isActive: true
+          });
+
+          const sizeAttr = await storage.createAttribute({
+              productId: p1.id,
+              name: "Size",
+              code: "size",
+              sortOrder: 2,
+              isActive: true
+          });
+
+          const black = await storage.createAttributeOption({
+              attributeId: colorAttr.id,
+              value: "Black",
+              sortOrder: 1,
+              isActive: true
+          });
+
+          const brown = await storage.createAttributeOption({
+              attributeId: colorAttr.id,
+              value: "Brown",
+              sortOrder: 2,
+              isActive: true
+          });
+
+          const sizeM = await storage.createAttributeOption({
+              attributeId: sizeAttr.id,
+              value: "M",
+              sortOrder: 1,
+              isActive: true
+          });
+
+          const sizeL = await storage.createAttributeOption({
+              attributeId: sizeAttr.id,
+              value: "L",
+              sortOrder: 2,
+              isActive: true
+          });
+
+          const v1 = await storage.createVariantWithSelections({
+              productId: p1.id,
+              sku: "LEGATTO-BLK-M",
+              unit: "piece",
+              stockOnHand: 8,
+              allowPreorder: false,
+              selections: [
+                { attributeId: colorAttr.id, optionId: black.id },
+                { attributeId: sizeAttr.id, optionId: sizeM.id }
+              ],
+              currency: "IDR",
+              priceCents: 750000
+          });
+
+          const v2 = await storage.createVariantWithSelections({
+              productId: p1.id,
+              sku: "LEGATTO-BRN-L",
+              unit: "piece",
+              stockOnHand: 0,
+              allowPreorder: true,
+              selections: [
+                { attributeId: colorAttr.id, optionId: brown.id },
+                { attributeId: sizeAttr.id, optionId: sizeL.id }
+              ],
+              currency: "IDR",
+              priceCents: 780000
           });
 
           res.json({ message: "Seeded", customer: c, variants: [v1, v2] });

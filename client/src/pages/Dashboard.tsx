@@ -15,6 +15,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { format } from "date-fns";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
+import { formatVariantLabel } from "@/lib/variant-utils";
 
 function StatCard({ title, value, icon: Icon, description, loading, color = "primary" }: any) {
   const colorClasses: Record<string, string> = {
@@ -186,7 +187,7 @@ export default function Dashboard() {
               {procurements?.filter(p => p.status === "TO_BUY").slice(0, 5).map(p => (
                 <div key={p.id} className="flex items-center justify-between p-4 bg-[#00848E]/5 rounded-xl border border-[#00848E]/10" data-testid={`procurement-row-${p.id}`}>
                   <div>
-                    <p className="font-medium text-slate-800">{p.variant.variantName}</p>
+                    <p className="font-medium text-slate-800">{formatVariantLabel(p.variant)}</p>
                     <p className="text-xs text-slate-500 mt-0.5">For {p.order.orderNumber}</p>
                   </div>
                   <span className="text-sm font-bold text-[#00848E] bg-[#00848E]/10 px-3 py-1.5 rounded-full">{Number(p.neededQty)} needed</span>

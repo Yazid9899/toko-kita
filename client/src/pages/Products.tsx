@@ -1,7 +1,8 @@
 import { Layout } from "@/components/Layout";
-import { useProducts, useCreateProduct, useCreateVariant } from "@/hooks/use-products";
+import { useProducts, useCreateProduct, useCreateVariant, useBrands, useCreateBrand, useCreateAttribute, useCreateAttributeOption } from "@/hooks/use-products";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -10,19 +11,52 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useState } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertProductSchema, type InsertProduct, insertProductVariantSchema } from "@shared/schema";
+import { insertProductSchema, type InsertProduct } from "@shared/schema";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Loader2, Plus, Package, ChevronDown, ChevronUp, Box, Tag, Layers } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { formatPrice, formatVariantLabel, getVariantPrice } from "@/lib/variant-utils";
 
-function ProductForm({ onSuccess }: { onSuccess: () => void }) {
+function BrandForm({ onSuccess }: { onSuccess: () => void }) {
+  const { mutate, isPending } = useCreateBrand();
+  const form = useForm({
+    defaultValues: { name: "", slug: "" }
+  });
+
+  const handleSubmit = (data: { name: string; slug: string }) => {
+    mutate(
+      { name: data.name.trim(), slug: data.slug.trim() },
+      { onSuccess }
+    );
+  };
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-5">
+        <div className="space-y-2">
+          <Label className="text-slate-700 font-medium">Brand Name</Label>
+          <Input placeholder="e.g. Legatto" {...form.register("name", { required: true })} className="h-11 rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#5C6AC4]" />
+        </div>
+        <div className="space-y-2">
+          <Label className="text-slate-700 font-medium">Slug</Label>
+          <Input placeholder="e.g. legatto" {...form.register("slug", { required: true })} className="h-11 rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#5C6AC4]" />
+        </div>
+        <Button type="submit" className="w-full h-11 rounded-xl bg-gradient-to-r from-[#5C6AC4] to-[#6B7AC8] hover:opacity-90 font-semibold shadow-[0_4px_15px_rgba(92,106,196,0.3)]" disabled={isPending}>
+          {isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />} Create Brand
+        </Button>
+      </form>
+    </Form>
+  );
+}
+
+function ProductForm({ onSuccess, brands }: { onSuccess: () => void; brands: { id: number; name: string }[] }) {
   const { mutate, isPending } = useCreateProduct();
   const form = useForm<InsertProduct>({
     resolver: zodResolver(insertProductSchema),
-    defaultValues: { name: "", description: "", unitType: "QUANTITY" }
+    defaultValues: { name: "", description: "", brandId: brands[0]!.id, type: "apparel" }
   });
 
   return (
@@ -56,14 +90,38 @@ function ProductForm({ onSuccess }: { onSuccess: () => void }) {
         />
         <FormField
           control={form.control}
-          name="unitType"
+          name="brandId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-slate-700 font-medium">Unit Type</FormLabel>
+              <FormLabel className="text-slate-700 font-medium">Brand</FormLabel>
               <FormControl>
-                <select {...field} className="w-full h-11 rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm focus:bg-white focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/20 transition-all" data-testid="select-unit-type">
-                  <option value="QUANTITY">Quantity (pcs)</option>
-                  <option value="WEIGHT">Weight (kg/gr)</option>
+                <select
+                  value={field.value}
+                  onChange={(event) => field.onChange(Number(event.target.value))}
+                  className="w-full h-11 rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm focus:bg-white focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/20 transition-all"
+                  data-testid="select-brand"
+                >
+                  {brands.map((brand) => (
+                    <option key={brand.id} value={brand.id}>
+                      {brand.name}
+                    </option>
+                  ))}
+                </select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-slate-700 font-medium">Type</FormLabel>
+              <FormControl>
+                <select {...field} className="w-full h-11 rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm focus:bg-white focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/20 transition-all" data-testid="select-product-type">
+                  <option value="apparel">Apparel</option>
+                  <option value="accessory">Accessory</option>
                 </select>
               </FormControl>
               <FormMessage />
@@ -78,98 +136,259 @@ function ProductForm({ onSuccess }: { onSuccess: () => void }) {
   );
 }
 
-function VariantForm({ productId, onSuccess }: { productId: number; onSuccess: () => void }) {
+function VariantForm({
+  productId,
+  attributes,
+  onSuccess,
+}: {
+  productId: number;
+  attributes: {
+    id: number;
+    name: string;
+    code: string;
+    isActive: boolean;
+    options: { id: number; value: string; isActive: boolean }[];
+  }[];
+  onSuccess: () => void;
+}) {
   const { mutate, isPending } = useCreateVariant();
-  const form = useForm({
-    resolver: zodResolver(insertProductVariantSchema.omit({ productId: true })),
-    defaultValues: {
-      variantName: "",
-      barcodeOrSku: "",
-      defaultPrice: 0,
-      stockOnHand: 0,
-      attributes: {},
-      allowPreorder: false
-    }
-  });
+  const [sku, setSku] = useState("");
+  const [unit, setUnit] = useState("piece");
+  const [price, setPrice] = useState(0);
+  const [stockOnHand, setStockOnHand] = useState(0);
+  const [allowPreorder, setAllowPreorder] = useState(false);
+  const [selections, setSelections] = useState<Record<number, number>>({});
 
-  const [color, setColor] = useState("");
-  const [size, setSize] = useState("");
+  const activeAttributes = useMemo(
+    () => attributes.filter((attribute) => attribute.isActive),
+    [attributes]
+  );
 
-  const handleSubmit = (data: any) => {
-    const attributes = { color, size };
-    const variantName = data.variantName || `${color} ${size}`.trim() || "Default";
-    
-    mutate({ 
-      productId, 
-      data: { ...data, variantName, attributes } 
-    }, { onSuccess });
+  const hasOptions = activeAttributes.every(
+    (attribute) =>
+      attribute.options.some((option) => option.isActive)
+  );
+  const selectionsReady = activeAttributes.every(
+    (attribute) => selections[attribute.id]
+  );
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const selectionList = activeAttributes.map((attribute) => ({
+      attributeId: attribute.id,
+      optionId: selections[attribute.id],
+    }));
+
+    mutate(
+      {
+        productId,
+        data: {
+          sku,
+          unit,
+          stockOnHand,
+          allowPreorder,
+          priceCents: Math.max(0, Math.round(price)),
+          currency: "IDR",
+          selections: selectionList,
+        },
+      },
+      { onSuccess }
+    );
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-5">
-        <div className="grid grid-cols-2 gap-4">
-          <FormItem>
-            <FormLabel className="text-slate-700 font-medium">Color</FormLabel>
-            <Input value={color} onChange={e => setColor(e.target.value)} placeholder="e.g. Red" className="h-11 rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#5C6AC4]" data-testid="input-variant-color" />
-          </FormItem>
-          <FormItem>
-            <FormLabel className="text-slate-700 font-medium">Size</FormLabel>
-            <Input value={size} onChange={e => setSize(e.target.value)} placeholder="e.g. XL" className="h-11 rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#5C6AC4]" data-testid="input-variant-size" />
-          </FormItem>
+    <form onSubmit={handleSubmit} className="space-y-5">
+      {activeAttributes.length === 0 ? (
+        <div className="text-sm text-slate-500 bg-slate-50 border border-dashed border-slate-200 rounded-xl p-4">
+          Add at least one attribute with options before creating variants.
         </div>
+      ) : (
+        <div className="space-y-4">
+          {activeAttributes.map((attribute) => (
+            <div key={attribute.id} className="space-y-2">
+              <Label className="text-slate-700 font-medium">{attribute.name}</Label>
+              <select
+                className="w-full h-11 rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm focus:bg-white focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/20 transition-all"
+                value={selections[attribute.id] ?? ""}
+                onChange={(event) =>
+                  setSelections((prev) => ({
+                    ...prev,
+                    [attribute.id]: Number(event.target.value),
+                  }))
+                }
+                data-testid={`select-attribute-${attribute.id}`}
+              >
+                <option value="">Select {attribute.name}</option>
+                {attribute.options
+                  .filter((option) => option.isActive)
+                  .map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {option.value}
+                    </option>
+                  ))}
+              </select>
+            </div>
+          ))}
+        </div>
+      )}
 
-        <FormField
-          control={form.control}
-          name="variantName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-slate-700 font-medium">Display Name</FormLabel>
-              <FormControl>
-                <Input {...field} placeholder={`${color} ${size}` || "Auto-generated"} className="h-11 rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#5C6AC4]" data-testid="input-variant-name" />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="defaultPrice"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-slate-700 font-medium">Price (Rp)</FormLabel>
-                <FormControl>
-                  <Input type="number" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} className="h-11 rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#5C6AC4]" data-testid="input-variant-price" />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="stockOnHand"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-slate-700 font-medium">Initial Stock</FormLabel>
-                <FormControl>
-                  <Input type="number" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} className="h-11 rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#5C6AC4]" data-testid="input-variant-stock" />
-                </FormControl>
-              </FormItem>
-            )}
-          />
+      <div className="space-y-2">
+        <Label className="text-slate-700 font-medium">SKU</Label>
+        <Input value={sku} onChange={(event) => setSku(event.target.value)} placeholder="e.g. LEGATTO-BLK-M" className="h-11 rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#5C6AC4]" data-testid="input-variant-sku" />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label className="text-slate-700 font-medium">Unit</Label>
+          <Input value={unit} onChange={(event) => setUnit(event.target.value)} placeholder="piece" className="h-11 rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#5C6AC4]" data-testid="input-variant-unit" />
         </div>
-        <Button type="submit" className="w-full h-11 rounded-xl bg-gradient-to-r from-[#00848E] to-[#00A3AE] hover:opacity-90 font-semibold shadow-[0_4px_15px_rgba(0,132,142,0.3)]" disabled={isPending} data-testid="button-add-variant">
-          {isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />} Add Variant
-        </Button>
-      </form>
-    </Form>
+        <div className="space-y-2">
+          <Label className="text-slate-700 font-medium">Price (Rp)</Label>
+          <Input type="number" value={price} onChange={(event) => setPrice(Number(event.target.value))} className="h-11 rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#5C6AC4]" data-testid="input-variant-price" />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label className="text-slate-700 font-medium">Initial Stock</Label>
+          <Input type="number" value={stockOnHand} onChange={(event) => setStockOnHand(Number(event.target.value))} className="h-11 rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#5C6AC4]" data-testid="input-variant-stock" />
+        </div>
+        <div className="space-y-2">
+          <Label className="text-slate-700 font-medium">Allow Preorder</Label>
+          <select
+            className="w-full h-11 rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm focus:bg-white focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/20 transition-all"
+            value={allowPreorder ? "yes" : "no"}
+            onChange={(event) => setAllowPreorder(event.target.value === "yes")}
+          >
+            <option value="no">No</option>
+            <option value="yes">Yes</option>
+          </select>
+        </div>
+      </div>
+
+      <Button
+        type="submit"
+        className="w-full h-11 rounded-xl bg-gradient-to-r from-[#00848E] to-[#00A3AE] hover:opacity-90 font-semibold shadow-[0_4px_15px_rgba(0,132,142,0.3)]"
+        disabled={
+          isPending ||
+          !sku ||
+          !hasOptions ||
+          !selectionsReady ||
+          activeAttributes.length === 0
+        }
+        data-testid="button-add-variant"
+      >
+        {isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />} Add Variant
+      </Button>
+    </form>
+  );
+}
+
+function AttributeForm({
+  productId,
+  onSuccess,
+}: {
+  productId: number;
+  onSuccess: () => void;
+}) {
+  const { mutate, isPending } = useCreateAttribute();
+  const [name, setName] = useState("");
+  const [code, setCode] = useState("");
+  const [sortOrder, setSortOrder] = useState(0);
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    mutate(
+      {
+        productId,
+        data: {
+          name,
+          code,
+          sortOrder,
+          isActive: true,
+        },
+      },
+      { onSuccess }
+    );
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="space-y-2">
+        <Label className="text-slate-700 font-medium">Attribute Name</Label>
+        <Input value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Color" className="h-11 rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#5C6AC4]" />
+      </div>
+      <div className="space-y-2">
+        <Label className="text-slate-700 font-medium">Code</Label>
+        <Input value={code} onChange={(event) => setCode(event.target.value)} placeholder="e.g. color" className="h-11 rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#5C6AC4]" />
+      </div>
+      <div className="space-y-2">
+        <Label className="text-slate-700 font-medium">Sort Order</Label>
+        <Input type="number" value={sortOrder} onChange={(event) => setSortOrder(Number(event.target.value))} className="h-11 rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#5C6AC4]" />
+      </div>
+      <Button type="submit" className="w-full h-11 rounded-xl bg-gradient-to-r from-[#5C6AC4] to-[#6B7AC8] hover:opacity-90 font-semibold shadow-[0_4px_15px_rgba(92,106,196,0.3)]" disabled={isPending || !name || !code}>
+        {isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />} Add Attribute
+      </Button>
+    </form>
+  );
+}
+
+function OptionForm({
+  productId,
+  attributeId,
+  onSuccess,
+}: {
+  productId: number;
+  attributeId: number;
+  onSuccess: () => void;
+}) {
+  const { mutate, isPending } = useCreateAttributeOption();
+  const [value, setValue] = useState("");
+  const [sortOrder, setSortOrder] = useState(0);
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    mutate(
+      {
+        productId,
+        attributeId,
+        data: {
+          value,
+          sortOrder,
+          isActive: true,
+        },
+      },
+      { onSuccess }
+    );
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label className="text-slate-700 font-medium">Option Value</Label>
+        <Input value={value} onChange={(event) => setValue(event.target.value)} placeholder="e.g. Black" className="h-11 rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#5C6AC4]" />
+      </div>
+      <div className="space-y-2">
+        <Label className="text-slate-700 font-medium">Sort Order</Label>
+        <Input type="number" value={sortOrder} onChange={(event) => setSortOrder(Number(event.target.value))} className="h-11 rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#5C6AC4]" />
+      </div>
+      <Button type="submit" className="w-full h-10 rounded-xl bg-gradient-to-r from-[#00848E] to-[#00A3AE] hover:opacity-90 font-semibold shadow-[0_4px_15px_rgba(0,132,142,0.3)]" disabled={isPending || !value}>
+        {isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />} Add Option
+      </Button>
+    </form>
   );
 }
 
 export default function Products() {
   const { data: products, isLoading } = useProducts();
+  const { data: brands } = useBrands();
   const [addProductOpen, setAddProductOpen] = useState(false);
+  const [addBrandOpen, setAddBrandOpen] = useState(false);
   const [openItems, setOpenItems] = useState<Record<number, boolean>>({});
   const [activeProductId, setActiveProductId] = useState<number | null>(null);
+  const [activeAttributeProductId, setActiveAttributeProductId] = useState<number | null>(null);
+  const [activeOptionAttributeId, setActiveOptionAttributeId] = useState<number | null>(null);
+  const hasBrands = (brands?.length || 0) > 0;
 
   const toggleItem = (id: number) => {
     setOpenItems(prev => ({ ...prev, [id]: !prev[id] }));
@@ -194,7 +413,30 @@ export default function Products() {
               <DialogTitle className="text-xl font-bold">Create New Product</DialogTitle>
               <DialogDescription>Add a new product to your inventory.</DialogDescription>
             </DialogHeader>
-            <ProductForm onSuccess={() => setAddProductOpen(false)} />
+            {!hasBrands ? (
+              <div className="space-y-4">
+                <p className="text-sm text-slate-500">Create a brand before adding products.</p>
+                <Button className="w-full h-11 rounded-xl" onClick={() => { setAddProductOpen(false); setAddBrandOpen(true); }}>
+                  Create Brand
+                </Button>
+              </div>
+            ) : (
+              <ProductForm brands={brands || []} onSuccess={() => setAddProductOpen(false)} />
+            )}
+          </DialogContent>
+        </Dialog>
+        <Dialog open={addBrandOpen} onOpenChange={setAddBrandOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" className="h-11 px-6 rounded-xl border-slate-200 text-slate-600">
+              <Plus className="w-4 h-4 mr-2" /> Add Brand
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[450px] rounded-2xl">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold">Create Brand</DialogTitle>
+              <DialogDescription>Add a brand to organize your products.</DialogDescription>
+            </DialogHeader>
+            <BrandForm onSuccess={() => setAddBrandOpen(false)} />
           </DialogContent>
         </Dialog>
       </div>
@@ -231,7 +473,11 @@ export default function Products() {
                         </span>
                         <span className="inline-flex items-center gap-1.5 text-sm text-slate-500">
                           <Tag className="w-4 h-4" />
-                          {product.unitType}
+                          {product.brand?.name || "No brand"}
+                        </span>
+                        <span className="inline-flex items-center gap-1.5 text-sm text-slate-500">
+                          <Tag className="w-4 h-4" />
+                          {product.type}
                         </span>
                       </div>
                     </div>
@@ -248,7 +494,21 @@ export default function Products() {
                           <DialogTitle className="text-xl font-bold">Add Variant to {product.name}</DialogTitle>
                           <DialogDescription>Create a new variant with different attributes.</DialogDescription>
                         </DialogHeader>
-                        <VariantForm productId={product.id} onSuccess={() => setActiveProductId(null)} />
+                        <VariantForm productId={product.id} attributes={product.attributes} onSuccess={() => setActiveProductId(null)} />
+                      </DialogContent>
+                    </Dialog>
+                    <Dialog open={activeAttributeProductId === product.id} onOpenChange={(open) => setActiveAttributeProductId(open ? product.id : null)}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" className="rounded-xl border-slate-200 text-slate-600 hover:border-[#5C6AC4] hover:text-[#5C6AC4] hover:bg-[#5C6AC4]/5">
+                          <Plus className="w-4 h-4 mr-2" /> Add Attribute
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-[480px] rounded-2xl">
+                        <DialogHeader>
+                          <DialogTitle className="text-xl font-bold">Add Attribute</DialogTitle>
+                          <DialogDescription>Define attributes like Color or Size.</DialogDescription>
+                        </DialogHeader>
+                        <AttributeForm productId={product.id} onSuccess={() => setActiveAttributeProductId(null)} />
                       </DialogContent>
                     </Dialog>
                     <CollapsibleTrigger asChild>
@@ -260,22 +520,67 @@ export default function Products() {
                 </div>
                 
                 <CollapsibleContent>
-                  <div className="border-t border-slate-100 bg-slate-50/50 px-6 py-5">
+                  <div className="border-t border-slate-100 bg-slate-50/50 px-6 py-5 space-y-6">
+                    <div className="space-y-3">
+                      <h4 className="text-sm font-semibold text-slate-600 uppercase tracking-wide">Attributes</h4>
+                      {product.attributes.length === 0 ? (
+                        <p className="text-sm text-slate-400">No attributes yet. Add one to build variants.</p>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {product.attributes.map((attribute) => (
+                            <div key={attribute.id} className="bg-white rounded-xl border border-slate-200/80 p-4">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="font-semibold text-slate-800">{attribute.name}</p>
+                                  <p className="text-xs text-slate-400">{attribute.code}</p>
+                                </div>
+                                <Dialog open={activeOptionAttributeId === attribute.id} onOpenChange={(open) => setActiveOptionAttributeId(open ? attribute.id : null)}>
+                                  <DialogTrigger asChild>
+                                    <Button variant="outline" size="sm" className="rounded-lg text-xs">
+                                      <Plus className="w-3 h-3 mr-1" /> Add Option
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent className="sm:max-w-[420px] rounded-2xl">
+                                    <DialogHeader>
+                                      <DialogTitle className="text-lg font-bold">Add Option</DialogTitle>
+                                      <DialogDescription>Add a value for {attribute.name}.</DialogDescription>
+                                    </DialogHeader>
+                                    <OptionForm productId={product.id} attributeId={attribute.id} onSuccess={() => setActiveOptionAttributeId(null)} />
+                                  </DialogContent>
+                                </Dialog>
+                              </div>
+                              <div className="mt-3 flex flex-wrap gap-2">
+                                {attribute.options.length === 0 ? (
+                                  <span className="text-xs text-slate-400">No options yet</span>
+                                ) : (
+                                  attribute.options.map((option) => (
+                                    <span key={option.id} className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-full">
+                                      {option.value}
+                                    </span>
+                                  ))
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {product.variants.map(variant => {
                         const stockNum = Number(variant.stockOnHand);
                         const isInStock = stockNum > 0;
+                        const price = getVariantPrice(variant, "IDR");
                         return (
                           <div key={variant.id} className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-sm hover:shadow-md transition-all" data-testid={`variant-card-${variant.id}`}>
                             <div className="flex justify-between items-start mb-3">
-                              <h4 className="font-semibold text-slate-800">{variant.variantName}</h4>
+                              <h4 className="font-semibold text-slate-800">{formatVariantLabel(variant)}</h4>
                               <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${isInStock ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
                                 {isInStock ? 'In Stock' : 'Out of Stock'}
                               </span>
                             </div>
                             <div className="space-y-1.5 text-sm text-slate-500">
-                              <p>SKU: {variant.barcodeOrSku || '-'}</p>
-                              <p className="font-medium text-slate-700">Rp {Number(variant.defaultPrice).toLocaleString()}</p>
+                              <p>SKU: {variant.sku || '-'}</p>
+                              <p className="font-medium text-slate-700">Rp {formatPrice(price?.priceCents ?? 0)}</p>
                             </div>
                             <div className="mt-4 pt-3 border-t border-dashed border-slate-200 flex justify-between items-center">
                               <span className="text-sm font-medium text-slate-600">{stockNum} in stock</span>

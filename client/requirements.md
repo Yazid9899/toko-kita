@@ -7,5 +7,6 @@ tailwind-merge | Utility for merging Tailwind classes safely
 
 ## Notes
 Authentication is handled via JWT-based local admin login (credentials stored in the database).
+Products are modeled with brands, attributes, options, variants, and variant prices.
 Frontend checks /api/auth/user via use-auth.ts hook.
 Images are handled as static assets or external URLs (no file upload implemented yet).

@@ -16,6 +16,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { insertCustomerSchema, type InsertCustomer } from "@shared/schema";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
+import { formatPrice, formatVariantLabel, getVariantPrice } from "@/lib/variant-utils";
 
 function QuickCustomerForm({ onSuccess }: { onSuccess: (customerId: number) => void }) {
   const { mutate, isPending } = useCreateCustomer();
@@ -282,12 +283,14 @@ export default function CreateOrder() {
                     {product.variants.map(variant => {
                       const stock = Number(variant.stockOnHand);
                       const isLowStock = stock === 0;
+                      const price = getVariantPrice(variant, "IDR")?.priceCents ?? 0;
+                      const variantLabel = formatVariantLabel(variant);
                       return (
                         <div key={variant.id} className="flex justify-between items-center text-sm bg-white p-3 rounded-lg border border-slate-100 shadow-sm hover:shadow-md transition-all">
                           <div className="flex-1">
-                            <span className="block font-medium text-slate-700">{variant.variantName}</span>
+                            <span className="block font-medium text-slate-700">{variantLabel}</span>
                             <div className="flex items-center gap-2 mt-1">
-                              <span className="text-xs text-slate-500">Rp {Number(variant.defaultPrice).toLocaleString()}</span>
+                              <span className="text-xs text-slate-500">Rp {formatPrice(price)}</span>
                               {isLowStock && (
                                 <span className="inline-flex items-center gap-1 text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full font-medium">
                                   <AlertCircle className="w-3 h-3" />
@@ -299,7 +302,7 @@ export default function CreateOrder() {
                           <Button 
                             size="sm" 
                             className="rounded-lg bg-[#5C6AC4] hover:bg-[#4B59B3] text-white font-medium h-8 px-4"
-                            onClick={() => addItem(variant.id, `${product.name} - ${variant.variantName}`, Number(variant.defaultPrice), stock)}
+                            onClick={() => addItem(variant.id, `${product.name} - ${variantLabel}`, price, stock)}
                             data-testid={`button-add-variant-${variant.id}`}
                           >
                             Add

@@ -46,3 +46,4 @@ The app will be available at `http://localhost:5000`.
 - This project uses **Drizzle ORM** for database management.
 - Login uses a local **username/password** stored in the database with a **JWT** stored in an HTTP-only cookie.
 - You can remove `ADMIN_SEED_USERS` from `.env` after seeding.
+- Products now use **brands, attributes, options, variants, and variant prices** (see shared/schema.ts).

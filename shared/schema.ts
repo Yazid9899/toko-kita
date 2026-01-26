@@ -1,15 +1,33 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, decimal, pgEnum, varchar } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, decimal, pgEnum, varchar, primaryKey, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
 
 // --- ENUMS ---
 export const customerTypeEnum = pgEnum("customer_type", ["PERSONAL", "RESELLER"]);
-export const unitTypeEnum = pgEnum("unit_type", ["QUANTITY", "WEIGHT"]);
 export const paymentTypeEnum = pgEnum("payment_type", ["MANUAL_TRANSFER", "FULL_SHOPEE", "SPLIT_SHOPEE"]);
 export const paymentStatusEnum = pgEnum("payment_status", ["NOT_PAID", "DOWN_PAYMENT", "PAID"]);
 export const packingStatusEnum = pgEnum("packing_status", ["NOT_READY", "PACKING", "PACKED"]);
 export const procurementStatusEnum = pgEnum("procurement_status", ["TO_BUY", "ORDERED", "ARRIVED"]);
+export const productTypeEnum = pgEnum("product_type", ["apparel", "accessory"]);
+
+// --- BRANDS ---
+export const brands = pgTable("brands", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  slug: varchar("slug", { length: 128 }).notNull().unique(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertBrandSchema = createInsertSchema(brands).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type Brand = typeof brands.$inferSelect;
+export type InsertBrand = z.infer<typeof insertBrandSchema>;
 
 // --- ADMIN USERS ---
 export const adminUsers = pgTable("admin_users", {
@@ -51,10 +69,10 @@ export type InsertCustomer = z.infer<typeof insertCustomerSchema>;
 // --- PRODUCTS ---
 export const products = pgTable("products", {
   id: serial("id").primaryKey(),
+  brandId: integer("brand_id").notNull().references(() => brands.id),
   name: text("name").notNull(),
   description: text("description"),
-  defaultPrice: decimal("default_price", { precision: 10, scale: 2 }), // Optional base price
-  unitType: unitTypeEnum("unit_type").default("QUANTITY").notNull(),
+  type: productTypeEnum("type").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -63,39 +81,124 @@ export const insertProductSchema = createInsertSchema(products).omit({
   id: true, 
   createdAt: true, 
   updatedAt: true 
-}).extend({
-  defaultPrice: z.number().optional().nullable(), // Handle decimal as number in Zod
 });
 
 export type Product = typeof products.$inferSelect;
 export type InsertProduct = z.infer<typeof insertProductSchema>;
 
+// --- PRODUCT ATTRIBUTES ---
+export const productAttributes = pgTable("product_attributes", {
+  id: serial("id").primaryKey(),
+  productId: integer("product_id").notNull().references(() => products.id),
+  name: text("name").notNull(),
+  code: varchar("code", { length: 64 }).notNull(),
+  sortOrder: integer("sort_order").default(0).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  productCodeUnique: uniqueIndex("product_attribute_code_unique").on(table.productId, table.code),
+}));
+
+export const insertProductAttributeSchema = createInsertSchema(productAttributes).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type ProductAttribute = typeof productAttributes.$inferSelect;
+export type InsertProductAttribute = z.infer<typeof insertProductAttributeSchema>;
+
+// --- ATTRIBUTE OPTIONS ---
+export const attributeOptions = pgTable("attribute_options", {
+  id: serial("id").primaryKey(),
+  attributeId: integer("attribute_id").notNull().references(() => productAttributes.id),
+  value: text("value").notNull(),
+  sortOrder: integer("sort_order").default(0).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertAttributeOptionSchema = createInsertSchema(attributeOptions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type AttributeOption = typeof attributeOptions.$inferSelect;
+export type InsertAttributeOption = z.infer<typeof insertAttributeOptionSchema>;
 
 // --- PRODUCT VARIANTS ---
 export const productVariants = pgTable("product_variants", {
   id: serial("id").primaryKey(),
   productId: integer("product_id").notNull().references(() => products.id),
-  variantName: text("variant_name").notNull(), // Generated, e.g., "Grand-Prix / Blue"
-  attributes: jsonb("attributes").notNull(), // { series: "Grand-Prix", color: "Blue" }
-  barcodeOrSku: text("barcode_or_sku"),
-  defaultPrice: decimal("default_price", { precision: 10, scale: 2 }), // Variant specific price
-  stockOnHand: decimal("stock_on_hand", { precision: 10, scale: 2 }).default("0").notNull(), // Decimal for weight items
+  sku: text("sku").notNull().unique(),
+  variantKey: text("variant_key").notNull(),
+  unit: text("unit").default("piece").notNull(),
+  stockOnHand: decimal("stock_on_hand", { precision: 10, scale: 2 }).default("0").notNull(),
   allowPreorder: boolean("allow_preorder").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  productVariantKeyUnique: uniqueIndex("product_variant_key_unique").on(table.productId, table.variantKey),
+}));
 
 export const insertProductVariantSchema = createInsertSchema(productVariants).omit({ 
   id: true, 
   createdAt: true, 
   updatedAt: true 
 }).extend({
-  defaultPrice: z.number().optional().nullable(),
   stockOnHand: z.number().default(0),
 });
 
 export type ProductVariant = typeof productVariants.$inferSelect;
 export type InsertProductVariant = z.infer<typeof insertProductVariantSchema>;
+
+// --- VARIANT OPTION VALUES ---
+export const variantOptionValues = pgTable("variant_option_values", {
+  variantId: integer("variant_id").notNull().references(() => productVariants.id),
+  attributeId: integer("attribute_id").notNull().references(() => productAttributes.id),
+  optionId: integer("option_id").notNull().references(() => attributeOptions.id),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.variantId, table.attributeId] }),
+}));
+
+export type VariantOptionValue = typeof variantOptionValues.$inferSelect;
+
+// --- VARIANT PRICES ---
+export const variantPrices = pgTable("variant_prices", {
+  variantId: integer("variant_id").notNull().references(() => productVariants.id),
+  currency: varchar("currency", { length: 3 }).notNull(),
+  priceCents: integer("price_cents").notNull(),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.variantId, table.currency] }),
+}));
+
+export type VariantPrice = typeof variantPrices.$inferSelect;
+
+export type ProductAttributeWithOptions = ProductAttribute & {
+  options: AttributeOption[];
+};
+
+export type ProductVariantOption = {
+  attributeId: number;
+  optionId: number;
+  attributeName: string;
+  attributeCode: string;
+  optionValue: string;
+};
+
+export type ProductVariantWithRelations = ProductVariant & {
+  optionValues: ProductVariantOption[];
+  prices: VariantPrice[];
+};
+
+export type ProductWithRelations = Product & {
+  brand: Brand;
+  attributes: ProductAttributeWithOptions[];
+  variants: ProductVariantWithRelations[];
+};
 
 
 // --- ORDERS ---
@@ -179,7 +282,23 @@ export const customersRelations = relations(customers, ({ many }) => ({
 }));
 
 export const productsRelations = relations(products, ({ many }) => ({
+  attributes: many(productAttributes),
   variants: many(productVariants),
+}));
+
+export const productAttributesRelations = relations(productAttributes, ({ one, many }) => ({
+  product: one(products, {
+    fields: [productAttributes.productId],
+    references: [products.id],
+  }),
+  options: many(attributeOptions),
+}));
+
+export const attributeOptionsRelations = relations(attributeOptions, ({ one }) => ({
+  attribute: one(productAttributes, {
+    fields: [attributeOptions.attributeId],
+    references: [productAttributes.id],
+  }),
 }));
 
 export const productVariantsRelations = relations(productVariants, ({ one, many }) => ({
@@ -187,8 +306,32 @@ export const productVariantsRelations = relations(productVariants, ({ one, many 
     fields: [productVariants.productId],
     references: [products.id],
   }),
+  optionValues: many(variantOptionValues),
+  prices: many(variantPrices),
   orderItems: many(orderItems),
   procurements: many(procurements),
+}));
+
+export const variantOptionValuesRelations = relations(variantOptionValues, ({ one }) => ({
+  variant: one(productVariants, {
+    fields: [variantOptionValues.variantId],
+    references: [productVariants.id],
+  }),
+  attribute: one(productAttributes, {
+    fields: [variantOptionValues.attributeId],
+    references: [productAttributes.id],
+  }),
+  option: one(attributeOptions, {
+    fields: [variantOptionValues.optionId],
+    references: [attributeOptions.id],
+  }),
+}));
+
+export const variantPricesRelations = relations(variantPrices, ({ one }) => ({
+  variant: one(productVariants, {
+    fields: [variantPrices.variantId],
+    references: [productVariants.id],
+  }),
 }));
 
 export const ordersRelations = relations(orders, ({ one, many }) => ({

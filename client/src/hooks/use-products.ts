@@ -1,10 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, buildUrl } from "@shared/routes";
-import { type InsertProduct, type InsertProductVariant } from "@shared/schema";
+import { type InsertBrand, type InsertProduct, type ProductWithRelations } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 
 export function useProducts() {
-  return useQuery({
+  return useQuery<ProductWithRelations[]>({
     queryKey: [api.products.list.path],
     queryFn: async () => {
       const res = await fetch(api.products.list.path, { credentials: "include" });
@@ -15,7 +15,7 @@ export function useProducts() {
 }
 
 export function useProduct(id: number) {
-  return useQuery({
+  return useQuery<ProductWithRelations>({
     queryKey: [api.products.get.path, id],
     queryFn: async () => {
       const url = buildUrl(api.products.get.path, { id });
@@ -58,7 +58,15 @@ export function useCreateVariant() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ productId, data }: { productId: number; data: Omit<InsertProductVariant, 'productId'> }) => {
+    mutationFn: async ({ productId, data }: { productId: number; data: {
+      sku: string;
+      unit?: string;
+      stockOnHand?: number;
+      allowPreorder?: boolean;
+      currency?: string;
+      priceCents: number;
+      selections: { attributeId: number; optionId: number }[];
+    } }) => {
       const url = buildUrl(api.variants.create.path, { productId });
       const res = await fetch(url, {
         method: "POST",
@@ -67,7 +75,15 @@ export function useCreateVariant() {
         credentials: "include",
       });
 
-      if (!res.ok) throw new Error("Failed to create variant");
+      if (!res.ok) {
+        const message = await res.text();
+        try {
+          const data = JSON.parse(message);
+          throw new Error(data.message || "Failed to create variant");
+        } catch {
+          throw new Error(message || "Failed to create variant");
+        }
+      }
       return api.variants.create.responses[201].parse(await res.json());
     },
     onSuccess: (_, { productId }) => {
@@ -97,6 +113,99 @@ export function useDeleteVariant() {
       // Invalidating the list is a safe bet, or we can just refetch everything.
       queryClient.invalidateQueries({ queryKey: [api.products.get.path] });
       toast({ title: "Success", description: "Variant deleted" });
+    }
+  });
+}
+
+export function useBrands() {
+  return useQuery({
+    queryKey: [api.brands.list.path],
+    queryFn: async () => {
+      const res = await fetch(api.brands.list.path, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch brands");
+      return api.brands.list.responses[200].parse(await res.json());
+    },
+  });
+}
+
+export function useCreateBrand() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (data: InsertBrand) => {
+      const res = await fetch(api.brands.create.path, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+      });
+
+      if (!res.ok) throw new Error("Failed to create brand");
+      return api.brands.create.responses[201].parse(await res.json());
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.brands.list.path] });
+      toast({ title: "Success", description: "Brand created successfully" });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  });
+}
+
+export function useCreateAttribute() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ productId, data }: { productId: number; data: { name: string; code: string; sortOrder?: number; isActive?: boolean } }) => {
+      const url = buildUrl(api.attributes.create.path, { productId });
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+      });
+
+      if (!res.ok) throw new Error("Failed to create attribute");
+      return api.attributes.create.responses[201].parse(await res.json());
+    },
+    onSuccess: (_, { productId }) => {
+      queryClient.invalidateQueries({ queryKey: [api.products.get.path, productId] });
+      queryClient.invalidateQueries({ queryKey: [api.products.list.path] });
+      toast({ title: "Success", description: "Attribute created" });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  });
+}
+
+export function useCreateAttributeOption() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ productId, attributeId, data }: { productId: number; attributeId: number; data: { value: string; sortOrder?: number; isActive?: boolean } }) => {
+      const url = buildUrl(api.attributeOptions.create.path, { attributeId });
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+      });
+
+      if (!res.ok) throw new Error("Failed to create option");
+      return api.attributeOptions.create.responses[201].parse(await res.json());
+    },
+    onSuccess: (_, { productId }) => {
+      queryClient.invalidateQueries({ queryKey: [api.products.get.path, productId] });
+      queryClient.invalidateQueries({ queryKey: [api.products.list.path] });
+      toast({ title: "Success", description: "Option created" });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     }
   });
 }

@@ -45,6 +45,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
+import { formatVariantLabel } from "@/lib/variant-utils";
 
 export default function OrderDetail() {
   const [, params] = useRoute("/orders/:id");
@@ -218,7 +219,7 @@ export default function OrderDetail() {
                       </div>
                       <div>
                         <p className="font-semibold text-slate-800">
-                          {item.variant.variantName}
+                          {formatVariantLabel(item.variant)}
                         </p>
                         <p className="text-sm text-slate-500">
                           {item.isPreorder && (
@@ -226,7 +227,7 @@ export default function OrderDetail() {
                               [Preorder]
                             </span>
                           )}
-                          SKU: {item.variant.barcodeOrSku || "N/A"}
+                          SKU: {item.variant.sku || "N/A"}
                         </p>
                       </div>
                     </div>
@@ -283,7 +284,7 @@ export default function OrderDetail() {
                       data-testid={`procurement-item-${p.id}`}
                     >
                       <span className="font-medium text-slate-800">
-                        {p.variant.variantName}
+                        {formatVariantLabel(p.variant)}
                       </span>
                       <div className="flex items-center gap-4">
                         <span className="font-bold text-amber-700">

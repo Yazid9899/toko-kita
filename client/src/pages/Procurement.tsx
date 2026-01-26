@@ -6,6 +6,7 @@ import { Loader2, CheckCircle2, ShoppingBag, Package, Truck, Clock } from "lucid
 import { format } from "date-fns";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
+import { formatVariantLabel } from "@/lib/variant-utils";
 
 export default function Procurement() {
   const { data: procurements, isLoading } = useProcurements();
@@ -126,7 +127,7 @@ export default function Procurement() {
                     {item.status === 'ARRIVED' && <CheckCircle2 className="w-5 h-5 text-emerald-600" />}
                   </div>
                   <div>
-                    <p className="font-semibold text-slate-800">{item.variant.variantName}</p>
+                    <p className="font-semibold text-slate-800">{formatVariantLabel(item.variant)}</p>
                     <p className="text-sm text-slate-500 md:hidden">Qty: {Number(item.neededQty)}</p>
                   </div>
                 </div>
