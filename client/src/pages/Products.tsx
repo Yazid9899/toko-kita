@@ -11,12 +11,19 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertProductSchema, type InsertProduct } from "@shared/schema";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Loader2, Plus, Package, ChevronDown, ChevronUp, Box, Tag, Layers } from "lucide-react";
+import { Loader2, Plus, Package, ChevronDown, ChevronUp, Box, Tag, Layers, Pencil, Sparkles, Shapes, PenLine, MoreHorizontal } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { formatPrice, formatVariantLabel, getVariantPrice } from "@/lib/variant-utils";
 
@@ -36,15 +43,17 @@ function BrandForm({ onSuccess }: { onSuccess: () => void }) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-5">
+        <p className="text-xs text-slate-500">Brands help group products for quick filtering and reporting.</p>
         <div className="space-y-2">
-          <Label className="text-slate-700 font-medium">Brand Name</Label>
-          <Input placeholder="e.g. Legatto" {...form.register("name", { required: true })} className="h-11 rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#5C6AC4]" />
+          <Label className="text-slate-700 text-sm font-semibold">Brand Name</Label>
+          <Input placeholder="e.g. Legatto" {...form.register("name", { required: true })} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15" />
         </div>
         <div className="space-y-2">
-          <Label className="text-slate-700 font-medium">Slug</Label>
-          <Input placeholder="e.g. legatto" {...form.register("slug", { required: true })} className="h-11 rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#5C6AC4]" />
+          <Label className="text-slate-700 text-sm font-semibold">Slug</Label>
+          <Input placeholder="e.g. legatto" {...form.register("slug", { required: true })} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15" />
+          <p className="text-xs text-slate-400">Lowercase, no spaces. Used for URLs.</p>
         </div>
-        <Button type="submit" className="w-full h-11 rounded-xl bg-gradient-to-r from-[#5C6AC4] to-[#6B7AC8] hover:opacity-90 font-semibold shadow-[0_4px_15px_rgba(92,106,196,0.3)]" disabled={isPending}>
+        <Button type="submit" className="w-full h-11 rounded-xl bg-[#3B82F6] text-white hover:bg-[#2563EB] font-semibold shadow-sm disabled:opacity-60" disabled={isPending}>
           {isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />} Create Brand
         </Button>
       </form>
@@ -76,14 +85,14 @@ function BrandEditForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <div className="space-y-2">
-        <Label className="text-slate-700 font-medium">Brand Name</Label>
-        <Input value={name} onChange={(event) => setName(event.target.value)} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#5C6AC4]" />
+        <Label className="text-slate-700 text-sm font-semibold">Brand Name</Label>
+        <Input value={name} onChange={(event) => setName(event.target.value)} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15" />
       </div>
       <div className="space-y-2">
-        <Label className="text-slate-700 font-medium">Slug</Label>
-        <Input value={slug} onChange={(event) => setSlug(event.target.value)} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#5C6AC4]" />
+        <Label className="text-slate-700 text-sm font-semibold">Slug</Label>
+        <Input value={slug} onChange={(event) => setSlug(event.target.value)} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15" />
       </div>
-      <Button type="submit" className="w-full h-11 rounded-xl bg-gradient-to-r from-[#5C6AC4] to-[#6B7AC8] hover:opacity-90 font-semibold shadow-[0_4px_15px_rgba(92,106,196,0.3)]" disabled={isPending || !name || !slug}>
+      <Button type="submit" className="w-full h-11 rounded-xl bg-[#3B82F6] text-white hover:bg-[#2563EB] font-semibold shadow-sm disabled:opacity-60" disabled={isPending || !name || !slug}>
         {isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />} Save Brand
       </Button>
     </form>
@@ -105,9 +114,9 @@ function ProductForm({ onSuccess, brands }: { onSuccess: () => void; brands: { i
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-slate-700 font-medium">Product Name</FormLabel>
+              <FormLabel className="text-slate-700 text-sm font-semibold">Product Name</FormLabel>
               <FormControl>
-                <Input placeholder="e.g. T-Shirt" {...field} className="h-11 rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#5C6AC4]" data-testid="input-product-name" />
+                <Input placeholder="e.g. T-Shirt" {...field} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15" data-testid="input-product-name" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -118,9 +127,9 @@ function ProductForm({ onSuccess, brands }: { onSuccess: () => void; brands: { i
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-slate-700 font-medium">Description</FormLabel>
+              <FormLabel className="text-slate-700 text-sm font-semibold">Description</FormLabel>
               <FormControl>
-                <Input placeholder="Optional..." {...field} value={field.value || ""} className="h-11 rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#5C6AC4]" data-testid="input-product-desc" />
+                <Input placeholder="Optional..." {...field} value={field.value || ""} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15" data-testid="input-product-desc" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -131,13 +140,13 @@ function ProductForm({ onSuccess, brands }: { onSuccess: () => void; brands: { i
           name="brandId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-slate-700 font-medium">Brand</FormLabel>
+              <FormLabel className="text-slate-700 text-sm font-semibold">Brand</FormLabel>
               <FormControl>
                 <div className="relative">
                   <select
                     value={field.value}
                     onChange={(event) => field.onChange(Number(event.target.value))}
-                    className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 pr-10 text-sm shadow-sm transition-all focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/20 appearance-none"
+                    className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 pr-10 text-sm shadow-sm transition-all focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15 appearance-none"
                     data-testid="select-brand"
                   >
                     {brands.map((brand) => (
@@ -158,10 +167,10 @@ function ProductForm({ onSuccess, brands }: { onSuccess: () => void; brands: { i
           name="type"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-slate-700 font-medium">Type</FormLabel>
+              <FormLabel className="text-slate-700 text-sm font-semibold">Type</FormLabel>
               <FormControl>
                 <div className="relative">
-                  <select {...field} className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 pr-10 text-sm shadow-sm transition-all focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/20 appearance-none" data-testid="select-product-type">
+                  <select {...field} className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 pr-10 text-sm shadow-sm transition-all focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15 appearance-none" data-testid="select-product-type">
                     <option value="apparel">Apparel</option>
                     <option value="accessory">Accessory</option>
                   </select>
@@ -172,7 +181,7 @@ function ProductForm({ onSuccess, brands }: { onSuccess: () => void; brands: { i
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full h-11 rounded-xl bg-gradient-to-r from-[#5C6AC4] to-[#6B7AC8] hover:opacity-90 font-semibold shadow-[0_4px_15px_rgba(92,106,196,0.3)]" disabled={isPending} data-testid="button-create-product">
+        <Button type="submit" className="w-full h-11 rounded-xl bg-[#3B82F6] text-white hover:bg-[#2563EB] font-semibold shadow-sm disabled:opacity-60" disabled={isPending} data-testid="button-create-product">
           {isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />} Create Product
         </Button>
       </form>
@@ -251,10 +260,10 @@ function VariantForm({
           <div className="space-y-4">
             {activeAttributes.map((attribute) => (
               <div key={attribute.id} className="space-y-2">
-                <Label className="text-slate-700 font-medium">{attribute.name}</Label>
+                <Label className="text-slate-700 text-sm font-semibold">{attribute.name}</Label>
                 <div className="relative">
                   <select
-                    className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 pr-10 text-sm shadow-sm transition-all focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/20 appearance-none"
+                    className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 pr-10 text-sm shadow-sm transition-all focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15 appearance-none"
                     value={selections[attribute.id] ?? ""}
                     onChange={(event) =>
                       setSelections((prev) => ({
@@ -281,31 +290,31 @@ function VariantForm({
         )}
 
         <div className="space-y-2">
-          <Label className="text-slate-700 font-medium">SKU</Label>
-          <Input value={sku} onChange={(event) => setSku(event.target.value)} placeholder="e.g. LEGATTO-BLK-M" className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#5C6AC4]" data-testid="input-variant-sku" />
+        <Label className="text-slate-700 text-sm font-semibold">SKU</Label>
+        <Input value={sku} onChange={(event) => setSku(event.target.value)} placeholder="e.g. LEGATTO-BLK-M" className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15" data-testid="input-variant-sku" />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label className="text-slate-700 font-medium">Unit</Label>
-            <Input value={unit} onChange={(event) => setUnit(event.target.value)} placeholder="piece" className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#5C6AC4]" data-testid="input-variant-unit" />
+            <Label className="text-slate-700 text-sm font-semibold">Unit</Label>
+          <Input value={unit} onChange={(event) => setUnit(event.target.value)} placeholder="piece" className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15" data-testid="input-variant-unit" />
           </div>
           <div className="space-y-2">
-            <Label className="text-slate-700 font-medium">Price (Rp)</Label>
-            <Input type="number" value={price} onChange={(event) => setPrice(Number(event.target.value))} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#5C6AC4]" data-testid="input-variant-price" />
+            <Label className="text-slate-700 text-sm font-semibold">Price (Rp)</Label>
+          <Input type="number" value={price} onChange={(event) => setPrice(Number(event.target.value))} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15" data-testid="input-variant-price" />
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label className="text-slate-700 font-medium">Initial Stock</Label>
-            <Input type="number" value={stockOnHand} onChange={(event) => setStockOnHand(Number(event.target.value))} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#5C6AC4]" data-testid="input-variant-stock" />
+            <Label className="text-slate-700 text-sm font-semibold">Initial Stock</Label>
+          <Input type="number" value={stockOnHand} onChange={(event) => setStockOnHand(Number(event.target.value))} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15" data-testid="input-variant-stock" />
           </div>
           <div className="space-y-2">
-            <Label className="text-slate-700 font-medium">Allow Preorder</Label>
+            <Label className="text-slate-700 text-sm font-semibold">Allow Preorder</Label>
             <div className="relative">
-              <select
-                className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 pr-10 text-sm shadow-sm transition-all focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/20 appearance-none"
+            <select
+              className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 pr-10 text-sm shadow-sm transition-all focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15 appearance-none"
                 value={allowPreorder ? "yes" : "no"}
                 onChange={(event) => setAllowPreorder(event.target.value === "yes")}
               >
@@ -321,7 +330,7 @@ function VariantForm({
       <div className="sticky bottom-0 pt-4 bg-white/95 backdrop-blur">
         <Button
           type="submit"
-          className="w-full h-11 rounded-xl bg-gradient-to-r from-[#00848E] to-[#00A3AE] hover:opacity-90 font-semibold shadow-[0_4px_15px_rgba(0,132,142,0.3)]"
+          className="w-full h-11 rounded-xl bg-[#3B82F6] text-white hover:bg-[#2563EB] font-semibold shadow-sm disabled:opacity-60"
           disabled={
             isPending ||
             !sku ||
@@ -379,20 +388,20 @@ function ProductEditForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <div className="space-y-2">
-        <Label className="text-slate-700 font-medium">Product Name</Label>
-        <Input value={name} onChange={(event) => setName(event.target.value)} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#5C6AC4]" />
+        <Label className="text-slate-700 text-sm font-semibold">Product Name</Label>
+        <Input value={name} onChange={(event) => setName(event.target.value)} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15" />
       </div>
       <div className="space-y-2">
-        <Label className="text-slate-700 font-medium">Description</Label>
-        <Input value={description} onChange={(event) => setDescription(event.target.value)} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#5C6AC4]" />
+        <Label className="text-slate-700 text-sm font-semibold">Description</Label>
+        <Input value={description} onChange={(event) => setDescription(event.target.value)} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15" />
       </div>
       <div className="space-y-2">
-        <Label className="text-slate-700 font-medium">Brand</Label>
+        <Label className="text-slate-700 text-sm font-semibold">Brand</Label>
         <div className="relative">
           <select
             value={brandId}
             onChange={(event) => setBrandId(Number(event.target.value))}
-            className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 pr-10 text-sm shadow-sm transition-all focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/20 appearance-none"
+            className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 pr-10 text-sm shadow-sm transition-all focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15 appearance-none"
           >
             {brands.map((brand) => (
               <option key={brand.id} value={brand.id}>
@@ -404,12 +413,12 @@ function ProductEditForm({
         </div>
       </div>
       <div className="space-y-2">
-        <Label className="text-slate-700 font-medium">Type</Label>
+        <Label className="text-slate-700 text-sm font-semibold">Type</Label>
         <div className="relative">
           <select
             value={type}
             onChange={(event) => setType(event.target.value as "apparel" | "accessory")}
-            className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 pr-10 text-sm shadow-sm transition-all focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/20 appearance-none"
+            className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 pr-10 text-sm shadow-sm transition-all focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15 appearance-none"
           >
             <option value="apparel">Apparel</option>
             <option value="accessory">Accessory</option>
@@ -417,7 +426,7 @@ function ProductEditForm({
           <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
         </div>
       </div>
-      <Button type="submit" className="w-full h-11 rounded-xl bg-gradient-to-r from-[#5C6AC4] to-[#6B7AC8] hover:opacity-90 font-semibold shadow-[0_4px_15px_rgba(92,106,196,0.3)]" disabled={isPending || !name}>
+      <Button type="submit" className="w-full h-11 rounded-xl bg-[#3B82F6] text-white hover:bg-[#2563EB] font-semibold shadow-sm disabled:opacity-60" disabled={isPending || !name}>
         {isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />} Save Product
       </Button>
     </form>
@@ -461,18 +470,19 @@ function AttributeForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <div className="space-y-2">
-        <Label className="text-slate-700 font-medium">Attribute Name</Label>
-        <Input value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Color" className="h-11 rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#5C6AC4]" />
+        <Label className="text-slate-700 text-sm font-semibold">Attribute Name</Label>
+        <Input value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Color" className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15" />
       </div>
       <div className="space-y-2">
-        <Label className="text-slate-700 font-medium">Code</Label>
-        <Input value={code} onChange={(event) => setCode(event.target.value)} placeholder="e.g. color" className="h-11 rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#5C6AC4]" />
+        <Label className="text-slate-700 text-sm font-semibold">Code</Label>
+        <Input value={code} onChange={(event) => setCode(event.target.value)} placeholder="e.g. color" className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15" />
+        <p className="text-xs text-slate-400">Stable key used for variant logic.</p>
       </div>
       <div className="space-y-2">
-        <Label className="text-slate-700 font-medium">Sort Order</Label>
-        <Input type="number" value={sortOrder} onChange={(event) => setSortOrder(Number(event.target.value))} className="h-11 rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#5C6AC4]" />
+        <Label className="text-slate-700 text-sm font-semibold">Sort Order</Label>
+        <Input type="number" value={sortOrder} onChange={(event) => setSortOrder(Number(event.target.value))} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15" />
       </div>
-      <Button type="submit" className="w-full h-11 rounded-xl bg-gradient-to-r from-[#5C6AC4] to-[#6B7AC8] hover:opacity-90 font-semibold shadow-[0_4px_15px_rgba(92,106,196,0.3)]" disabled={isPending || !name || !code}>
+      <Button type="submit" className="w-full h-11 rounded-xl bg-[#3B82F6] text-white hover:bg-[#2563EB] font-semibold shadow-sm disabled:opacity-60" disabled={isPending || !name || !code}>
         {isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />} Add Attribute
       </Button>
     </form>
@@ -517,14 +527,14 @@ function OptionForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label className="text-slate-700 font-medium">Option Value</Label>
-        <Input value={value} onChange={(event) => setValue(event.target.value)} placeholder="e.g. Black" className="h-11 rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#5C6AC4]" />
+        <Label className="text-slate-700 text-sm font-semibold">Option Value</Label>
+        <Input value={value} onChange={(event) => setValue(event.target.value)} placeholder="e.g. Black" className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15" />
       </div>
       <div className="space-y-2">
-        <Label className="text-slate-700 font-medium">Sort Order</Label>
-        <Input type="number" value={sortOrder} onChange={(event) => setSortOrder(Number(event.target.value))} className="h-11 rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#5C6AC4]" />
+        <Label className="text-slate-700 text-sm font-semibold">Sort Order</Label>
+        <Input type="number" value={sortOrder} onChange={(event) => setSortOrder(Number(event.target.value))} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15" />
       </div>
-      <Button type="submit" className="w-full h-10 rounded-xl bg-gradient-to-r from-[#00848E] to-[#00A3AE] hover:opacity-90 font-semibold shadow-[0_4px_15px_rgba(0,132,142,0.3)]" disabled={isPending || !value}>
+      <Button type="submit" className="w-full h-10 rounded-xl bg-[#3B82F6] text-white hover:bg-[#2563EB] font-semibold shadow-sm disabled:opacity-60" disabled={isPending || !value}>
         {isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />} Add Option
       </Button>
     </form>
@@ -568,25 +578,25 @@ function AttributeEditForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <div className="space-y-2">
-        <Label className="text-slate-700 font-medium">Attribute Name</Label>
-        <Input value={name} onChange={(event) => setName(event.target.value)} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#5C6AC4]" />
+        <Label className="text-slate-700 text-sm font-semibold">Attribute Name</Label>
+        <Input value={name} onChange={(event) => setName(event.target.value)} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15" />
       </div>
       <div className="space-y-2">
-        <Label className="text-slate-700 font-medium">Code</Label>
-        <Input value={code} onChange={(event) => setCode(event.target.value)} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#5C6AC4]" />
+        <Label className="text-slate-700 text-sm font-semibold">Code</Label>
+        <Input value={code} onChange={(event) => setCode(event.target.value)} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15" />
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label className="text-slate-700 font-medium">Sort Order</Label>
-          <Input type="number" value={sortOrder} onChange={(event) => setSortOrder(Number(event.target.value))} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#5C6AC4]" />
+          <Label className="text-slate-700 text-sm font-semibold">Sort Order</Label>
+          <Input type="number" value={sortOrder} onChange={(event) => setSortOrder(Number(event.target.value))} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15" />
         </div>
         <div className="space-y-2">
-          <Label className="text-slate-700 font-medium">Active</Label>
+          <Label className="text-slate-700 text-sm font-semibold">Active</Label>
           <div className="relative">
             <select
               value={isActive ? "yes" : "no"}
               onChange={(event) => setIsActive(event.target.value === "yes")}
-              className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 pr-10 text-sm shadow-sm transition-all focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/20 appearance-none"
+              className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 pr-10 text-sm shadow-sm transition-all focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15 appearance-none"
             >
               <option value="yes">Active</option>
               <option value="no">Inactive</option>
@@ -595,7 +605,7 @@ function AttributeEditForm({
           </div>
         </div>
       </div>
-      <Button type="submit" className="w-full h-11 rounded-xl bg-gradient-to-r from-[#5C6AC4] to-[#6B7AC8] hover:opacity-90 font-semibold shadow-[0_4px_15px_rgba(92,106,196,0.3)]" disabled={isPending || !name || !code}>
+      <Button type="submit" className="w-full h-11 rounded-xl bg-[#3B82F6] text-white hover:bg-[#2563EB] font-semibold shadow-sm disabled:opacity-60" disabled={isPending || !name || !code}>
         {isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />} Save Attribute
       </Button>
     </form>
@@ -637,21 +647,21 @@ function OptionEditForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label className="text-slate-700 font-medium">Option Value</Label>
-        <Input value={value} onChange={(event) => setValue(event.target.value)} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#5C6AC4]" />
+        <Label className="text-slate-700 text-sm font-semibold">Option Value</Label>
+        <Input value={value} onChange={(event) => setValue(event.target.value)} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15" />
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label className="text-slate-700 font-medium">Sort Order</Label>
-          <Input type="number" value={sortOrder} onChange={(event) => setSortOrder(Number(event.target.value))} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#5C6AC4]" />
+          <Label className="text-slate-700 text-sm font-semibold">Sort Order</Label>
+          <Input type="number" value={sortOrder} onChange={(event) => setSortOrder(Number(event.target.value))} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15" />
         </div>
         <div className="space-y-2">
-          <Label className="text-slate-700 font-medium">Active</Label>
+          <Label className="text-slate-700 text-sm font-semibold">Active</Label>
           <div className="relative">
             <select
               value={isActive ? "yes" : "no"}
               onChange={(event) => setIsActive(event.target.value === "yes")}
-              className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 pr-10 text-sm shadow-sm transition-all focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/20 appearance-none"
+              className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 pr-10 text-sm shadow-sm transition-all focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15 appearance-none"
             >
               <option value="yes">Active</option>
               <option value="no">Inactive</option>
@@ -660,7 +670,7 @@ function OptionEditForm({
           </div>
         </div>
       </div>
-      <Button type="submit" className="w-full h-10 rounded-xl bg-gradient-to-r from-[#00848E] to-[#00A3AE] hover:opacity-90 font-semibold shadow-[0_4px_15px_rgba(0,132,142,0.3)]" disabled={isPending || !value}>
+      <Button type="submit" className="w-full h-10 rounded-xl bg-[#3B82F6] text-white hover:bg-[#2563EB] font-semibold shadow-sm disabled:opacity-60" disabled={isPending || !value}>
         {isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />} Save Option
       </Button>
     </form>
@@ -750,7 +760,7 @@ function VariantEditForm({
                 <Label className="text-slate-700 font-medium">{attribute.name}</Label>
                 <div className="relative">
                   <select
-                    className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 pr-10 text-sm shadow-sm transition-all focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/20 appearance-none"
+                    className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 pr-10 text-sm shadow-sm transition-all focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15 appearance-none"
                     value={selectedOption ?? ""}
                     onChange={(event) =>
                       setSelections((prev) => ({
@@ -775,24 +785,24 @@ function VariantEditForm({
 
         <div className="space-y-2">
           <Label className="text-slate-700 font-medium">SKU</Label>
-          <Input value={sku} onChange={(event) => setSku(event.target.value)} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#5C6AC4]" />
+          <Input value={sku} onChange={(event) => setSku(event.target.value)} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15" />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label className="text-slate-700 font-medium">Unit</Label>
-            <Input value={unit} onChange={(event) => setUnit(event.target.value)} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#5C6AC4]" />
+            <Input value={unit} onChange={(event) => setUnit(event.target.value)} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15" />
           </div>
           <div className="space-y-2">
             <Label className="text-slate-700 font-medium">Price (Rp)</Label>
-            <Input type="number" value={price} onChange={(event) => setPrice(Number(event.target.value))} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#5C6AC4]" />
+            <Input type="number" value={price} onChange={(event) => setPrice(Number(event.target.value))} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15" />
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label className="text-slate-700 font-medium">Stock</Label>
-            <Input type="number" value={stockOnHand} onChange={(event) => setStockOnHand(Number(event.target.value))} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#5C6AC4]" />
+            <Input type="number" value={stockOnHand} onChange={(event) => setStockOnHand(Number(event.target.value))} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15" />
           </div>
           <div className="space-y-2">
             <Label className="text-slate-700 font-medium">Allow Preorder</Label>
@@ -800,7 +810,7 @@ function VariantEditForm({
               <select
                 value={allowPreorder ? "yes" : "no"}
                 onChange={(event) => setAllowPreorder(event.target.value === "yes")}
-                className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 pr-10 text-sm shadow-sm transition-all focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/20 appearance-none"
+                className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 pr-10 text-sm shadow-sm transition-all focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15 appearance-none"
               >
                 <option value="no">No</option>
                 <option value="yes">Yes</option>
@@ -812,7 +822,7 @@ function VariantEditForm({
       </div>
 
       <div className="sticky bottom-0 pt-4 bg-white/95 backdrop-blur">
-        <Button type="submit" className="w-full h-11 rounded-xl bg-gradient-to-r from-[#00848E] to-[#00A3AE] hover:opacity-90 font-semibold shadow-[0_4px_15px_rgba(0,132,142,0.3)]" disabled={isPending || !sku || !selectionsReady}>
+        <Button type="submit" className="w-full h-11 rounded-xl bg-[#3B82F6] text-white hover:bg-[#2563EB] font-semibold shadow-sm disabled:opacity-60" disabled={isPending || !sku || !selectionsReady}>
           {isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />} Save Variant
         </Button>
       </div>
@@ -845,73 +855,82 @@ export default function Products() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="page-title">Inventory</h1>
-          <p className="page-subtitle">Manage products and stock levels</p>
+          <div className="flex items-center gap-2">
+            <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-[#3B82F6]/15 to-[#06B6D4]/15 flex items-center justify-center">
+              <Shapes className="h-5 w-5 text-[#3B82F6]" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-semibold text-slate-900">Inventory</h1>
+              <p className="text-sm text-slate-500">Manage products and stock levels</p>
+            </div>
+          </div>
         </div>
-        <Dialog open={addProductOpen} onOpenChange={setAddProductOpen}>
-          <DialogTrigger asChild>
-            <Button className="h-11 px-6 rounded-xl bg-gradient-to-r from-[#5C6AC4] to-[#6B7AC8] font-semibold shadow-[0_4px_15px_rgba(92,106,196,0.3)]" data-testid="button-add-product">
-              <Plus className="w-4 h-4 mr-2" /> Add Product
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px] rounded-2xl">
-            <DialogHeader>
-              <DialogTitle className="text-xl font-bold">Create New Product</DialogTitle>
-              <DialogDescription>Add a new product to your inventory.</DialogDescription>
-            </DialogHeader>
-            {!hasBrands ? (
-              <div className="space-y-4">
-                <p className="text-sm text-slate-500">Create a brand before adding products.</p>
-                <Button className="w-full h-11 rounded-xl" onClick={() => { setAddProductOpen(false); setAddBrandOpen(true); }}>
-                  Create Brand
-                </Button>
-              </div>
-            ) : (
-              <ProductForm brands={brands || []} onSuccess={() => setAddProductOpen(false)} />
-            )}
-          </DialogContent>
-        </Dialog>
-        <Dialog open={addBrandOpen} onOpenChange={setAddBrandOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline" className="h-11 px-6 rounded-xl border-slate-200 text-slate-600">
-              <Plus className="w-4 h-4 mr-2" /> Add Brand
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[450px] rounded-2xl">
-            <DialogHeader>
-              <DialogTitle className="text-xl font-bold">Create Brand</DialogTitle>
-              <DialogDescription>Add a brand to organize your products.</DialogDescription>
-            </DialogHeader>
-            <BrandForm onSuccess={() => setAddBrandOpen(false)} />
-          </DialogContent>
-        </Dialog>
+        <div className="flex items-center gap-3">
+          <Dialog open={addProductOpen} onOpenChange={setAddProductOpen}>
+            <DialogTrigger asChild>
+              <Button className="h-11 px-6 rounded-xl bg-[#3B82F6] text-white hover:bg-[#2563EB] font-semibold shadow-sm" data-testid="button-add-product">
+                <Plus className="w-4 h-4 mr-2" /> Add Product
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px] rounded-2xl">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-bold">Create New Product</DialogTitle>
+                <DialogDescription>Add a new product to your inventory.</DialogDescription>
+              </DialogHeader>
+              {!hasBrands ? (
+                <div className="space-y-4">
+                  <p className="text-sm text-slate-500">Create a brand before adding products.</p>
+                  <Button className="w-full h-11 rounded-xl" onClick={() => { setAddProductOpen(false); setAddBrandOpen(true); }}>
+                    Create Brand
+                  </Button>
+                </div>
+              ) : (
+                <ProductForm brands={brands || []} onSuccess={() => setAddProductOpen(false)} />
+              )}
+            </DialogContent>
+          </Dialog>
+          <Dialog open={addBrandOpen} onOpenChange={setAddBrandOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="h-11 px-6 rounded-xl border-slate-200 text-slate-600 hover:border-slate-300 hover:text-slate-800">
+                <Sparkles className="w-4 h-4 mr-2" /> Add Brand
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[450px] rounded-2xl">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-bold">Create Brand</DialogTitle>
+                <DialogDescription>Add a brand to organize your products.</DialogDescription>
+              </DialogHeader>
+              <BrandForm onSuccess={() => setAddBrandOpen(false)} />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Products Grid */}
-      <div className="space-y-5">
+      <div className="space-y-6">
         {isLoading ? (
           <div className="flex justify-center py-16">
-            <Loader2 className="animate-spin w-8 h-8 text-[#5C6AC4]" />
+            <Loader2 className="animate-spin w-8 h-8 text-[#3B82F6]" />
           </div>
         ) : products?.length === 0 ? (
-          <div className="premium-card text-center py-16">
+          <div className="premium-card text-center py-16 border border-slate-100 shadow-sm">
             <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
               <Package className="w-8 h-8 text-slate-300" />
             </div>
             <p className="text-slate-500 mb-2">No products yet</p>
-            <Button variant="link" className="text-[#5C6AC4]" onClick={() => setAddProductOpen(true)}>Add your first product</Button>
+            <Button variant="link" className="text-[#3B82F6]" onClick={() => setAddProductOpen(true)}>Add your first product</Button>
           </div>
         ) : (
           products?.map((product) => (
-            <div key={product.id} className="premium-card p-0 overflow-hidden" data-testid={`product-card-${product.id}`}>
+            <div key={product.id} className="premium-card p-0 overflow-hidden border border-slate-100 shadow-sm" data-testid={`product-card-${product.id}`}>
               <Collapsible open={openItems[product.id]} onOpenChange={() => toggleItem(product.id)}>
                 <div className="p-6 flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#5C6AC4]/10 to-[#00848E]/10 flex items-center justify-center">
-                      <Package className="w-7 h-7 text-[#5C6AC4]" />
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#3B82F6]/12 to-[#06B6D4]/12 flex items-center justify-center">
+                      <Package className="w-7 h-7 text-[#3B82F6]" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-slate-900">{product.name}</h3>
+                      <h3 className="text-lg font-semibold text-slate-900">{product.name}</h3>
                       <div className="flex items-center gap-3 mt-1">
                         <span className="inline-flex items-center gap-1.5 text-sm text-slate-500">
                           <Layers className="w-4 h-4" />
@@ -929,23 +948,9 @@ export default function Products() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Dialog open={activeProductId === product.id} onOpenChange={(open) => setActiveProductId(open ? product.id : null)}>
-                      <DialogTrigger asChild>
-                        <Button variant="outline" className="rounded-xl border-slate-200 text-slate-600 hover:border-[#00848E] hover:text-[#00848E] hover:bg-[#00848E]/5" data-testid={`button-add-variant-${product.id}`}>
-                          <Plus className="w-4 h-4 mr-2" /> Add Variant
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-[520px] max-h-[85vh] overflow-hidden rounded-2xl">
-                        <DialogHeader>
-                          <DialogTitle className="text-xl font-bold">Add Variant to {product.name}</DialogTitle>
-                          <DialogDescription>Create a new variant with different attributes.</DialogDescription>
-                        </DialogHeader>
-                        <VariantForm productId={product.id} attributes={product.attributes} onSuccess={() => setActiveProductId(null)} />
-                      </DialogContent>
-                    </Dialog>
                     <Dialog open={activeAttributeProductId === product.id} onOpenChange={(open) => setActiveAttributeProductId(open ? product.id : null)}>
                       <DialogTrigger asChild>
-                        <Button variant="outline" className="rounded-xl border-slate-200 text-slate-600 hover:border-[#5C6AC4] hover:text-[#5C6AC4] hover:bg-[#5C6AC4]/5">
+                        <Button className="rounded-xl bg-[#3B82F6] text-white hover:bg-[#2563EB] font-semibold shadow-sm">
                           <Plus className="w-4 h-4 mr-2" /> Add Attribute
                         </Button>
                       </DialogTrigger>
@@ -957,8 +962,43 @@ export default function Products() {
                         <AttributeForm productId={product.id} nextSortOrder={product.attributes.length + 1} onSuccess={() => setActiveAttributeProductId(null)} />
                       </DialogContent>
                     </Dialog>
+                    <Dialog open={activeProductId === product.id} onOpenChange={(open) => setActiveProductId(open ? product.id : null)}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" className="rounded-xl border-slate-200 text-slate-600 hover:border-[#3B82F6] hover:text-[#3B82F6] hover:bg-[#3B82F6]/5" data-testid={`button-add-variant-${product.id}`}>
+                          <Plus className="w-4 h-4 mr-2" /> Add Variant
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-[520px] max-h-[85vh] overflow-hidden rounded-2xl">
+                        <DialogHeader>
+                          <DialogTitle className="text-xl font-bold">Add Variant to {product.name}</DialogTitle>
+                          <DialogDescription>Create a new variant with different attributes.</DialogDescription>
+                        </DialogHeader>
+                        <VariantForm productId={product.id} attributes={product.attributes} onSuccess={() => setActiveProductId(null)} />
+                      </DialogContent>
+                    </Dialog>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100" aria-label="More options">
+                          <MoreHorizontal className="w-5 h-5" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => setActiveEditProductId(product.id)}>
+                          <Pencil className="w-4 h-4 mr-2" /> Edit Product
+                        </DropdownMenuItem>
+                        {product.brand && (
+                          <DropdownMenuItem onClick={() => setActiveEditBrandId(product.brand.id)}>
+                            <PenLine className="w-4 h-4 mr-2" /> Edit Brand
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem disabled>
+                          Delete Product
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                     <CollapsibleTrigger asChild>
-                      <Button variant="ghost" size="icon" className="rounded-xl text-slate-400 hover:text-slate-600" data-testid={`button-toggle-product-${product.id}`}>
+                      <Button variant="ghost" size="icon" className="rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100" data-testid={`button-toggle-product-${product.id}`}>
                         {openItems[product.id] ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                       </Button>
                     </CollapsibleTrigger>
@@ -966,47 +1006,37 @@ export default function Products() {
                 </div>
                 
                 <CollapsibleContent>
-                  <div className="border-t border-slate-100 bg-slate-50/50 px-6 py-5 space-y-6">
-                    <div className="flex flex-wrap items-center justify-end gap-2">
-                      <Dialog open={activeEditProductId === product.id} onOpenChange={(open) => setActiveEditProductId(open ? product.id : null)}>
-                        <DialogTrigger asChild>
-                          <Button variant="outline" size="sm" className="rounded-lg text-xs">
-                            Edit Product
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[520px] rounded-2xl">
+                  <div className="border-t border-slate-100 bg-slate-50/60 px-6 py-5 space-y-6">
+                    <Dialog open={activeEditProductId === product.id} onOpenChange={(open) => setActiveEditProductId(open ? product.id : null)}>
+                      <DialogContent className="sm:max-w-[520px] rounded-2xl">
+                        <DialogHeader>
+                          <DialogTitle className="text-xl font-bold">Edit Product</DialogTitle>
+                          <DialogDescription>Update product details.</DialogDescription>
+                        </DialogHeader>
+                        <ProductEditForm product={product} brands={brands || []} onSuccess={() => setActiveEditProductId(null)} />
+                      </DialogContent>
+                    </Dialog>
+                    {product.brand && (
+                      <Dialog open={activeEditBrandId === product.brand.id} onOpenChange={(open) => setActiveEditBrandId(open ? product.brand.id : null)}>
+                        <DialogContent className="sm:max-w-[480px] rounded-2xl">
                           <DialogHeader>
-                            <DialogTitle className="text-xl font-bold">Edit Product</DialogTitle>
-                            <DialogDescription>Update product details.</DialogDescription>
+                            <DialogTitle className="text-xl font-bold">Edit Brand</DialogTitle>
+                            <DialogDescription>Update brand details.</DialogDescription>
                           </DialogHeader>
-                          <ProductEditForm product={product} brands={brands || []} onSuccess={() => setActiveEditProductId(null)} />
+                          <BrandEditForm brand={product.brand} onSuccess={() => setActiveEditBrandId(null)} />
                         </DialogContent>
                       </Dialog>
-                      {product.brand && (
-                        <Dialog open={activeEditBrandId === product.brand.id} onOpenChange={(open) => setActiveEditBrandId(open ? product.brand.id : null)}>
-                          <DialogTrigger asChild>
-                            <Button variant="outline" size="sm" className="rounded-lg text-xs">
-                              Edit Brand
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="sm:max-w-[480px] rounded-2xl">
-                            <DialogHeader>
-                              <DialogTitle className="text-xl font-bold">Edit Brand</DialogTitle>
-                              <DialogDescription>Update brand details.</DialogDescription>
-                            </DialogHeader>
-                            <BrandEditForm brand={product.brand} onSuccess={() => setActiveEditBrandId(null)} />
-                          </DialogContent>
-                        </Dialog>
-                      )}
-                    </div>
+                    )}
                     <div className="space-y-3">
-                      <h4 className="text-sm font-semibold text-slate-600 uppercase tracking-wide">Attributes</h4>
+                      <h4 className="text-sm font-semibold text-slate-600 uppercase tracking-wide flex items-center gap-2">
+                        <Tag className="w-4 h-4 text-slate-400" /> Attributes
+                      </h4>
                       {product.attributes.length === 0 ? (
                         <p className="text-sm text-slate-400">No attributes yet. Add one to build variants.</p>
                       ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {product.attributes.map((attribute) => (
-                            <div key={attribute.id} className="bg-white rounded-xl border border-slate-200/80 p-4">
+                            <div key={attribute.id} className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm">
                               <div className="flex items-center justify-between">
                                 <div>
                                   <p className="font-semibold text-slate-800">{attribute.name}</p>
@@ -1015,9 +1045,9 @@ export default function Products() {
                                 <div className="flex items-center gap-2">
                                   <Dialog open={activeEditAttributeId === attribute.id} onOpenChange={(open) => setActiveEditAttributeId(open ? attribute.id : null)}>
                                     <DialogTrigger asChild>
-                                      <Button variant="outline" size="sm" className="rounded-lg text-xs">
-                                        Edit
-                                      </Button>
+                                    <Button variant="outline" size="sm" className="rounded-lg text-xs">
+                                      <Pencil className="w-3.5 h-3.5 mr-1" /> Edit
+                                    </Button>
                                     </DialogTrigger>
                                     <DialogContent className="sm:max-w-[450px] rounded-2xl">
                                       <DialogHeader>
@@ -1029,9 +1059,9 @@ export default function Products() {
                                   </Dialog>
                                   <Dialog open={activeOptionAttributeId === attribute.id} onOpenChange={(open) => setActiveOptionAttributeId(open ? attribute.id : null)}>
                                     <DialogTrigger asChild>
-                                      <Button variant="outline" size="sm" className="rounded-lg text-xs">
-                                        <Plus className="w-3 h-3 mr-1" /> Add Option
-                                      </Button>
+                                    <Button variant="outline" size="sm" className="rounded-lg text-xs">
+                                      <Plus className="w-3 h-3 mr-1" /> Add Option
+                                    </Button>
                                     </DialogTrigger>
                                     <DialogContent className="sm:max-w-[420px] rounded-2xl">
                                       <DialogHeader>
@@ -1049,11 +1079,11 @@ export default function Products() {
                                 ) : (
                                   attribute.options.map((option) => (
                                     <Dialog key={option.id} open={activeEditOptionId === option.id} onOpenChange={(open) => setActiveEditOptionId(open ? option.id : null)}>
-                                      <DialogTrigger asChild>
-                                        <button type="button" className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-full hover:bg-slate-200 transition-colors">
-                                          {option.value}
-                                        </button>
-                                      </DialogTrigger>
+                                    <DialogTrigger asChild>
+                                      <button type="button" className="text-xs bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full hover:bg-slate-200 transition-colors shadow-[inset_0_0_0_1px_rgba(148,163,184,0.2)]">
+                                        {option.value}
+                                      </button>
+                                    </DialogTrigger>
                                       <DialogContent className="sm:max-w-[420px] rounded-2xl">
                                         <DialogHeader>
                                           <DialogTitle className="text-lg font-bold">Edit Option</DialogTitle>
@@ -1076,10 +1106,10 @@ export default function Products() {
                         const isInStock = stockNum > 0;
                         const price = getVariantPrice(variant, "IDR");
                         return (
-                          <div key={variant.id} className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-sm hover:shadow-md transition-all" data-testid={`variant-card-${variant.id}`}>
+                          <div key={variant.id} className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm hover:shadow-md transition-all" data-testid={`variant-card-${variant.id}`}>
                             <div className="flex justify-between items-start mb-3">
                               <h4 className="font-semibold text-slate-800">{formatVariantLabel(variant)}</h4>
-                              <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${isInStock ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                              <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${isInStock ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
                                 {isInStock ? 'In Stock' : 'Out of Stock'}
                               </span>
                             </div>
@@ -1091,7 +1121,7 @@ export default function Products() {
                               <span className="text-sm font-medium text-slate-600">{stockNum} in stock</span>
                               <Dialog open={activeEditVariantId === variant.id} onOpenChange={(open) => setActiveEditVariantId(open ? variant.id : null)}>
                                 <DialogTrigger asChild>
-                                  <Button variant="ghost" size="sm" className="h-8 text-xs text-slate-500 hover:text-[#5C6AC4] rounded-lg" data-testid={`button-edit-variant-${variant.id}`}>Edit</Button>
+                                  <Button variant="ghost" size="sm" className="h-8 text-xs text-slate-500 hover:text-[#3B82F6] rounded-lg" data-testid={`button-edit-variant-${variant.id}`}>Edit</Button>
                                 </DialogTrigger>
                                 <DialogContent className="sm:max-w-[520px] max-h-[85vh] overflow-hidden rounded-2xl">
                                   <DialogHeader>
