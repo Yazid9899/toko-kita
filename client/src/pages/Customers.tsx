@@ -252,7 +252,7 @@ export default function Customers() {
         
         <Dialog open={createOpen} onOpenChange={setCreateOpen}>
           <DialogTrigger asChild>
-            <Button data-testid="button-add-customer">
+            <Button variant="default" data-testid="button-add-customer">
               <Plus className="w-4 h-4 mr-2" />
               Add Customer
             </Button>

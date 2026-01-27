@@ -23,9 +23,19 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertProductSchema, type InsertProduct } from "@shared/schema";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Loader2, Plus, Package, ChevronDown, ChevronUp, Box, Tag, Layers, Pencil, Sparkles, Shapes, PenLine, MoreHorizontal } from "lucide-react";
+import { Loader2, Plus, Package, ChevronDown, ChevronUp, Box, Tag, Layers, Pencil, Sparkles, Shapes, PenLine, MoreHorizontal, Trash2 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { formatPrice, formatVariantLabel, getVariantPrice } from "@/lib/variant-utils";
+import { formatPrice, getVariantPrice } from "@/lib/variant-utils";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 function BrandForm({ onSuccess }: { onSuccess: () => void }) {
   const { mutate, isPending } = useCreateBrand();
@@ -53,7 +63,7 @@ function BrandForm({ onSuccess }: { onSuccess: () => void }) {
           <Input placeholder="e.g. legatto" {...form.register("slug", { required: true })} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15" />
           <p className="text-xs text-slate-400">Lowercase, no spaces. Used for URLs.</p>
         </div>
-        <Button type="submit" className="w-full h-11 rounded-xl bg-[#3B82F6] text-white hover:bg-[#2563EB] font-semibold shadow-sm disabled:opacity-60" disabled={isPending}>
+        <Button type="submit" variant="default" className="w-full h-11" disabled={isPending}>
           {isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />} Create Brand
         </Button>
       </form>
@@ -92,7 +102,7 @@ function BrandEditForm({
         <Label className="text-slate-700 text-sm font-semibold">Slug</Label>
         <Input value={slug} onChange={(event) => setSlug(event.target.value)} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15" />
       </div>
-      <Button type="submit" className="w-full h-11 rounded-xl bg-[#3B82F6] text-white hover:bg-[#2563EB] font-semibold shadow-sm disabled:opacity-60" disabled={isPending || !name || !slug}>
+      <Button type="submit" variant="default" className="w-full h-11" disabled={isPending || !name || !slug}>
         {isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />} Save Brand
       </Button>
     </form>
@@ -181,7 +191,7 @@ function ProductForm({ onSuccess, brands }: { onSuccess: () => void; brands: { i
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full h-11 rounded-xl bg-[#3B82F6] text-white hover:bg-[#2563EB] font-semibold shadow-sm disabled:opacity-60" disabled={isPending} data-testid="button-create-product">
+        <Button type="submit" variant="default" className="w-full h-11" disabled={isPending} data-testid="button-create-product">
           {isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />} Create Product
         </Button>
       </form>
@@ -330,7 +340,7 @@ function VariantForm({
       <div className="sticky bottom-0 pt-4 bg-white/95 backdrop-blur">
         <Button
           type="submit"
-          className="w-full h-11 rounded-xl bg-[#3B82F6] text-white hover:bg-[#2563EB] font-semibold shadow-sm disabled:opacity-60"
+          variant="default" className="w-full h-11"
           disabled={
             isPending ||
             !sku ||
@@ -426,7 +436,7 @@ function ProductEditForm({
           <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
         </div>
       </div>
-      <Button type="submit" className="w-full h-11 rounded-xl bg-[#3B82F6] text-white hover:bg-[#2563EB] font-semibold shadow-sm disabled:opacity-60" disabled={isPending || !name}>
+      <Button type="submit" variant="default" className="w-full h-11" disabled={isPending || !name}>
         {isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />} Save Product
       </Button>
     </form>
@@ -482,7 +492,7 @@ function AttributeForm({
         <Label className="text-slate-700 text-sm font-semibold">Sort Order</Label>
         <Input type="number" value={sortOrder} onChange={(event) => setSortOrder(Number(event.target.value))} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15" />
       </div>
-      <Button type="submit" className="w-full h-11 rounded-xl bg-[#3B82F6] text-white hover:bg-[#2563EB] font-semibold shadow-sm disabled:opacity-60" disabled={isPending || !name || !code}>
+      <Button type="submit" variant="default" className="w-full h-11" disabled={isPending || !name || !code}>
         {isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />} Add Attribute
       </Button>
     </form>
@@ -534,7 +544,7 @@ function OptionForm({
         <Label className="text-slate-700 text-sm font-semibold">Sort Order</Label>
         <Input type="number" value={sortOrder} onChange={(event) => setSortOrder(Number(event.target.value))} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15" />
       </div>
-      <Button type="submit" className="w-full h-10 rounded-xl bg-[#3B82F6] text-white hover:bg-[#2563EB] font-semibold shadow-sm disabled:opacity-60" disabled={isPending || !value}>
+      <Button variant="default" className="w-full h-11" disabled={isPending || !value}>
         {isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />} Add Option
       </Button>
     </form>
@@ -605,7 +615,7 @@ function AttributeEditForm({
           </div>
         </div>
       </div>
-      <Button type="submit" className="w-full h-11 rounded-xl bg-[#3B82F6] text-white hover:bg-[#2563EB] font-semibold shadow-sm disabled:opacity-60" disabled={isPending || !name || !code}>
+      <Button type="submit" variant="default" className="w-full h-11" disabled={isPending || !name || !code}>
         {isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />} Save Attribute
       </Button>
     </form>
@@ -670,7 +680,7 @@ function OptionEditForm({
           </div>
         </div>
       </div>
-      <Button type="submit" className="w-full h-10 rounded-xl bg-[#3B82F6] text-white hover:bg-[#2563EB] font-semibold shadow-sm disabled:opacity-60" disabled={isPending || !value}>
+      <Button type="submit" variant="default" className="w-full h-11" disabled={isPending || !value}>
         {isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />} Save Option
       </Button>
     </form>
@@ -822,7 +832,7 @@ function VariantEditForm({
       </div>
 
       <div className="sticky bottom-0 pt-4 bg-white/95 backdrop-blur">
-        <Button type="submit" className="w-full h-11 rounded-xl bg-[#3B82F6] text-white hover:bg-[#2563EB] font-semibold shadow-sm disabled:opacity-60" disabled={isPending || !sku || !selectionsReady}>
+        <Button type="submit" variant="default" className="w-full h-11" disabled={isPending || !sku || !selectionsReady}>
           {isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />} Save Variant
         </Button>
       </div>
@@ -833,6 +843,7 @@ function VariantEditForm({
 export default function Products() {
   const { data: products, isLoading } = useProducts();
   const { data: brands } = useBrands();
+  const { mutate: updateAttribute } = useUpdateAttribute();
   const [addProductOpen, setAddProductOpen] = useState(false);
   const [addBrandOpen, setAddBrandOpen] = useState(false);
   const [openItems, setOpenItems] = useState<Record<number, boolean>>({});
@@ -844,10 +855,30 @@ export default function Products() {
   const [activeEditAttributeId, setActiveEditAttributeId] = useState<number | null>(null);
   const [activeEditOptionId, setActiveEditOptionId] = useState<number | null>(null);
   const [activeEditVariantId, setActiveEditVariantId] = useState<number | null>(null);
+  const [variantFilters, setVariantFilters] = useState<Record<number, Record<number, number | "all">>>({});
+  const [deleteAttributeTarget, setDeleteAttributeTarget] = useState<{
+    productId: number;
+    attributeId: number;
+    name: string;
+  } | null>(null);
   const hasBrands = (brands?.length || 0) > 0;
 
   const toggleItem = (id: number) => {
     setOpenItems(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const handleDeleteAttribute = (productId: number, attributeId: number) => {
+    updateAttribute({ id: attributeId, productId, data: { isActive: false } });
+  };
+
+  const setVariantFilter = (productId: number, attributeId: number, value: number | "all") => {
+    setVariantFilters((prev) => ({
+      ...prev,
+      [productId]: {
+        ...(prev[productId] || {}),
+        [attributeId]: value,
+      },
+    }));
   };
 
   return (
@@ -868,7 +899,7 @@ export default function Products() {
         <div className="flex items-center gap-3">
           <Dialog open={addProductOpen} onOpenChange={setAddProductOpen}>
             <DialogTrigger asChild>
-              <Button className="h-11 px-6 rounded-xl bg-[#3B82F6] text-white hover:bg-[#2563EB] font-semibold shadow-sm" data-testid="button-add-product">
+              <Button variant="default" className="" data-testid="button-add-product">
                 <Plus className="w-4 h-4 mr-2" /> Add Product
               </Button>
             </DialogTrigger>
@@ -891,7 +922,7 @@ export default function Products() {
           </Dialog>
           <Dialog open={addBrandOpen} onOpenChange={setAddBrandOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" className="h-11 px-6 rounded-xl border-slate-200 text-slate-600 hover:border-slate-300 hover:text-slate-800">
+              <Button variant="outline">
                 <Sparkles className="w-4 h-4 mr-2" /> Add Brand
               </Button>
             </DialogTrigger>
@@ -906,6 +937,31 @@ export default function Products() {
         </div>
       </div>
 
+      <AlertDialog open={!!deleteAttributeTarget} onOpenChange={(open) => !open && setDeleteAttributeTarget(null)}>
+        <AlertDialogContent className="rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete attribute?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will hide the attribute from the product. You can re-enable it later.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-cancel-delete-attribute">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (!deleteAttributeTarget) return;
+                handleDeleteAttribute(deleteAttributeTarget.productId, deleteAttributeTarget.attributeId);
+                setDeleteAttributeTarget(null);
+              }}
+              className="bg-rose-600 hover:bg-rose-700 text-white"
+              data-testid="button-confirm-delete-attribute"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Products Grid */}
       <div className="space-y-6">
         {isLoading ? (
@@ -918,7 +974,7 @@ export default function Products() {
               <Package className="w-8 h-8 text-slate-300" />
             </div>
             <p className="text-slate-500 mb-2">No products yet</p>
-            <Button variant="link" className="text-[#3B82F6]" onClick={() => setAddProductOpen(true)}>Add your first product</Button>
+            <Button variant="default" onClick={() => setAddProductOpen(true)}>Add your first product</Button>
           </div>
         ) : (
           products?.map((product) => (
@@ -950,7 +1006,7 @@ export default function Products() {
                   <div className="flex items-center gap-3">
                     <Dialog open={activeAttributeProductId === product.id} onOpenChange={(open) => setActiveAttributeProductId(open ? product.id : null)}>
                       <DialogTrigger asChild>
-                        <Button className="rounded-xl bg-[#3B82F6] text-white hover:bg-[#2563EB] font-semibold shadow-sm">
+                        <Button variant="default">
                           <Plus className="w-4 h-4 mr-2" /> Add Attribute
                         </Button>
                       </DialogTrigger>
@@ -964,7 +1020,7 @@ export default function Products() {
                     </Dialog>
                     <Dialog open={activeProductId === product.id} onOpenChange={(open) => setActiveProductId(open ? product.id : null)}>
                       <DialogTrigger asChild>
-                        <Button variant="outline" className="rounded-xl border-slate-200 text-slate-600 hover:border-[#3B82F6] hover:text-[#3B82F6] hover:bg-[#3B82F6]/5" data-testid={`button-add-variant-${product.id}`}>
+                        <Button variant="outline" data-testid={`button-add-variant-${product.id}`}>
                           <Plus className="w-4 h-4 mr-2" /> Add Variant
                         </Button>
                       </DialogTrigger>
@@ -1035,102 +1091,195 @@ export default function Products() {
                         <p className="text-sm text-slate-400">No attributes yet. Add one to build variants.</p>
                       ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {product.attributes.map((attribute) => (
-                            <div key={attribute.id} className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm">
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <p className="font-semibold text-slate-800">{attribute.name}</p>
-                                  <p className="text-xs text-slate-400">{attribute.code}</p>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <Dialog open={activeEditAttributeId === attribute.id} onOpenChange={(open) => setActiveEditAttributeId(open ? attribute.id : null)}>
-                                    <DialogTrigger asChild>
-                                    <Button variant="outline" size="sm" className="rounded-lg text-xs">
-                                      <Pencil className="w-3.5 h-3.5 mr-1" /> Edit
-                                    </Button>
-                                    </DialogTrigger>
-                                    <DialogContent className="sm:max-w-[450px] rounded-2xl">
-                                      <DialogHeader>
-                                        <DialogTitle className="text-lg font-bold">Edit Attribute</DialogTitle>
-                                        <DialogDescription>Update attribute details.</DialogDescription>
-                                      </DialogHeader>
-                                      <AttributeEditForm productId={product.id} attribute={attribute} onSuccess={() => setActiveEditAttributeId(null)} />
-                                    </DialogContent>
-                                  </Dialog>
-                                  <Dialog open={activeOptionAttributeId === attribute.id} onOpenChange={(open) => setActiveOptionAttributeId(open ? attribute.id : null)}>
-                                    <DialogTrigger asChild>
-                                    <Button variant="outline" size="sm" className="rounded-lg text-xs">
-                                      <Plus className="w-3 h-3 mr-1" /> Add Option
-                                    </Button>
-                                    </DialogTrigger>
-                                    <DialogContent className="sm:max-w-[420px] rounded-2xl">
-                                      <DialogHeader>
-                                        <DialogTitle className="text-lg font-bold">Add Option</DialogTitle>
-                                        <DialogDescription>Add a value for {attribute.name}.</DialogDescription>
-                                      </DialogHeader>
-                                      <OptionForm productId={product.id} attributeId={attribute.id} nextSortOrder={attribute.options.length + 1} onSuccess={() => setActiveOptionAttributeId(null)} />
-                                    </DialogContent>
-                                  </Dialog>
-                                </div>
-                              </div>
-                              <div className="mt-3 flex flex-wrap gap-2">
-                                {attribute.options.length === 0 ? (
-                                  <span className="text-xs text-slate-400">No options yet</span>
-                                ) : (
-                                  attribute.options.map((option) => (
-                                    <Dialog key={option.id} open={activeEditOptionId === option.id} onOpenChange={(open) => setActiveEditOptionId(open ? option.id : null)}>
-                                    <DialogTrigger asChild>
-                                      <button type="button" className="text-xs bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full hover:bg-slate-200 transition-colors shadow-[inset_0_0_0_1px_rgba(148,163,184,0.2)]">
-                                        {option.value}
-                                      </button>
-                                    </DialogTrigger>
+                          {product.attributes.map((attribute) => {
+                            const isUsedByVariant = product.variants.some((variant) =>
+                              variant.optionValues.some((value) => value.attributeId === attribute.id)
+                            );
+                            return (
+                              <div key={attribute.id} className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <p className="font-semibold text-slate-800">{attribute.name}</p>
+                                    <p className="text-xs text-slate-400">{attribute.code}</p>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <Dialog open={activeOptionAttributeId === attribute.id} onOpenChange={(open) => setActiveOptionAttributeId(open ? attribute.id : null)}>
+                                      <DialogTrigger asChild>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-8 w-8 rounded-lg text-slate-500 hover:text-[#5C6AC4] hover:bg-slate-100"
+                                          aria-label="Add option"
+                                          title="Add option"
+                                          data-testid={`button-add-option-${attribute.id}`}
+                                        >
+                                          <Plus className="w-4 h-4" />
+                                        </Button>
+                                      </DialogTrigger>
                                       <DialogContent className="sm:max-w-[420px] rounded-2xl">
                                         <DialogHeader>
-                                          <DialogTitle className="text-lg font-bold">Edit Option</DialogTitle>
-                                          <DialogDescription>Update option details.</DialogDescription>
+                                          <DialogTitle className="text-lg font-bold">Add Option</DialogTitle>
+                                          <DialogDescription>Add a value for {attribute.name}.</DialogDescription>
                                         </DialogHeader>
-                                        <OptionEditForm productId={product.id} option={option} onSuccess={() => setActiveEditOptionId(null)} />
+                                        <OptionForm productId={product.id} attributeId={attribute.id} nextSortOrder={attribute.options.length + 1} onSuccess={() => setActiveOptionAttributeId(null)} />
                                       </DialogContent>
                                     </Dialog>
-                                  ))
-                                )}
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100" aria-label="Attribute actions">
+                                          <MoreHorizontal className="w-4 h-4" />
+                                        </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onClick={() => setActiveEditAttributeId(attribute.id)}>
+                                          <Pencil className="w-4 h-4 mr-2" /> Edit
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem
+                                          onClick={() => setDeleteAttributeTarget({ productId: product.id, attributeId: attribute.id, name: attribute.name })}
+                                          disabled={isUsedByVariant}
+                                          className="text-rose-600 focus:text-rose-600"
+                                          data-testid={`menu-delete-attribute-${attribute.id}`}
+                                        >
+                                          <Trash2 className="w-4 h-4 mr-2" /> Delete
+                                        </DropdownMenuItem>
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
+                                  </div>
+                                </div>
+                                <Dialog open={activeEditAttributeId === attribute.id} onOpenChange={(open) => setActiveEditAttributeId(open ? attribute.id : null)}>
+                                  <DialogContent className="sm:max-w-[450px] rounded-2xl">
+                                    <DialogHeader>
+                                      <DialogTitle className="text-lg font-bold">Edit Attribute</DialogTitle>
+                                      <DialogDescription>Update attribute details.</DialogDescription>
+                                    </DialogHeader>
+                                    <AttributeEditForm productId={product.id} attribute={attribute} onSuccess={() => setActiveEditAttributeId(null)} />
+                                  </DialogContent>
+                                </Dialog>
+                                <div className="mt-3 flex flex-wrap gap-2">
+                                  {attribute.options.length === 0 ? (
+                                    <span className="text-xs text-slate-400">No options yet</span>
+                                  ) : (
+                                    attribute.options.map((option) => (
+                                      <Dialog key={option.id} open={activeEditOptionId === option.id} onOpenChange={(open) => setActiveEditOptionId(open ? option.id : null)}>
+                                        <DialogTrigger asChild>
+                                          <button type="button" className="text-xs bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full hover:bg-slate-200 transition-colors shadow-[inset_0_0_0_1px_rgba(148,163,184,0.2)]">
+                                            {option.value}
+                                          </button>
+                                        </DialogTrigger>
+                                        <DialogContent className="sm:max-w-[420px] rounded-2xl">
+                                          <DialogHeader>
+                                            <DialogTitle className="text-lg font-bold">Edit Option</DialogTitle>
+                                            <DialogDescription>Update option details.</DialogDescription>
+                                          </DialogHeader>
+                                          <OptionEditForm productId={product.id} option={option} onSuccess={() => setActiveEditOptionId(null)} />
+                                        </DialogContent>
+                                      </Dialog>
+                                    ))
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       )}
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {product.variants.map(variant => {
+                    <div className="space-y-3">
+                      {product.attributes.length > 0 && (
+                        <div className="rounded-xl border border-slate-200/80 bg-white px-4 py-3">
+                          <div className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">
+                            Filter variants
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            {product.attributes.map((attribute) => (
+                              <div key={attribute.id} className="space-y-1">
+                                <Label className="text-xs text-slate-500">{attribute.name}</Label>
+                                <div className="relative">
+                                  <select
+                                    className="w-full h-9 rounded-lg border border-slate-200 bg-white px-2.5 pr-8 text-xs shadow-sm transition-all focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15 appearance-none"
+                                    value={variantFilters[product.id]?.[attribute.id] ?? "all"}
+                                    onChange={(event) => {
+                                      const value = event.target.value;
+                                      setVariantFilter(product.id, attribute.id, value === "all" ? "all" : Number(value));
+                                    }}
+                                  >
+                                    <option value="all">All</option>
+                                    {attribute.options
+                                      .filter((option) => option.isActive)
+                                      .map((option) => (
+                                        <option key={option.id} value={option.id}>
+                                          {option.value}
+                                        </option>
+                                      ))}
+                                  </select>
+                                  <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {product.variants
+                        .filter((variant) =>
+                          product.attributes.every((attribute) => {
+                            const selected = variantFilters[product.id]?.[attribute.id];
+                            if (!selected || selected === "all") return true;
+                            return variant.optionValues.some(
+                              (value) => value.attributeId === attribute.id && value.optionId === selected
+                            );
+                          })
+                        )
+                        .map(variant => {
                         const stockNum = Number(variant.stockOnHand);
                         const isInStock = stockNum > 0;
                         const price = getVariantPrice(variant, "IDR");
+                        const chipLimit = 4;
+                        const visibleChips = variant.optionValues.slice(0, chipLimit);
+                        const overflowCount = Math.max(0, variant.optionValues.length - visibleChips.length);
                         return (
-                          <div key={variant.id} className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm hover:shadow-md transition-all" data-testid={`variant-card-${variant.id}`}>
-                            <div className="flex justify-between items-start mb-3">
-                              <h4 className="font-semibold text-slate-800">{formatVariantLabel(variant)}</h4>
-                              <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${isInStock ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
-                                {isInStock ? 'In Stock' : 'Out of Stock'}
-                              </span>
-                            </div>
-                            <div className="space-y-1.5 text-sm text-slate-500">
-                              <p>SKU: {variant.sku || '-'}</p>
-                              <p className="font-medium text-slate-700">Rp {formatPrice(price?.priceCents ?? 0)}</p>
-                            </div>
-                            <div className="mt-4 pt-3 border-t border-dashed border-slate-200 flex justify-between items-center">
-                              <span className="text-sm font-medium text-slate-600">{stockNum} in stock</span>
-                              <Dialog open={activeEditVariantId === variant.id} onOpenChange={(open) => setActiveEditVariantId(open ? variant.id : null)}>
-                                <DialogTrigger asChild>
-                                  <Button variant="ghost" size="sm" className="h-8 text-xs text-slate-500 hover:text-[#3B82F6] rounded-lg" data-testid={`button-edit-variant-${variant.id}`}>Edit</Button>
-                                </DialogTrigger>
-                                <DialogContent className="sm:max-w-[520px] max-h-[85vh] overflow-hidden rounded-2xl">
-                                  <DialogHeader>
-                                    <DialogTitle className="text-xl font-bold">Edit Variant</DialogTitle>
-                                    <DialogDescription>Update variant details and selections.</DialogDescription>
-                                  </DialogHeader>
-                                  <VariantEditForm productId={product.id} variant={variant} attributes={product.attributes} onSuccess={() => setActiveEditVariantId(null)} />
-                                </DialogContent>
-                              </Dialog>
+                          <div key={variant.id} className="bg-white rounded-2xl border border-slate-200/80 px-4 py-3 shadow-sm hover:shadow-md transition-all" data-testid={`variant-card-${variant.id}`}>
+                            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                              <div className="min-w-0 flex-1">
+                                <div className="flex flex-wrap gap-2 max-h-16 overflow-hidden">
+                                  {visibleChips.map((chip) => (
+                                    <span
+                                      key={`${variant.id}-${chip.attributeId}`}
+                                      className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700 border border-slate-200 max-w-[180px]"
+                                      title={`${chip.attributeName}: ${chip.optionValue}`}
+                                    >
+                                      <span className="truncate">{chip.attributeName}: {chip.optionValue}</span>
+                                    </span>
+                                  ))}
+                                  {overflowCount > 0 && (
+                                    <span className="inline-flex items-center rounded-full bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-500 border border-dashed border-slate-200">
+                                      +{overflowCount} more
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-slate-500">
+                                  <span className="font-medium text-slate-600">SKU: {variant.sku || "-"}</span>
+                                  <span className="font-semibold text-slate-800">Rp {formatPrice(price?.priceCents ?? 0)}</span>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${isInStock ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>
+                                  {isInStock ? "In Stock" : "Out of Stock"}
+                                </span>
+                                <Dialog open={activeEditVariantId === variant.id} onOpenChange={(open) => setActiveEditVariantId(open ? variant.id : null)}>
+                                  <DialogTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-slate-500 hover:text-[#3B82F6]" data-testid={`button-edit-variant-${variant.id}`} aria-label="Edit variant">
+                                      <Pencil className="h-4 w-4" />
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent className="sm:max-w-[520px] max-h-[85vh] overflow-hidden rounded-2xl">
+                                    <DialogHeader>
+                                      <DialogTitle className="text-xl font-bold">Edit Variant</DialogTitle>
+                                      <DialogDescription>Update variant details and selections.</DialogDescription>
+                                    </DialogHeader>
+                                    <VariantEditForm productId={product.id} variant={variant} attributes={product.attributes} onSuccess={() => setActiveEditVariantId(null)} />
+                                  </DialogContent>
+                                </Dialog>
+                              </div>
                             </div>
                           </div>
                         );

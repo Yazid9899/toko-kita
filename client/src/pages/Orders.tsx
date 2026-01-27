@@ -31,7 +31,7 @@ export default function Orders() {
           <p className="page-subtitle">Track and fulfill customer orders</p>
         </div>
         <Link href="/orders/new">
-          <Button className="h-11 px-6 rounded-xl bg-gradient-to-r from-[#5C6AC4] to-[#6B7AC8] font-semibold shadow-[0_4px_15px_rgba(92,106,196,0.3)]" data-testid="button-new-order">
+          <Button variant="default" data-testid="button-new-order">
             <Plus className="w-4 h-4 mr-2" />
             New Order
           </Button>
@@ -68,7 +68,7 @@ export default function Orders() {
             </div>
             <p className="text-slate-500 mb-2">No orders found</p>
             <Link href="/orders/new">
-              <Button variant="link" className="text-[#5C6AC4]">Create your first order</Button>
+              <Button variant="default">Create your first order</Button>
             </Link>
           </div>
         ) : (

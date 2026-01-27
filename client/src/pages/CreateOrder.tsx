@@ -257,7 +257,7 @@ export default function CreateOrder() {
               </Dialog>
             </div>
             <select 
-              className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50/50 focus:bg-white focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/20 transition-all duration-200 text-slate-800 font-medium"
+              className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50/50 focus:bg-white focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/20 transition-all duration-200 text-slate-800 font-medium "
               onChange={(e) => setSelectedCustomerId(Number(e.target.value))}
               value={selectedCustomerId || ""}
               data-testid="select-customer"

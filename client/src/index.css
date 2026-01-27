@@ -93,11 +93,11 @@
   }
 
   .sidebar-item {
-    @apply flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer text-slate-500 hover:bg-slate-100 hover:text-[#5C6AC4] font-medium;
+    @apply flex items-center gap-3 px-3 py-3 mb-2 rounded-xl transition-all duration-200 cursor-pointer text-slate-500 hover:bg-slate-100 hover:text-[#5C6AC4] font-medium;
   }
 
   .sidebar-item-active {
-    @apply bg-gradient-to-r from-[#5C6AC4] to-[#6B7AC8] text-white shadow-[0_4px_15px_rgba(92,106,196,0.35)] hover:shadow-[0_6px_20px_rgba(92,106,196,0.4)];
+    @apply bg-gradient-to-r from-[#5C6AC4] to-[#6B7AC8] text-white shadow-[0_4px_15px_rgba(92,106,196,0.35)];
   }
   
   .sidebar-item-active:hover {
