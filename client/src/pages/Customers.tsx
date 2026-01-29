@@ -33,7 +33,18 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { insertCustomerSchema, type InsertCustomer, type Customer } from "@shared/schema";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
 import { Loader2, Plus, Search, Users, Phone, MapPin, Pencil, Trash2 } from "lucide-react";
+
+const formatCustomerAddress = (customer: Customer) => {
+  const parts = [
+    customer.addressLine,
+    customer.kecamatan,
+    customer.cityOrKabupaten,
+    customer.postCode,
+  ].filter((part) => part && part.trim().length > 0);
+  return parts.length > 0 ? parts.join(", ") : "-";
+};
 
 function CustomerForm({ onSuccess, defaultValues, isEditing }: { 
   onSuccess: () => void; 
@@ -215,6 +226,7 @@ export default function Customers() {
   const [search, setSearch] = useState("");
   const { data: customers, isLoading } = useCustomers(search);
   const { mutate: deleteCustomer, isPending: isDeleting } = useDeleteCustomer();
+  const { toast } = useToast();
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -239,6 +251,12 @@ export default function Customers() {
         }
       });
     }
+  };
+
+  const handleCopyAddress = async (customer: Customer) => {
+    const address = formatCustomerAddress(customer);
+    await navigator.clipboard.writeText(address);
+    toast({ title: "Address copied", description: address });
   };
 
   return (
@@ -300,7 +318,7 @@ export default function Customers() {
               <div className="col-span-4" data-testid="header-customer">Customer</div>
               <div className="col-span-2" data-testid="header-contact">Contact</div>
               <div className="col-span-2" data-testid="header-type">Type</div>
-              <div className="col-span-2" data-testid="header-location">Location</div>
+              <div className="col-span-2" data-testid="header-location">Address</div>
               <div className="col-span-2 text-right" data-testid="header-actions">Actions</div>
             </div>
             {/* Customer Rows */}
@@ -313,6 +331,16 @@ export default function Customers() {
                   <div>
                     <p className="font-semibold text-foreground" data-testid={`text-customer-name-${customer.id}`}>{customer.name}</p>
                     <p className="text-sm text-muted-foreground md:hidden" data-testid={`text-customer-phone-mobile-${customer.id}`}>{customer.phoneNumber}</p>
+                    <button
+                      type="button"
+                      onClick={() => handleCopyAddress(customer)}
+                      className="mt-1 md:hidden inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors truncate max-w-[240px]"
+                      title="Click to copy address"
+                      data-testid={`button-copy-address-mobile-${customer.id}`}
+                    >
+                      <MapPin className="h-3.5 w-3.5 shrink-0" />
+                      <span className="truncate">{customer.cityOrKabupaten || "-"}</span>
+                    </button>
                   </div>
                 </div>
                 <div className="md:col-span-2 hidden md:flex flex-wrap items-center gap-2 text-muted-foreground">
@@ -328,8 +356,16 @@ export default function Customers() {
                   </Badge>
                 </div>
                 <div className="md:col-span-2 hidden md:flex flex-wrap items-center gap-2 text-muted-foreground">
-                  <MapPin className="w-4 h-4 shrink-0" />
-                  <span className="text-sm truncate" data-testid={`text-customer-city-${customer.id}`}>{customer.cityOrKabupaten || "-"}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleCopyAddress(customer)}
+                    className="inline-flex items-center gap-2 text-sm text-left hover:text-foreground transition-colors truncate max-w-[220px] lg:max-w-[260px]"
+                    title="Click to copy address"
+                    data-testid={`button-copy-address-${customer.id}`}
+                  >
+                    <MapPin className="w-4 h-4 shrink-0" />
+                    <span className="truncate">{customer.cityOrKabupaten || "-"}</span>
+                  </button>
                 </div>
                 <div className="md:col-span-2 flex flex-wrap items-center justify-end gap-2">
                   <Button

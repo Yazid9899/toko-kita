@@ -217,7 +217,7 @@ function VariantForm({
   const { mutate, isPending } = useCreateVariant();
   const [sku, setSku] = useState("");
   const [unit, setUnit] = useState("piece");
-  const [price, setPrice] = useState(0);
+  const [priceInput, setPriceInput] = useState("");
   const [stockOnHand, setStockOnHand] = useState(0);
   const [allowPreorder, setAllowPreorder] = useState(false);
   const [selections, setSelections] = useState<Record<number, number>>({});
@@ -235,12 +235,21 @@ function VariantForm({
     (attribute) => selections[attribute.id]
   );
 
+  const formatCurrencyInput = (value: string) => {
+    const digits = value.replace(/\D/g, "");
+    if (!digits) return "";
+    return Number(digits).toLocaleString("id-ID");
+  };
+
+  const parseCurrencyInput = (value: string) => Number(value.replace(/\D/g, "")) || 0;
+
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const selectionList = activeAttributes.map((attribute) => ({
       attributeId: attribute.id,
       optionId: selections[attribute.id],
     }));
+    const priceCents = parseCurrencyInput(priceInput);
 
     mutate(
       {
@@ -250,7 +259,7 @@ function VariantForm({
           unit,
           stockOnHand,
           allowPreorder,
-          priceCents: Math.max(0, Math.round(price)),
+          priceCents: Math.max(0, Math.round(priceCents)),
           currency: "IDR",
           selections: selectionList,
         },
@@ -310,8 +319,20 @@ function VariantForm({
           <Input value={unit} onChange={(event) => setUnit(event.target.value)} placeholder="piece" className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15" data-testid="input-variant-unit" />
           </div>
           <div className="space-y-2">
-            <Label className="text-slate-700 text-sm font-semibold">Price (Rp)</Label>
-          <Input type="number" value={price} onChange={(event) => setPrice(Number(event.target.value))} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15" data-testid="input-variant-price" />
+            <Label className="text-slate-700 text-sm font-semibold">Price</Label>
+            <div className="relative">
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400">
+                Rp
+              </span>
+              <Input
+                type="text"
+                inputMode="numeric"
+                value={priceInput}
+                onChange={(event) => setPriceInput(formatCurrencyInput(event.target.value))}
+                className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15 pl-8 text-right"
+                data-testid="input-variant-price"
+              />
+            </div>
           </div>
         </div>
 
@@ -713,10 +734,18 @@ function VariantEditForm({
   const { mutate, isPending } = useUpdateVariant();
   const [sku, setSku] = useState(variant.sku);
   const [unit, setUnit] = useState(variant.unit);
-  const [price, setPrice] = useState(variant.prices.find((p) => p.currency === "IDR")?.priceCents ?? 0);
+  const [priceInput, setPriceInput] = useState("");
   const [stockOnHand, setStockOnHand] = useState(Number(variant.stockOnHand));
   const [allowPreorder, setAllowPreorder] = useState(variant.allowPreorder);
   const [selections, setSelections] = useState<Record<number, number>>({});
+
+  const formatCurrencyInput = (value: string) => {
+    const digits = value.replace(/\D/g, "");
+    if (!digits) return "";
+    return Number(digits).toLocaleString("id-ID");
+  };
+
+  const parseCurrencyInput = (value: string) => Number(value.replace(/\D/g, "")) || 0;
 
   useEffect(() => {
     const nextSelections: Record<number, number> = {};
@@ -726,7 +755,8 @@ function VariantEditForm({
     setSelections(nextSelections);
     setSku(variant.sku);
     setUnit(variant.unit);
-    setPrice(variant.prices.find((p) => p.currency === "IDR")?.priceCents ?? 0);
+    const nextPrice = variant.prices.find((p) => p.currency === "IDR")?.priceCents ?? 0;
+    setPriceInput(nextPrice ? Number(nextPrice).toLocaleString("id-ID") : "");
     setStockOnHand(Number(variant.stockOnHand));
     setAllowPreorder(variant.allowPreorder);
   }, [variant]);
@@ -735,6 +765,7 @@ function VariantEditForm({
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const priceCents = parseCurrencyInput(priceInput);
     mutate(
       {
         id: variant.id,
@@ -745,7 +776,7 @@ function VariantEditForm({
           stockOnHand,
           allowPreorder,
           currency: "IDR",
-          priceCents: Math.max(0, Math.round(price)),
+          priceCents: Math.max(0, Math.round(priceCents)),
           selections: attributes.map((attribute) => ({
             attributeId: attribute.id,
             optionId: selections[attribute.id],
@@ -804,8 +835,19 @@ function VariantEditForm({
             <Input value={unit} onChange={(event) => setUnit(event.target.value)} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15" />
           </div>
           <div className="space-y-2">
-            <Label className="text-slate-700 font-medium">Price (Rp)</Label>
-            <Input type="number" value={price} onChange={(event) => setPrice(Number(event.target.value))} className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15" />
+            <Label className="text-slate-700 font-medium">Price</Label>
+            <div className="relative">
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400">
+                Rp
+              </span>
+              <Input
+                type="text"
+                inputMode="numeric"
+                value={priceInput}
+                onChange={(event) => setPriceInput(formatCurrencyInput(event.target.value))}
+                className="h-11 rounded-xl border-slate-200 bg-white shadow-sm focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/15 pl-8 text-right"
+              />
+            </div>
           </div>
         </div>
 

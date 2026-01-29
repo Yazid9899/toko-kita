@@ -3,11 +3,11 @@ import { useCreateOrder } from "@/hooks/use-orders";
 import { useCustomers, useCreateCustomer } from "@/hooks/use-customers";
 import { useProducts } from "@/hooks/use-products";
 import { useLocation } from "wouter";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Trash2, Plus, ChevronRight, UserPlus, AlertCircle, ShoppingBag } from "lucide-react";
+import { Loader2, Trash2, Plus, ChevronRight, ChevronDown, UserPlus, AlertCircle, ShoppingBag, Search } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
@@ -76,24 +76,27 @@ function QuickCustomerForm({ onSuccess }: { onSuccess: (customerId: number) => v
           />
           <FormField
             control={form.control}
-            name="customerType"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-slate-700 font-medium">Type</FormLabel>
-                <FormControl>
+          name="customerType"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-slate-700 font-medium">Type</FormLabel>
+              <FormControl>
+                <div className="relative">
                   <select 
                     {...field}
-                    className="flex h-11 w-full items-center justify-between rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-sm focus:bg-white focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/20 transition-all duration-200"
+                    className="flex h-11 w-full appearance-none items-center justify-between rounded-xl border border-slate-200 bg-slate-50/50 px-3 pr-10 py-2 text-sm focus:bg-white focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/20 transition-all duration-200"
                     data-testid="select-customer-type"
                   >
                     <option value="PERSONAL">Personal</option>
                     <option value="RESELLER">Reseller</option>
                   </select>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         </div>
         <FormField
           control={form.control}
@@ -102,7 +105,12 @@ function QuickCustomerForm({ onSuccess }: { onSuccess: (customerId: number) => v
             <FormItem>
               <FormLabel className="text-slate-700 font-medium">Address</FormLabel>
               <FormControl>
-                <Input placeholder="Street address..." {...field} className="premium-input" data-testid="input-customer-address" />
+                <Textarea
+                  placeholder="Paste full address here..."
+                  {...field}
+                  className="premium-input min-h-[96px] resize-y"
+                  data-testid="input-customer-address"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -177,6 +185,38 @@ export default function CreateOrder() {
   
   const [notes, setNotes] = useState("");
   const [deliveryFee, setDeliveryFee] = useState(0);
+  const [deliveryFeeInput, setDeliveryFeeInput] = useState("");
+  const [variantSearch, setVariantSearch] = useState("");
+  const [variantProductFilter, setVariantProductFilter] = useState<number | "all">("all");
+  const [variantStockFilter, setVariantStockFilter] = useState<"all" | "in" | "out">("all");
+  const canAddItems = !!selectedCustomerId;
+
+  const variantRows = useMemo(() => {
+    if (!products) return [];
+    return products.flatMap((product) =>
+      product.variants.map((variant) => ({
+        product,
+        variant,
+        label: formatVariantLabel(variant),
+      }))
+    );
+  }, [products]);
+
+  const filteredVariants = useMemo(() => {
+    const query = variantSearch.trim().toLowerCase();
+    return variantRows.filter(({ product, variant, label }) => {
+      if (variantProductFilter !== "all" && product.id !== variantProductFilter) return false;
+      const stock = Number(variant.stockOnHand);
+      if (variantStockFilter === "in" && stock <= 0) return false;
+      if (variantStockFilter === "out" && stock > 0) return false;
+      if (!query) return true;
+      return (
+        product.name.toLowerCase().includes(query) ||
+        label.toLowerCase().includes(query) ||
+        (variant.sku || "").toLowerCase().includes(query)
+      );
+    });
+  }, [variantRows, variantSearch, variantProductFilter, variantStockFilter]);
 
   const addItem = (variantId: number, variantName: string, price: number, stock: number) => {
     setItems(prev => {
@@ -198,6 +238,19 @@ export default function CreateOrder() {
 
   const calculateTotal = () => {
     return items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0) + deliveryFee;
+  };
+
+  const formatCurrencyInput = (value: string) => {
+    const digits = value.replace(/\D/g, "");
+    if (!digits) return "";
+    return Number(digits).toLocaleString("id-ID");
+  };
+
+  const handleDeliveryFeeChange = (value: string) => {
+    const formatted = formatCurrencyInput(value);
+    setDeliveryFeeInput(formatted);
+    const numeric = Number(value.replace(/\D/g, "")) || 0;
+    setDeliveryFee(numeric);
   };
 
   const handleSubmit = () => {
@@ -256,66 +309,152 @@ export default function CreateOrder() {
                 </DialogContent>
               </Dialog>
             </div>
-            <select 
-              className="w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50/50 focus:bg-white focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/20 transition-all duration-200 text-slate-800 font-medium "
-              onChange={(e) => setSelectedCustomerId(Number(e.target.value))}
-              value={selectedCustomerId || ""}
-              data-testid="select-customer"
-            >
-              <option value="">-- Choose Customer --</option>
-              {customers?.map(c => (
-                <option key={c.id} value={c.id}>{c.name} ({c.phoneNumber})</option>
-              ))}
-            </select>
+            <div className="relative">
+              <select 
+                className="w-full h-12 appearance-none px-4 pr-11 border border-slate-200 rounded-xl bg-slate-50/50 focus:bg-white focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/20 transition-all duration-200 text-slate-800 font-medium"
+                onChange={(e) => setSelectedCustomerId(Number(e.target.value))}
+                value={selectedCustomerId || ""}
+                data-testid="select-customer"
+              >
+                <option value="">-- Choose Customer --</option>
+                {customers?.map(c => (
+                  <option key={c.id} value={c.id}>{c.name} ({c.phoneNumber})</option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            </div>
           </div>
 
           {/* Products Card */}
-          <div className="premium-card">
+          <div className={`premium-card ${!canAddItems ? "opacity-60" : ""}`}>
             <div className="mb-5">
               <h3 className="text-lg font-bold text-slate-900">2. Add Items</h3>
-              <p className="text-sm text-slate-500 mt-0.5">Select products and variants to add to order</p>
+              <p className="text-sm text-slate-500 mt-0.5">Search and add variants to this order</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[450px] overflow-y-auto pr-2 custom-scrollbar">
-              {products?.map(product => (
-                <div key={product.id} className="border border-slate-200/80 rounded-xl p-4 bg-slate-50/30 hover:bg-slate-50 transition-colors">
-                  <h4 className="font-semibold text-slate-800 text-sm mb-3">{product.name}</h4>
-                  <div className="space-y-2">
-                    {product.variants.map(variant => {
-                      const stock = Number(variant.stockOnHand);
-                      const isLowStock = stock === 0;
-                      const price = getVariantPrice(variant, "IDR")?.priceCents ?? 0;
-                      const variantLabel = formatVariantLabel(variant);
-                      return (
-                        <div key={variant.id} className="flex justify-between items-center text-sm bg-white p-3 rounded-lg border border-slate-100 shadow-sm hover:shadow-md transition-all">
-                          <div className="flex-1">
-                            <span className="block font-medium text-slate-700">{variantLabel}</span>
-                            <div className="flex items-center gap-2 mt-1">
-                              <span className="text-xs text-slate-500">Rp {formatPrice(price)}</span>
-                              {isLowStock && (
-                                <span className="inline-flex items-center gap-1 text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full font-medium">
-                                  <AlertCircle className="w-3 h-3" />
-                                  Preorder
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <Button 
-                            size="sm" 
-                            className="rounded-lg bg-[#5C6AC4] hover:bg-[#4B59B3] text-white font-medium h-8 px-4"
-                            onClick={() => addItem(variant.id, `${product.name} - ${variantLabel}`, price, stock)}
-                            data-testid={`button-add-variant-${variant.id}`}
-                          >
-                            Add
-                          </Button>
+            {!canAddItems && (
+              <div className="mb-4 rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
+                Select a customer first to unlock items.
+              </div>
+            )}
+            <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr_0.6fr] gap-3 mb-4">
+              <div className="relative">
+                <Input
+                  placeholder="Search product, variant, SKU..."
+                  value={variantSearch}
+                  onChange={(event) => setVariantSearch(event.target.value)}
+                  className="pl-10"
+                  disabled={!canAddItems}
+                  data-testid="input-search-variants"
+                />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              </div>
+              <div className="relative">
+                <select
+                  className="h-10 w-full appearance-none rounded-xl border border-slate-200 bg-white px-3 pr-9 text-sm shadow-sm focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/15"
+                  value={variantProductFilter}
+                  onChange={(event) =>
+                    setVariantProductFilter(event.target.value === "all" ? "all" : Number(event.target.value))
+                  }
+                  disabled={!canAddItems}
+                  data-testid="select-filter-product"
+                >
+                  <option value="all">All products</option>
+                  {products?.map((product) => (
+                    <option key={product.id} value={product.id}>
+                      {product.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              </div>
+              <div className="relative">
+                <select
+                  className="h-10 w-full appearance-none rounded-xl border border-slate-200 bg-white px-3 pr-9 text-sm shadow-sm focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/15"
+                  value={variantStockFilter}
+                  onChange={(event) => setVariantStockFilter(event.target.value as "all" | "in" | "out")}
+                  disabled={!canAddItems}
+                  data-testid="select-filter-stock"
+                >
+                  <option value="all">All stock</option>
+                  <option value="in">In stock</option>
+                  <option value="out">Preorder</option>
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              </div>
+            </div>
+            <div className="space-y-3 max-h-[520px] overflow-y-auto pr-2 custom-scrollbar">
+              {filteredVariants.map(({ product, variant, label }) => {
+                const stock = Number(variant.stockOnHand);
+                const isLowStock = stock === 0;
+                const price = getVariantPrice(variant, "IDR")?.priceCents ?? 0;
+                const chipLimit = 4;
+                const visibleChips = variant.optionValues.slice(0, chipLimit);
+                const overflowCount = Math.max(0, variant.optionValues.length - visibleChips.length);
+                return (
+                  <div
+                    key={variant.id}
+                    className="flex flex-col gap-3 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm transition-all hover:shadow-md md:flex-row md:items-center md:justify-between"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-slate-800 truncate">{product.name}</p>
+                          <p className="text-xs text-slate-500 truncate">SKU: {variant.sku || "-"}</p>
                         </div>
-                      );
-                    })}
+                        <span className="text-sm font-semibold text-slate-900">Rp {formatPrice(price)}</span>
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-2 max-h-14 overflow-hidden">
+                        {visibleChips.map((chip) => (
+                          <span
+                            key={`${variant.id}-${chip.attributeId}`}
+                            className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700 border border-slate-200 max-w-[200px]"
+                            title={`${chip.attributeName}: ${chip.optionValue}`}
+                          >
+                            <span className="truncate">{chip.attributeName}: {chip.optionValue}</span>
+                          </span>
+                        ))}
+                        {overflowCount > 0 && (
+                          <span className="inline-flex items-center rounded-full bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-500 border border-dashed border-slate-200">
+                            +{overflowCount} more
+                          </span>
+                        )}
+                        {variant.optionValues.length === 0 && (
+                          <span className="text-xs text-slate-400">No attributes</span>
+                        )}
+                      </div>
+                      <div className="mt-2 flex items-center gap-2 text-xs text-slate-500">
+                        {isLowStock ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 font-semibold text-amber-600">
+                            <AlertCircle className="w-3 h-3" /> Preorder
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 font-semibold text-emerald-700">
+                            {stock} in stock
+                          </span>
+                        )}
+                        <span className="text-slate-400 truncate">Variant: {label}</span>
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      className="h-9 px-5 rounded-xl bg-[#5C6AC4] hover:bg-[#4B59B3] text-white font-semibold"
+                      onClick={() => addItem(variant.id, `${product.name} - ${label}`, price, stock)}
+                      data-testid={`button-add-variant-${variant.id}`}
+                      disabled={!canAddItems}
+                    >
+                      Add
+                    </Button>
                   </div>
-                </div>
-              ))}
+                );
+              })}
               {(!products || products.length === 0) && (
-                <div className="col-span-2 text-center py-12 text-slate-400">
+                <div className="text-center py-12 text-slate-400">
                   No products available. Add products first.
+                </div>
+              )}
+              {products && products.length > 0 && filteredVariants.length === 0 && (
+                <div className="text-center py-12 text-slate-400">
+                  No variants match your filters.
                 </div>
               )}
             </div>
@@ -324,10 +463,10 @@ export default function CreateOrder() {
 
         {/* RIGHT COLUMN: Summary */}
         <div className="lg:col-span-1">
-          <div className="premium-card sticky top-24 border-2 border-[#5C6AC4]/20">
+          <div className="premium-card sticky border-2 border-[#5C6AC4]/20">
             <h3 className="font-bold text-xl text-slate-900 mb-5">Order Summary</h3>
             
-            <div className="space-y-3 mb-6 max-h-[280px] overflow-y-auto custom-scrollbar">
+            <div className="space-y-3 mb-6 max-h-[320px] overflow-y-auto custom-scrollbar">
               {items.length === 0 ? (
                 <div className="text-center py-10">
                   <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
@@ -337,22 +476,40 @@ export default function CreateOrder() {
                 </div>
               ) : (
                 items.map((item, idx) => (
-                  <div key={idx} className="flex justify-between items-start gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                  <div key={idx} className="flex flex-col gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3">
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-slate-800 text-sm truncate">{item.name}</p>
-                      <p className="text-xs text-slate-500 mt-0.5">@ Rp {item.unitPrice.toLocaleString()}</p>
+                      <p className="font-semibold text-slate-800 text-sm truncate">{item.name}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">@ Rp {formatPrice(item.unitPrice)}</p>
                       {item.quantity > item.stock && (
                         <p className="text-xs text-amber-600 mt-1 font-medium">Preorder: {item.quantity - item.stock} units</p>
                       )}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <input 
-                        type="number" 
-                        className="w-14 h-8 border border-slate-200 rounded-lg px-2 text-center text-sm font-medium focus:border-[#5C6AC4] focus:ring-1 focus:ring-[#5C6AC4]/20"
-                        value={item.quantity}
-                        onChange={(e) => updateQuantity(idx, parseFloat(e.target.value) || 1)}
-                        data-testid={`input-quantity-${idx}`}
-                      />
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="inline-flex items-center rounded-lg border border-slate-200 bg-white">
+                        <button
+                          type="button"
+                          className="h-8 w-8 text-slate-500 hover:text-[#5C6AC4]"
+                          onClick={() => updateQuantity(idx, item.quantity - 1)}
+                          data-testid={`button-qty-minus-${idx}`}
+                        >
+                          -
+                        </button>
+                        <input 
+                          type="number" 
+                          className="w-12 h-8 border-x border-slate-200 text-center text-sm font-semibold focus:outline-none"
+                          value={item.quantity}
+                          onChange={(e) => updateQuantity(idx, parseFloat(e.target.value) || 1)}
+                          data-testid={`input-quantity-${idx}`}
+                        />
+                        <button
+                          type="button"
+                          className="h-8 w-8 text-slate-500 hover:text-[#5C6AC4]"
+                          onClick={() => updateQuantity(idx, item.quantity + 1)}
+                          data-testid={`button-qty-plus-${idx}`}
+                        >
+                          +
+                        </button>
+                      </div>
                       <button 
                         onClick={() => removeItem(idx)} 
                         className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
@@ -372,14 +529,21 @@ export default function CreateOrder() {
                 <span className="font-medium text-slate-800">Rp {(items.reduce((acc, i) => acc + (i.quantity * i.unitPrice), 0)).toLocaleString()}</span>
               </div>
               <div className="flex justify-between items-center text-sm">
-                <span className="text-slate-500">Delivery Fee</span>
-                <Input 
-                  type="number" 
-                  className="w-28 h-9 text-right rounded-lg border-slate-200 font-medium" 
-                  value={deliveryFee} 
-                  onChange={e => setDeliveryFee(Number(e.target.value))}
-                  data-testid="input-delivery-fee"
-                />
+                <Label className="text-slate-500">Delivery Fee</Label>
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400">
+                    Rp
+                  </span>
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="0 (e.g. 10,000)"
+                    className="w-36 h-9 text-right rounded-lg border-slate-200 font-medium pl-8"
+                    value={deliveryFeeInput}
+                    onChange={(e) => handleDeliveryFeeChange(e.target.value)}
+                    data-testid="input-delivery-fee"
+                  />
+                </div>
               </div>
               <Separator className="bg-slate-100" />
               <div className="flex justify-between items-center">
