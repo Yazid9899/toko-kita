@@ -7,6 +7,7 @@ import { format } from "date-fns";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
 import { formatVariantLabel } from "@/lib/variant-utils";
+import { Card } from "@/components/ui/card";
 
 export default function Procurement() {
   const { data: procurements, isLoading } = useProcurements();
@@ -35,7 +36,7 @@ export default function Procurement() {
 
       {/* Stats Summary */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-        <div className="metric-card">
+        <Card className="p-6">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00848E] to-[#00A3AE] flex items-center justify-center shadow-md">
               <ShoppingBag className="w-5 h-5 text-white" />
@@ -43,8 +44,8 @@ export default function Procurement() {
             <span className="text-sm font-medium text-slate-500">To Buy</span>
           </div>
           <p className="text-3xl font-bold text-slate-900">{toBuyCount}</p>
-        </div>
-        <div className="metric-card">
+        </Card>
+        <Card className="p-6">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-400 flex items-center justify-center shadow-md">
               <Truck className="w-5 h-5 text-white" />
@@ -52,8 +53,8 @@ export default function Procurement() {
             <span className="text-sm font-medium text-slate-500">Ordered</span>
           </div>
           <p className="text-3xl font-bold text-slate-900">{orderedCount}</p>
-        </div>
-        <div className="metric-card hidden md:block">
+        </Card>
+        <Card className="p-6 hidden md:block">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-400 flex items-center justify-center shadow-md">
               <CheckCircle2 className="w-5 h-5 text-white" />
@@ -61,7 +62,7 @@ export default function Procurement() {
             <span className="text-sm font-medium text-slate-500">Completed</span>
           </div>
           <p className="text-3xl font-bold text-slate-900">{procurements?.filter(p => p.status === "ARRIVED").length || 0}</p>
-        </div>
+        </Card>
       </div>
 
       {/* Filter Tabs */}
@@ -85,7 +86,7 @@ export default function Procurement() {
       </div>
 
       {/* Procurement List */}
-      <div className="card p-0 overflow-hidden">
+      <Card className="overflow-hidden">
         {isLoading ? (
           <div className="flex items-center justify-center py-16">
             <Loader2 className="w-8 h-8 animate-spin text-[#00848E]" />
@@ -176,7 +177,7 @@ export default function Procurement() {
             ))}
           </div>
         )}
-      </div>
+      </Card>
     </Layout>
   );
 }

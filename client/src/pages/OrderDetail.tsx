@@ -4,6 +4,7 @@ import { useRoute } from "wouter";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Card } from "@/components/ui/card";
 import { format } from "date-fns";
 import {
   Printer,
@@ -87,9 +88,9 @@ export default function OrderDetail() {
   if (!order)
     return (
       <Layout>
-        <div className="card text-center py-12">
+        <Card className="text-center py-12">
           <p className="text-slate-500">Order not found</p>
-        </div>
+        </Card>
       </Layout>
     );
 
@@ -202,7 +203,7 @@ export default function OrderDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - Items */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="card">
+            <Card>
               <h2 className="text-lg font-bold text-slate-900 mb-5">
                 Order Items
               </h2>
@@ -269,10 +270,10 @@ export default function OrderDetail() {
                   </span>
                 </div>
               </div>
-            </div>
+            </Card>
 
             {order.procurements.length > 0 && (
-              <div className="card border-l-4 border-l-amber-500">
+              <Card className="border-l-4 border-l-amber-500">
                 <h2 className="text-lg font-bold text-amber-700 mb-4">
                   Procurement Items (To Buy)
                 </h2>
@@ -295,14 +296,14 @@ export default function OrderDetail() {
                     </div>
                   ))}
                 </div>
-              </div>
+              </Card>
             )}
           </div>
 
           {/* Right Column - Customer & Workflow */}
           <div className="space-y-6">
             {/* Customer Card */}
-            <div className="card">
+            <Card>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xs uppercase tracking-wider text-slate-400 font-semibold">
                   Customer
@@ -454,7 +455,7 @@ export default function OrderDetail() {
                   </form>
                 </Form>
               )}
-            </div>
+            </Card>
             {order.notes && (
               <div className="mt-4 p-4 bg-amber-50 rounded-xl border border-amber-100">
                 <div className="flex items-center gap-2 text-amber-700 font-semibold text-sm mb-2">
@@ -466,7 +467,7 @@ export default function OrderDetail() {
             )}
 
             {/* Workflow Card */}
-            <div className="card">
+            <Card>
               <div className="flex items-center justify-between mb-5">
                 <h2 className="text-xs uppercase tracking-wider text-slate-400 font-semibold">
                   Workflow
@@ -605,7 +606,7 @@ export default function OrderDetail() {
                   </Tooltip>
                 </div>
               </div>
-            </div>
+            </Card>
           </div>
         </div>
       </TooltipProvider>

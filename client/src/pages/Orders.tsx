@@ -8,6 +8,7 @@ import { format } from "date-fns";
 import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2 } from "lucide-react";
+import { Card } from "@/components/ui/card";
 
 export default function Orders() {
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
@@ -56,7 +57,7 @@ export default function Orders() {
       </div>
 
       {/* Orders List */}
-      <div className="card p-0 overflow-hidden">
+      <Card className="overflow-hidden">
         {isLoading ? (
           <div className="flex items-center justify-center py-16">
             <Loader2 className="w-8 h-8 animate-spin text-[#5C6AC4]" />
@@ -114,7 +115,7 @@ export default function Orders() {
             ))}
           </div>
         )}
-      </div>
+      </Card>
     </Layout>
   );
 }

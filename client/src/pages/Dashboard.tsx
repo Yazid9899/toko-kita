@@ -16,6 +16,7 @@ import { format } from "date-fns";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { formatVariantLabel } from "@/lib/variant-utils";
+import { Card } from "@/components/ui/card";
 
 function StatCard({ title, value, icon: Icon, description, loading, color = "primary" }: any) {
   const colorClasses: Record<string, string> = {
@@ -26,7 +27,7 @@ function StatCard({ title, value, icon: Icon, description, loading, color = "pri
   };
 
   return (
-    <div className="metric-card group">
+    <Card className="p-6 transition-shadow hover:shadow-md group">
       <div className="flex items-start justify-between mb-4">
         <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colorClasses[color]} flex items-center justify-center shadow-lg`}>
           <Icon className="w-6 h-6 text-white" />
@@ -42,7 +43,7 @@ function StatCard({ title, value, icon: Icon, description, loading, color = "pri
         </>
       )}
       <p className="text-xs font-medium text-slate-400 mt-3 uppercase tracking-wider">{title}</p>
-    </div>
+    </Card>
   );
 }
 
@@ -67,7 +68,7 @@ export default function Dashboard() {
           <p className="page-subtitle">Overview of your business performance</p>
         </div>
         <Link href="/orders/new">
-          <Button className="h-11 px-6 rounded-xl bg-gradient-to-r from-[#5C6AC4] to-[#6B7AC8] font-semibold shadow-[0_4px_15px_rgba(92,106,196,0.3)]" data-testid="button-create-order">
+          <Button size="lg" data-testid="button-create-order">
             Create New Order
           </Button>
         </Link>
@@ -112,11 +113,11 @@ export default function Dashboard() {
       {/* Content Grid */}
       <div className="grid gap-6 lg:grid-cols-7">
         {/* Recent Orders */}
-        <div className="lg:col-span-4 card">
+        <Card className="lg:col-span-4">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-bold text-slate-900">Recent Orders</h2>
             <Link href="/orders">
-              <Button variant="ghost" size="sm" className="text-slate-500 hover:text-[#5C6AC4] rounded-lg" data-testid="link-view-all-orders">
+              <Button variant="ghost" size="sm" data-testid="link-view-all-orders">
                 View All
                 <ArrowRight className="w-4 h-4 ml-1" />
               </Button>
@@ -158,16 +159,16 @@ export default function Dashboard() {
                   </div>
                   <p className="text-slate-500">No orders yet</p>
                   <Link href="/orders/new">
-                    <Button variant="link" className="text-[#5C6AC4] mt-2">Create your first order</Button>
+                    <Button variant="link" className="mt-2">Create your first order</Button>
                   </Link>
                 </div>
               )}
             </div>
           )}
-        </div>
+        </Card>
 
         {/* Urgent Procurement */}
-        <div className="lg:col-span-3 card border-l-4 border-l-[#00848E]">
+        <Card className="lg:col-span-3 border-l-4 border-l-[#00848E]">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00848E] to-[#00A3AE] flex items-center justify-center shadow-lg">
               <AlertCircle className="w-5 h-5 text-white" />
@@ -206,13 +207,13 @@ export default function Dashboard() {
           )}
           {procurements && procurements.filter(p => p.status === "TO_BUY").length > 0 && (
             <Link href="/procurement">
-              <Button variant="outline" className="w-full mt-4 rounded-xl border-[#00848E]/30 text-[#00848E] hover:bg-[#00848E]/5" data-testid="link-view-all-procurement">
+              <Button variant="outline" className="w-full mt-4" data-testid="link-view-all-procurement">
                 View All Procurement
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </Link>
           )}
-        </div>
+        </Card>
       </div>
     </Layout>
   );

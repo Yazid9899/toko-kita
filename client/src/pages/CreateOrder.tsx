@@ -7,10 +7,12 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Trash2, Plus, ChevronRight, ChevronDown, UserPlus, AlertCircle, ShoppingBag, Search } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Loader2, Trash2, Plus, ChevronRight, UserPlus, AlertCircle, ShoppingBag, Search } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertCustomerSchema, type InsertCustomer } from "@shared/schema";
@@ -54,7 +56,7 @@ function QuickCustomerForm({ onSuccess }: { onSuccess: (customerId: number) => v
             <FormItem>
               <FormLabel className="text-slate-700 font-medium">Full Name</FormLabel>
               <FormControl>
-                <Input placeholder="e.g. John Doe" {...field} className="form-input" data-testid="input-customer-name" />
+                <Input placeholder="e.g. John Doe" {...field} data-testid="input-customer-name" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -68,7 +70,7 @@ function QuickCustomerForm({ onSuccess }: { onSuccess: (customerId: number) => v
               <FormItem>
                 <FormLabel className="text-slate-700 font-medium">Phone</FormLabel>
                 <FormControl>
-                  <Input placeholder="0812..." {...field} className="form-input" data-testid="input-customer-phone" />
+                  <Input placeholder="0812..." {...field} data-testid="input-customer-phone" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -80,19 +82,17 @@ function QuickCustomerForm({ onSuccess }: { onSuccess: (customerId: number) => v
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-slate-700 font-medium">Type</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <select 
-                    {...field}
-                    className="flex h-11 w-full appearance-none items-center justify-between rounded-xl border border-slate-200 bg-slate-50/50 px-3 pr-10 py-2 text-sm focus:bg-white focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/20 transition-all duration-200"
-                    data-testid="select-customer-type"
-                  >
-                    <option value="PERSONAL">Personal</option>
-                    <option value="RESELLER">Reseller</option>
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                </div>
-              </FormControl>
+              <Select value={field.value} onValueChange={field.onChange}>
+                <FormControl>
+                  <SelectTrigger className="h-11 rounded-xl" data-testid="select-customer-type">
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="PERSONAL">Personal</SelectItem>
+                  <SelectItem value="RESELLER">Reseller</SelectItem>
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
@@ -108,7 +108,7 @@ function QuickCustomerForm({ onSuccess }: { onSuccess: (customerId: number) => v
                 <Textarea
                   placeholder="Paste full address here..."
                   {...field}
-                  className="form-input min-h-[96px] resize-y"
+                  className="min-h-[96px] resize-y"
                   data-testid="input-customer-address"
                 />
               </FormControl>
@@ -124,7 +124,7 @@ function QuickCustomerForm({ onSuccess }: { onSuccess: (customerId: number) => v
               <FormItem>
                 <FormLabel className="text-slate-700 font-medium text-xs">Kecamatan</FormLabel>
                 <FormControl>
-                  <Input {...field} className="form-input" data-testid="input-customer-kecamatan" />
+                  <Input {...field} data-testid="input-customer-kecamatan" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -137,7 +137,7 @@ function QuickCustomerForm({ onSuccess }: { onSuccess: (customerId: number) => v
               <FormItem>
                 <FormLabel className="text-slate-700 font-medium text-xs">City</FormLabel>
                 <FormControl>
-                  <Input {...field} className="form-input" data-testid="input-customer-city" />
+                  <Input {...field} data-testid="input-customer-city" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -150,14 +150,14 @@ function QuickCustomerForm({ onSuccess }: { onSuccess: (customerId: number) => v
               <FormItem>
                 <FormLabel className="text-slate-700 font-medium text-xs">Post Code</FormLabel>
                 <FormControl>
-                  <Input {...field} className="form-input" data-testid="input-customer-postcode" />
+                  <Input {...field} data-testid="input-customer-postcode" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
-        <Button type="submit" className="w-full h-11 rounded-xl bg-gradient-to-r from-[#5C6AC4] to-[#6B7AC8] hover:opacity-90 font-semibold shadow-[0_4px_15px_rgba(92,106,196,0.3)]" disabled={isPending} data-testid="button-submit-customer">
+        <Button type="submit" className="w-full" disabled={isPending} data-testid="button-submit-customer">
           {isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <UserPlus className="w-4 h-4 mr-2" />}
           Create Customer
         </Button>
@@ -287,7 +287,7 @@ export default function CreateOrder() {
         {/* LEFT COLUMN */}
         <div className="lg:col-span-2 space-y-6">
           {/* Customer Selection Card */}
-          <div className="card">
+          <Card>
             <div className="flex items-center justify-between mb-5">
               <div>
                 <h3 className="text-lg font-bold text-slate-900">1. Select Customer</h3>
@@ -295,7 +295,7 @@ export default function CreateOrder() {
               </div>
               <Dialog open={addCustomerOpen} onOpenChange={setAddCustomerOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" className="rounded-xl border-dashed border-slate-300 text-slate-600 hover:border-[#5C6AC4] hover:text-[#5C6AC4] hover:bg-[#5C6AC4]/5" data-testid="button-add-customer-shortcut">
+                  <Button variant="outline" data-testid="button-add-customer-shortcut">
                     <UserPlus className="w-4 h-4 mr-2" />
                     Add New
                   </Button>
@@ -309,24 +309,25 @@ export default function CreateOrder() {
                 </DialogContent>
               </Dialog>
             </div>
-            <div className="relative">
-              <select 
-                className="w-full h-12 appearance-none px-4 pr-11 border border-slate-200 rounded-xl bg-slate-50/50 focus:bg-white focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/20 transition-all duration-200 text-slate-800 font-medium"
-                onChange={(e) => setSelectedCustomerId(Number(e.target.value))}
-                value={selectedCustomerId || ""}
-                data-testid="select-customer"
-              >
-                <option value="">-- Choose Customer --</option>
-                {customers?.map(c => (
-                  <option key={c.id} value={c.id}>{c.name} ({c.phoneNumber})</option>
+            <Select
+              value={selectedCustomerId ? String(selectedCustomerId) : undefined}
+              onValueChange={(value) => setSelectedCustomerId(Number(value))}
+            >
+              <SelectTrigger className="h-11 rounded-xl" data-testid="select-customer">
+                <SelectValue placeholder="Choose customer" />
+              </SelectTrigger>
+              <SelectContent>
+                {customers?.map((customer) => (
+                  <SelectItem key={customer.id} value={String(customer.id)}>
+                    {customer.name} ({customer.phoneNumber})
+                  </SelectItem>
                 ))}
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            </div>
-          </div>
+              </SelectContent>
+            </Select>
+          </Card>
 
           {/* Products Card */}
-          <div className={`card ${!canAddItems ? "opacity-60" : ""}`}>
+          <Card className={canAddItems ? undefined : "opacity-60"}>
             <div className="mb-5">
               <h3 className="text-lg font-bold text-slate-900">2. Add Items</h3>
               <p className="text-sm text-slate-500 mt-0.5">Search and add variants to this order</p>
@@ -348,39 +349,39 @@ export default function CreateOrder() {
                 />
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               </div>
-              <div className="relative">
-                <select
-                  className="h-10 w-full appearance-none rounded-xl border border-slate-200 bg-white px-3 pr-9 text-sm shadow-sm focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/15"
-                  value={variantProductFilter}
-                  onChange={(event) =>
-                    setVariantProductFilter(event.target.value === "all" ? "all" : Number(event.target.value))
-                  }
-                  disabled={!canAddItems}
-                  data-testid="select-filter-product"
-                >
-                  <option value="all">All products</option>
+              <Select
+                value={String(variantProductFilter)}
+                onValueChange={(value) =>
+                  setVariantProductFilter(value === "all" ? "all" : Number(value))
+                }
+                disabled={!canAddItems}
+              >
+                <SelectTrigger className="h-10 rounded-xl text-sm" data-testid="select-filter-product">
+                  <SelectValue placeholder="All products" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All products</SelectItem>
                   {products?.map((product) => (
-                    <option key={product.id} value={product.id}>
+                    <SelectItem key={product.id} value={String(product.id)}>
                       {product.name}
-                    </option>
+                    </SelectItem>
                   ))}
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              </div>
-              <div className="relative">
-                <select
-                  className="h-10 w-full appearance-none rounded-xl border border-slate-200 bg-white px-3 pr-9 text-sm shadow-sm focus:border-[#5C6AC4] focus:ring-2 focus:ring-[#5C6AC4]/15"
-                  value={variantStockFilter}
-                  onChange={(event) => setVariantStockFilter(event.target.value as "all" | "in" | "out")}
-                  disabled={!canAddItems}
-                  data-testid="select-filter-stock"
-                >
-                  <option value="all">All stock</option>
-                  <option value="in">In stock</option>
-                  <option value="out">Preorder</option>
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              </div>
+                </SelectContent>
+              </Select>
+              <Select
+                value={variantStockFilter}
+                onValueChange={(value) => setVariantStockFilter(value as "all" | "in" | "out")}
+                disabled={!canAddItems}
+              >
+                <SelectTrigger className="h-10 rounded-xl text-sm" data-testid="select-filter-stock">
+                  <SelectValue placeholder="All stock" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All stock</SelectItem>
+                  <SelectItem value="in">In stock</SelectItem>
+                  <SelectItem value="out">Preorder</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-3 max-h-[520px] overflow-y-auto pr-2 custom-scrollbar">
               {filteredVariants.map(({ product, variant, label }) => {
@@ -458,12 +459,12 @@ export default function CreateOrder() {
                 </div>
               )}
             </div>
-          </div>
+          </Card>
         </div>
 
         {/* RIGHT COLUMN: Summary */}
         <div className="lg:col-span-1">
-          <div className="card sticky border-2 border-[#5C6AC4]/20">
+          <Card className="sticky border-2 border-[#5C6AC4]/20">
             <h3 className="font-bold text-xl text-slate-900 mb-5">Order Summary</h3>
             
             <div className="space-y-3 mb-6 max-h-[320px] overflow-y-auto custom-scrollbar">
@@ -574,10 +575,11 @@ export default function CreateOrder() {
                 Confirm Order
               </Button>
             </div>
-          </div>
+          </Card>
         </div>
       </div>
     </Layout>
   );
 }
+
 

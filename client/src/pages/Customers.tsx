@@ -2,6 +2,7 @@ import { Layout } from "@/components/Layout";
 import { useCustomers, useCreateCustomer, useUpdateCustomer, useDeleteCustomer } from "@/hooks/use-customers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -298,7 +299,7 @@ export default function Customers() {
       </div>
 
       {/* Customer Cards Grid */}
-      <div className="card p-0 overflow-hidden">
+      <Card className="overflow-hidden">
         {isLoading ? (
           <div className="flex flex-wrap items-center justify-center py-16">
             <Loader2 className="w-8 h-8 animate-spin text-primary" data-testid="loader-customers" />
@@ -389,7 +390,7 @@ export default function Customers() {
             ))}
           </div>
         )}
-      </div>
+      </Card>
 
       {/* Edit Dialog */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
