@@ -16,7 +16,7 @@ import { format } from "date-fns";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { formatVariantLabel } from "@/lib/variant-utils";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 function StatCard({ title, value, icon: Icon, description, loading, color = "primary" }: any) {
   const colorClasses: Record<string, string> = {
@@ -114,7 +114,7 @@ export default function Dashboard() {
       <div className="grid gap-6 lg:grid-cols-7">
         {/* Recent Orders */}
         <Card className="lg:col-span-4">
-          <div className="flex items-center justify-between mb-6">
+          <CardHeader className="flex-row items-center justify-between space-y-0 pb-4">
             <h2 className="text-lg font-bold text-slate-900">Recent Orders</h2>
             <Link href="/orders">
               <Button variant="ghost" size="sm" data-testid="link-view-all-orders">
@@ -122,54 +122,56 @@ export default function Dashboard() {
                 <ArrowRight className="w-4 h-4 ml-1" />
               </Button>
             </Link>
-          </div>
-          {ordersLoading ? (
-            <div className="space-y-3">
-              <Skeleton className="h-16 w-full rounded-xl" />
-              <Skeleton className="h-16 w-full rounded-xl" />
-              <Skeleton className="h-16 w-full rounded-xl" />
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {orders?.slice(0, 5).map(order => (
-                <Link key={order.id} href={`/orders/${order.id}`}>
-                  <div className="flex items-center justify-between p-4 bg-slate-50/50 hover:bg-slate-100/80 rounded-xl transition-all cursor-pointer border border-transparent hover:border-slate-200" data-testid={`order-row-${order.id}`}>
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#5C6AC4]/10 to-[#00848E]/10 flex items-center justify-center">
-                        <Package className="w-5 h-5 text-[#5C6AC4]" />
+          </CardHeader>
+          <CardContent className="pt-0">
+            {ordersLoading ? (
+              <div className="space-y-3">
+                <Skeleton className="h-16 w-full rounded-xl" />
+                <Skeleton className="h-16 w-full rounded-xl" />
+                <Skeleton className="h-16 w-full rounded-xl" />
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {orders?.slice(0, 5).map(order => (
+                  <Link key={order.id} href={`/orders/${order.id}`}>
+                    <div className="flex items-center justify-between p-4 bg-slate-50/50 hover:bg-slate-100/80 rounded-xl transition-all cursor-pointer border border-transparent hover:border-slate-200" data-testid={`order-row-${order.id}`}>
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#5C6AC4]/10 to-[#00848E]/10 flex items-center justify-center">
+                          <Package className="w-5 h-5 text-[#5C6AC4]" />
+                        </div>
+                        <div>
+                          <span className="font-semibold text-slate-800 block">{order.orderNumber}</span>
+                          <span className="text-sm text-slate-500">{order.customer.name}</span>
+                        </div>
                       </div>
-                      <div>
-                        <span className="font-semibold text-slate-800 block">{order.orderNumber}</span>
-                        <span className="text-sm text-slate-500">{order.customer.name}</span>
+                      <div className="flex items-center gap-3">
+                        <StatusBadge status={order.paymentStatus} />
+                        <span className="text-sm text-slate-400 w-16 text-right">
+                          {format(new Date(order.createdAt), "MMM d")}
+                        </span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <StatusBadge status={order.paymentStatus} />
-                      <span className="text-sm text-slate-400 w-16 text-right">
-                        {format(new Date(order.createdAt), "MMM d")}
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-              {(!orders || orders.length === 0) && (
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
-                    <Package className="w-8 h-8 text-slate-300" />
-                  </div>
-                  <p className="text-slate-500">No orders yet</p>
-                  <Link href="/orders/new">
-                    <Button variant="link" className="mt-2">Create your first order</Button>
                   </Link>
-                </div>
-              )}
-            </div>
-          )}
+                ))}
+                {(!orders || orders.length === 0) && (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
+                      <Package className="w-8 h-8 text-slate-300" />
+                    </div>
+                    <p className="text-slate-500">No orders yet</p>
+                    <Link href="/orders/new">
+                      <Button variant="secondary" className="mt-2">Create your first order</Button>
+                    </Link>
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
         </Card>
 
         {/* Urgent Procurement */}
         <Card className="lg:col-span-3 border-l-4 border-l-[#00848E]">
-          <div className="flex items-center gap-3 mb-6">
+          <CardHeader className="flex-row items-center gap-3 space-y-0 pb-4">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00848E] to-[#00A3AE] flex items-center justify-center shadow-lg">
               <AlertCircle className="w-5 h-5 text-white" />
             </div>
@@ -177,42 +179,44 @@ export default function Dashboard() {
               <h2 className="text-lg font-bold text-slate-900">Urgent Procurement</h2>
               <p className="text-sm text-slate-500">Items that need restocking</p>
             </div>
-          </div>
-          {procurementsLoading ? (
-            <div className="space-y-3">
-              <Skeleton className="h-14 w-full rounded-xl" />
-              <Skeleton className="h-14 w-full rounded-xl" />
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {procurements?.filter(p => p.status === "TO_BUY").slice(0, 5).map(p => (
-                <div key={p.id} className="flex items-center justify-between p-4 bg-[#00848E]/5 rounded-xl border border-[#00848E]/10" data-testid={`procurement-row-${p.id}`}>
-                  <div>
-                    <p className="font-medium text-slate-800">{formatVariantLabel(p.variant)}</p>
-                    <p className="text-xs text-slate-500 mt-0.5">For {p.order.orderNumber}</p>
+          </CardHeader>
+          <CardContent className="pt-0">
+            {procurementsLoading ? (
+              <div className="space-y-3">
+                <Skeleton className="h-14 w-full rounded-xl" />
+                <Skeleton className="h-14 w-full rounded-xl" />
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {procurements?.filter(p => p.status === "TO_BUY").slice(0, 5).map(p => (
+                  <div key={p.id} className="flex items-center justify-between p-4 bg-[#00848E]/5 rounded-xl border border-[#00848E]/10" data-testid={`procurement-row-${p.id}`}>
+                    <div>
+                      <p className="font-medium text-slate-800">{formatVariantLabel(p.variant)}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">For {p.order.orderNumber}</p>
+                    </div>
+                    <span className="text-sm font-bold text-[#00848E] bg-[#00848E]/10 px-3 py-1.5 rounded-full">{Number(p.neededQty)} needed</span>
                   </div>
-                  <span className="text-sm font-bold text-[#00848E] bg-[#00848E]/10 px-3 py-1.5 rounded-full">{Number(p.neededQty)} needed</span>
-                </div>
-              ))}
-              {(!procurements || procurements.filter(p => p.status === "TO_BUY").length === 0) && (
-                <div className="text-center py-10">
-                  <div className="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-3">
-                    <Package className="w-7 h-7 text-emerald-500" />
+                ))}
+                {(!procurements || procurements.filter(p => p.status === "TO_BUY").length === 0) && (
+                  <div className="text-center py-10">
+                    <div className="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-3">
+                      <Package className="w-7 h-7 text-emerald-500" />
+                    </div>
+                    <p className="text-slate-600 font-medium">All stocked up!</p>
+                    <p className="text-sm text-slate-400 mt-1">No items need restocking</p>
                   </div>
-                  <p className="text-slate-600 font-medium">All stocked up!</p>
-                  <p className="text-sm text-slate-400 mt-1">No items need restocking</p>
-                </div>
-              )}
-            </div>
-          )}
-          {procurements && procurements.filter(p => p.status === "TO_BUY").length > 0 && (
-            <Link href="/procurement">
-              <Button variant="outline" className="w-full mt-4" data-testid="link-view-all-procurement">
-                View All Procurement
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
-          )}
+                )}
+              </div>
+            )}
+            {procurements && procurements.filter(p => p.status === "TO_BUY").length > 0 && (
+              <Link href="/procurement">
+                <Button variant="outline" className="w-full mt-4" data-testid="link-view-all-procurement">
+                  View All Procurement
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </Link>
+            )}
+          </CardContent>
         </Card>
       </div>
     </Layout>
