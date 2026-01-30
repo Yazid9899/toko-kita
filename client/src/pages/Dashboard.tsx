@@ -26,7 +26,7 @@ function StatCard({ title, value, icon: Icon, description, loading, color = "pri
   };
 
   return (
-    <div className="stat-card group">
+    <div className="metric-card group">
       <div className="flex items-start justify-between mb-4">
         <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colorClasses[color]} flex items-center justify-center shadow-lg`}>
           <Icon className="w-6 h-6 text-white" />
@@ -112,7 +112,7 @@ export default function Dashboard() {
       {/* Content Grid */}
       <div className="grid gap-6 lg:grid-cols-7">
         {/* Recent Orders */}
-        <div className="lg:col-span-4 premium-card">
+        <div className="lg:col-span-4 card">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-bold text-slate-900">Recent Orders</h2>
             <Link href="/orders">
@@ -167,7 +167,7 @@ export default function Dashboard() {
         </div>
 
         {/* Urgent Procurement */}
-        <div className="lg:col-span-3 premium-card border-l-4 border-l-[#00848E]">
+        <div className="lg:col-span-3 card border-l-4 border-l-[#00848E]">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00848E] to-[#00A3AE] flex items-center justify-center shadow-lg">
               <AlertCircle className="w-5 h-5 text-white" />
@@ -217,3 +217,4 @@ export default function Dashboard() {
     </Layout>
   );
 }
+

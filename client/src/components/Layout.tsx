@@ -31,8 +31,8 @@ function SidebarItem({ href, icon: Icon, label, active, onClick }: SidebarItemPr
         onClick={onClick}
         data-testid={`nav-${label.toLowerCase().replace(' ', '-')}`}
         className={cn(
-          "sidebar-item",
-          active && "sidebar-item-active"
+          "nav-item",
+          active && "nav-item-active"
         )}
       >
         <Icon className="w-5 h-5" />
@@ -165,3 +165,4 @@ export function Layout({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+

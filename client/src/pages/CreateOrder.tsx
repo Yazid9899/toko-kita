@@ -54,7 +54,7 @@ function QuickCustomerForm({ onSuccess }: { onSuccess: (customerId: number) => v
             <FormItem>
               <FormLabel className="text-slate-700 font-medium">Full Name</FormLabel>
               <FormControl>
-                <Input placeholder="e.g. John Doe" {...field} className="premium-input" data-testid="input-customer-name" />
+                <Input placeholder="e.g. John Doe" {...field} className="form-input" data-testid="input-customer-name" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -68,7 +68,7 @@ function QuickCustomerForm({ onSuccess }: { onSuccess: (customerId: number) => v
               <FormItem>
                 <FormLabel className="text-slate-700 font-medium">Phone</FormLabel>
                 <FormControl>
-                  <Input placeholder="0812..." {...field} className="premium-input" data-testid="input-customer-phone" />
+                  <Input placeholder="0812..." {...field} className="form-input" data-testid="input-customer-phone" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -108,7 +108,7 @@ function QuickCustomerForm({ onSuccess }: { onSuccess: (customerId: number) => v
                 <Textarea
                   placeholder="Paste full address here..."
                   {...field}
-                  className="premium-input min-h-[96px] resize-y"
+                  className="form-input min-h-[96px] resize-y"
                   data-testid="input-customer-address"
                 />
               </FormControl>
@@ -124,7 +124,7 @@ function QuickCustomerForm({ onSuccess }: { onSuccess: (customerId: number) => v
               <FormItem>
                 <FormLabel className="text-slate-700 font-medium text-xs">Kecamatan</FormLabel>
                 <FormControl>
-                  <Input {...field} className="premium-input" data-testid="input-customer-kecamatan" />
+                  <Input {...field} className="form-input" data-testid="input-customer-kecamatan" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -137,7 +137,7 @@ function QuickCustomerForm({ onSuccess }: { onSuccess: (customerId: number) => v
               <FormItem>
                 <FormLabel className="text-slate-700 font-medium text-xs">City</FormLabel>
                 <FormControl>
-                  <Input {...field} className="premium-input" data-testid="input-customer-city" />
+                  <Input {...field} className="form-input" data-testid="input-customer-city" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -150,7 +150,7 @@ function QuickCustomerForm({ onSuccess }: { onSuccess: (customerId: number) => v
               <FormItem>
                 <FormLabel className="text-slate-700 font-medium text-xs">Post Code</FormLabel>
                 <FormControl>
-                  <Input {...field} className="premium-input" data-testid="input-customer-postcode" />
+                  <Input {...field} className="form-input" data-testid="input-customer-postcode" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -287,7 +287,7 @@ export default function CreateOrder() {
         {/* LEFT COLUMN */}
         <div className="lg:col-span-2 space-y-6">
           {/* Customer Selection Card */}
-          <div className="premium-card">
+          <div className="card">
             <div className="flex items-center justify-between mb-5">
               <div>
                 <h3 className="text-lg font-bold text-slate-900">1. Select Customer</h3>
@@ -326,7 +326,7 @@ export default function CreateOrder() {
           </div>
 
           {/* Products Card */}
-          <div className={`premium-card ${!canAddItems ? "opacity-60" : ""}`}>
+          <div className={`card ${!canAddItems ? "opacity-60" : ""}`}>
             <div className="mb-5">
               <h3 className="text-lg font-bold text-slate-900">2. Add Items</h3>
               <p className="text-sm text-slate-500 mt-0.5">Search and add variants to this order</p>
@@ -463,7 +463,7 @@ export default function CreateOrder() {
 
         {/* RIGHT COLUMN: Summary */}
         <div className="lg:col-span-1">
-          <div className="premium-card sticky border-2 border-[#5C6AC4]/20">
+          <div className="card sticky border-2 border-[#5C6AC4]/20">
             <h3 className="font-bold text-xl text-slate-900 mb-5">Order Summary</h3>
             
             <div className="space-y-3 mb-6 max-h-[320px] overflow-y-auto custom-scrollbar">
@@ -580,3 +580,4 @@ export default function CreateOrder() {
     </Layout>
   );
 }
+

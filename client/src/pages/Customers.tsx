@@ -298,7 +298,7 @@ export default function Customers() {
       </div>
 
       {/* Customer Cards Grid */}
-      <div className="premium-card p-0 overflow-hidden">
+      <div className="card p-0 overflow-hidden">
         {isLoading ? (
           <div className="flex flex-wrap items-center justify-center py-16">
             <Loader2 className="w-8 h-8 animate-spin text-primary" data-testid="loader-customers" />
@@ -436,3 +436,4 @@ export default function Customers() {
     </Layout>
   );
 }
+

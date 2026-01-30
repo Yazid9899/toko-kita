@@ -87,7 +87,7 @@ export default function OrderDetail() {
   if (!order)
     return (
       <Layout>
-        <div className="premium-card text-center py-12">
+        <div className="card text-center py-12">
           <p className="text-slate-500">Order not found</p>
         </div>
       </Layout>
@@ -202,7 +202,7 @@ export default function OrderDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - Items */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="premium-card">
+            <div className="card">
               <h2 className="text-lg font-bold text-slate-900 mb-5">
                 Order Items
               </h2>
@@ -272,7 +272,7 @@ export default function OrderDetail() {
             </div>
 
             {order.procurements.length > 0 && (
-              <div className="premium-card border-l-4 border-l-amber-500">
+              <div className="card border-l-4 border-l-amber-500">
                 <h2 className="text-lg font-bold text-amber-700 mb-4">
                   Procurement Items (To Buy)
                 </h2>
@@ -302,7 +302,7 @@ export default function OrderDetail() {
           {/* Right Column - Customer & Workflow */}
           <div className="space-y-6">
             {/* Customer Card */}
-            <div className="premium-card">
+            <div className="card">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xs uppercase tracking-wider text-slate-400 font-semibold">
                   Customer
@@ -466,7 +466,7 @@ export default function OrderDetail() {
             )}
 
             {/* Workflow Card */}
-            <div className="premium-card">
+            <div className="card">
               <div className="flex items-center justify-between mb-5">
                 <h2 className="text-xs uppercase tracking-wider text-slate-400 font-semibold">
                   Workflow
@@ -612,3 +612,4 @@ export default function OrderDetail() {
     </Layout>
   );
 }
+

@@ -56,7 +56,7 @@ export default function Orders() {
       </div>
 
       {/* Orders List */}
-      <div className="premium-card p-0 overflow-hidden">
+      <div className="card p-0 overflow-hidden">
         {isLoading ? (
           <div className="flex items-center justify-center py-16">
             <Loader2 className="w-8 h-8 animate-spin text-[#5C6AC4]" />
@@ -118,3 +118,4 @@ export default function Orders() {
     </Layout>
   );
 }
+
