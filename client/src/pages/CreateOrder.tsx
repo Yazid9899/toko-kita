@@ -287,7 +287,7 @@ export default function CreateOrder() {
         {/* LEFT COLUMN */}
         <div className="lg:col-span-2 space-y-6">
           {/* Customer Selection Card */}
-          <Card>
+          <Card className="p-5">
             <div className="flex items-center justify-between mb-5">
               <div>
                 <h3 className="text-lg font-bold text-slate-900">1. Select Customer</h3>
@@ -327,7 +327,7 @@ export default function CreateOrder() {
           </Card>
 
           {/* Products Card */}
-          <Card className={canAddItems ? undefined : "opacity-60"}>
+          <Card className={canAddItems ? 'p-5' : "opacity-60 p-5"}>
             <div className="mb-5">
               <h3 className="text-lg font-bold text-slate-900">2. Add Items</h3>
               <p className="text-sm text-slate-500 mt-0.5">Search and add variants to this order</p>
@@ -464,7 +464,7 @@ export default function CreateOrder() {
 
         {/* RIGHT COLUMN: Summary */}
         <div className="lg:col-span-1">
-          <Card className="sticky border-2 border-[#5C6AC4]/20">
+          <Card className="sticky border-2 border-[#5C6AC4]/20 p-5">
             <h3 className="font-bold text-xl text-slate-900 mb-5">Order Summary</h3>
             
             <div className="space-y-3 mb-6 max-h-[320px] overflow-y-auto custom-scrollbar">
@@ -538,7 +538,7 @@ export default function CreateOrder() {
                   <Input
                     type="text"
                     inputMode="numeric"
-                    placeholder="0 (e.g. 10,000)"
+                    placeholder="0"
                     className="w-36 h-9 text-right rounded-lg border-slate-200 font-medium pl-8"
                     value={deliveryFeeInput}
                     onChange={(e) => handleDeliveryFeeChange(e.target.value)}
