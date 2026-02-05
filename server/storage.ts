@@ -256,7 +256,7 @@ export interface IStorage {
   updateOrder(id: number, order: Partial<InsertOrder>): Promise<Order>;
 
   // Order Items
-  createOrderItem(item: InsertOrderItem): Promise<OrderItem>;
+  createOrderItem(item: InsertOrderItem & { isPreorder?: boolean }): Promise<OrderItem>;
   getOrderItems(orderId: number): Promise<OrderItem[]>;
 
   // Procurement
@@ -670,7 +670,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // --- Order Items ---
-  async createOrderItem(item: InsertOrderItem): Promise<OrderItem> {
+  async createOrderItem(item: InsertOrderItem & { isPreorder?: boolean }): Promise<OrderItem> {
     const data = { 
         ...item, 
         quantity: item.quantity.toString(),

@@ -1002,7 +1002,7 @@ export default function Products() {
             <Loader2 className="animate-spin w-8 h-8 text-[#3B82F6]" />
           </div>
         ) : products?.length === 0 ? (
-          <Card className="text-center py-16">
+          <Card className="text-center">
             <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
               <Package className="w-8 h-8 text-slate-300" />
             </div>
@@ -1129,7 +1129,7 @@ export default function Products() {
                               variant.optionValues.some((value) => value.attributeId === attribute.id)
                             );
                             return (
-                              <Card key={attribute.id} className="p-4">
+                              <Card key={attribute.id}>
                                 <div className="flex items-center justify-between">
                                   <div>
                                     <p className="font-semibold text-slate-800">{attribute.name}</p>
@@ -1269,7 +1269,7 @@ export default function Products() {
                         const visibleChips = variant.optionValues.slice(0, chipLimit);
                         const overflowCount = Math.max(0, variant.optionValues.length - visibleChips.length);
                         return (
-                          <Card key={variant.id} className="px-4 py-3 transition-shadow hover:shadow-md" data-testid={`variant-card-${variant.id}`}>
+                          <Card key={variant.id} className="transition-shadow hover:shadow-md" data-testid={`variant-card-${variant.id}`}>
                             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                               <div className="min-w-0 flex-1">
                                 <div className="flex flex-wrap gap-2 max-h-16 overflow-hidden">

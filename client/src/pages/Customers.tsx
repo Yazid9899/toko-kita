@@ -1,5 +1,5 @@
 import { Layout } from "@/components/Layout";
-import { useCustomers, useCreateCustomer, useUpdateCustomer, useDeleteCustomer } from "@/hooks/use-customers";
+import { useCustomers, useDeleteCustomer } from "@/hooks/use-customers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -21,21 +21,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { insertCustomerSchema, type InsertCustomer, type Customer } from "@shared/schema";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useState } from "react";
+import { type Customer } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Plus, Search, Users, Phone, MapPin, Pencil, Trash2 } from "lucide-react";
+import { CustomerForm } from "@/components/CustomerForm";
 
 const formatCustomerAddress = (customer: Customer) => {
   const parts = [
@@ -46,182 +37,6 @@ const formatCustomerAddress = (customer: Customer) => {
   ].filter((part) => part && part.trim().length > 0);
   return parts.length > 0 ? parts.join(", ") : "-";
 };
-
-function CustomerForm({ onSuccess, defaultValues, isEditing }: { 
-  onSuccess: () => void; 
-  defaultValues?: Customer;
-  isEditing?: boolean;
-}) {
-  const { mutate: createCustomer, isPending: isCreating } = useCreateCustomer();
-  const { mutate: updateCustomer, isPending: isUpdating } = useUpdateCustomer();
-  const isPending = isCreating || isUpdating;
-  
-  const form = useForm<InsertCustomer>({
-    resolver: zodResolver(insertCustomerSchema),
-    defaultValues: defaultValues ? {
-      name: defaultValues.name,
-      phoneNumber: defaultValues.phoneNumber,
-      addressLine: defaultValues.addressLine || "",
-      kecamatan: defaultValues.kecamatan || "",
-      cityOrKabupaten: defaultValues.cityOrKabupaten || "",
-      postCode: defaultValues.postCode || "",
-      customerType: defaultValues.customerType,
-    } : {
-      name: "",
-      phoneNumber: "",
-      addressLine: "",
-      kecamatan: "",
-      cityOrKabupaten: "",
-      postCode: "",
-      customerType: "PERSONAL"
-    }
-  });
-
-  useEffect(() => {
-    if (defaultValues) {
-      form.reset({
-        name: defaultValues.name,
-        phoneNumber: defaultValues.phoneNumber,
-        addressLine: defaultValues.addressLine || "",
-        kecamatan: defaultValues.kecamatan || "",
-        cityOrKabupaten: defaultValues.cityOrKabupaten || "",
-        postCode: defaultValues.postCode || "",
-        customerType: defaultValues.customerType,
-      });
-    }
-  }, [defaultValues, form]);
-
-  function onSubmit(data: InsertCustomer) {
-    if (isEditing && defaultValues) {
-      updateCustomer({ id: defaultValues.id, data }, {
-        onSuccess: () => {
-          onSuccess();
-        }
-      });
-    } else {
-      createCustomer(data, {
-        onSuccess: () => {
-          form.reset();
-          onSuccess();
-        }
-      });
-    }
-  }
-
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Full Name</FormLabel>
-              <FormControl>
-                <Input placeholder="John Doe" {...field} data-testid="input-customer-name" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="phoneNumber"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Phone</FormLabel>
-                <FormControl>
-                  <Input placeholder="0812..." {...field} data-testid="input-customer-phone" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="customerType"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Type</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger data-testid="select-customer-type">
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="PERSONAL" data-testid="select-option-personal">Personal</SelectItem>
-                    <SelectItem value="RESELLER" data-testid="select-option-reseller">Reseller</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        <FormField
-          control={form.control}
-          name="addressLine"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Address</FormLabel>
-              <FormControl>
-                <Input placeholder="Street address..." {...field} data-testid="input-customer-address" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <div className="grid grid-cols-3 gap-3">
-          <FormField
-            control={form.control}
-            name="kecamatan"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Kecamatan</FormLabel>
-                <FormControl>
-                  <Input {...field} data-testid="input-customer-kecamatan" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="cityOrKabupaten"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>City</FormLabel>
-                <FormControl>
-                  <Input {...field} data-testid="input-customer-city" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="postCode"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Post Code</FormLabel>
-                <FormControl>
-                  <Input {...field} data-testid="input-customer-postcode" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        <Button type="submit" className="w-full" disabled={isPending} data-testid="button-submit-customer">
-          {isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" data-testid="loader-submit-customer" /> : isEditing ? <Pencil className="w-4 h-4 mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
-          {isEditing ? "Save Changes" : "Create Customer"}
-        </Button>
-      </form>
-    </Form>
-  );
-}
 
 export default function Customers() {
   const [search, setSearch] = useState("");

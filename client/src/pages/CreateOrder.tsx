@@ -1,6 +1,6 @@
 import { Layout } from "@/components/Layout";
 import { useCreateOrder } from "@/hooks/use-orders";
-import { useCustomers, useCreateCustomer } from "@/hooks/use-customers";
+import { useCustomers } from "@/hooks/use-customers";
 import { useProducts } from "@/hooks/use-products";
 import { useLocation } from "wouter";
 import { useMemo, useState } from "react";
@@ -8,167 +8,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { Loader2, Trash2, Plus, ChevronRight, UserPlus, AlertCircle, ShoppingBag, Search } from "lucide-react";
+import { Loader2, Trash2, ChevronRight, UserPlus, AlertCircle, ShoppingBag, Search } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { insertCustomerSchema, type InsertCustomer } from "@shared/schema";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { type Customer } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { formatPrice, formatVariantLabel, getVariantPrice } from "@/lib/variant-utils";
-
-function QuickCustomerForm({ onSuccess }: { onSuccess: (customerId: number) => void }) {
-  const { mutate, isPending } = useCreateCustomer();
-  const { toast } = useToast();
-  const form = useForm<InsertCustomer>({
-    resolver: zodResolver(insertCustomerSchema),
-    defaultValues: {
-      name: "",
-      phoneNumber: "",
-      addressLine: "",
-      kecamatan: "",
-      cityOrKabupaten: "",
-      postCode: "",
-      customerType: "PERSONAL"
-    }
-  });
-
-  function onSubmit(data: InsertCustomer) {
-    mutate(data, {
-      onSuccess: (newCustomer: any) => {
-        form.reset();
-        toast({ title: "Customer created!", description: `${data.name} has been added.` });
-        onSuccess(newCustomer.id);
-      }
-    });
-  }
-
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-slate-700 font-medium">Full Name</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g. John Doe" {...field} data-testid="input-customer-name" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="phoneNumber"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-slate-700 font-medium">Phone</FormLabel>
-                <FormControl>
-                  <Input placeholder="0812..." {...field} data-testid="input-customer-phone" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-          name="customerType"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-slate-700 font-medium">Type</FormLabel>
-              <Select value={field.value} onValueChange={field.onChange}>
-                <FormControl>
-                  <SelectTrigger className="h-11 rounded-xl" data-testid="select-customer-type">
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="PERSONAL">Personal</SelectItem>
-                  <SelectItem value="RESELLER">Reseller</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        </div>
-        <FormField
-          control={form.control}
-          name="addressLine"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-slate-700 font-medium">Address</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Paste full address here..."
-                  {...field}
-                  className="min-h-[96px] resize-y"
-                  data-testid="input-customer-address"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <div className="grid grid-cols-3 gap-3">
-          <FormField
-            control={form.control}
-            name="kecamatan"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-slate-700 font-medium text-xs">Kecamatan</FormLabel>
-                <FormControl>
-                  <Input {...field} data-testid="input-customer-kecamatan" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="cityOrKabupaten"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-slate-700 font-medium text-xs">City</FormLabel>
-                <FormControl>
-                  <Input {...field} data-testid="input-customer-city" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="postCode"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-slate-700 font-medium text-xs">Post Code</FormLabel>
-                <FormControl>
-                  <Input {...field} data-testid="input-customer-postcode" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        <Button type="submit" className="w-full" disabled={isPending} data-testid="button-submit-customer">
-          {isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <UserPlus className="w-4 h-4 mr-2" />}
-          Create Customer
-        </Button>
-      </form>
-    </Form>
-  );
-}
+import { CustomerForm } from "@/components/CustomerForm";
 
 export default function CreateOrder() {
   const [, setLocation] = useLocation();
   const { mutate: createOrder, isPending } = useCreateOrder();
+  const { toast } = useToast();
   const [addCustomerOpen, setAddCustomerOpen] = useState(false);
   
   const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
@@ -269,8 +122,9 @@ export default function CreateOrder() {
     });
   };
 
-  const handleCustomerCreated = (customerId: number) => {
-    setSelectedCustomerId(customerId);
+  const handleCustomerCreated = (customer: Customer) => {
+    toast({ title: "Customer created!", description: `${customer.name} has been added.` });
+    setSelectedCustomerId(customer.id);
     setAddCustomerOpen(false);
   };
 
@@ -287,7 +141,7 @@ export default function CreateOrder() {
         {/* LEFT COLUMN */}
         <div className="lg:col-span-2 space-y-6">
           {/* Customer Selection Card */}
-          <Card className="p-5">
+          <Card>
             <div className="flex items-center justify-between mb-5">
               <div>
                 <h3 className="text-lg font-bold text-slate-900">1. Select Customer</h3>
@@ -305,7 +159,12 @@ export default function CreateOrder() {
                     <DialogTitle className="text-xl font-bold">Add New Customer</DialogTitle>
                     <DialogDescription>Quickly add a new customer to use in this order.</DialogDescription>
                   </DialogHeader>
-                  <QuickCustomerForm onSuccess={handleCustomerCreated} />
+                  <CustomerForm
+                    variant="order"
+                    submitLabel="Create Customer"
+                    submitIcon={<UserPlus className="w-4 h-4 mr-2" />}
+                    onSuccess={handleCustomerCreated}
+                  />
                 </DialogContent>
               </Dialog>
             </div>
@@ -327,7 +186,7 @@ export default function CreateOrder() {
           </Card>
 
           {/* Products Card */}
-          <Card className={canAddItems ? 'p-5' : "opacity-60 p-5"}>
+          <Card className={canAddItems ? undefined : "opacity-60"}>
             <div className="mb-5">
               <h3 className="text-lg font-bold text-slate-900">2. Add Items</h3>
               <p className="text-sm text-slate-500 mt-0.5">Search and add variants to this order</p>
@@ -464,7 +323,7 @@ export default function CreateOrder() {
 
         {/* RIGHT COLUMN: Summary */}
         <div className="lg:col-span-1">
-          <Card className="sticky border-2 border-[#5C6AC4]/20 p-5">
+          <Card className="sticky border-2 border-[#5C6AC4]/20">
             <h3 className="font-bold text-xl text-slate-900 mb-5">Order Summary</h3>
             
             <div className="space-y-3 mb-6 max-h-[320px] overflow-y-auto custom-scrollbar">
