@@ -26,7 +26,8 @@ type VariantDef = {
   size: string;
   color: string;
   sku: string;
-  price: number; // whole IDR
+  price: number;
+  stock_on_hand: number;
 };
 
 const CURRENCY = "IDR";
@@ -39,94 +40,137 @@ const attributes: AttributeDef[] = [
     code: "material",
     name: "Material",
     sortOrder: 1,
-    options: ["Nylon", "PU Leather"],
+    options: ["Nylon", "PU Leather", "Light Weight"],
   },
   {
     code: "size",
     name: "Size",
     sortOrder: 2,
-    options: ["Small", "Medium", "Large", "Micro"],
+    options: ["Small", "Medium", "Large", "Micro", "Cabin", "BackPack", "BackPack Oval", "Bag" ],
   },
   {
     code: "color",
     name: "Color",
     sortOrder: 3,
     options: [
-      "Black",
-      "Beige",
-      "Gray",
-      "Olive",
-      "Navy",
-      "Light Brown",
-      "Icy Blue",
-      "Lavender",
-      "Pale Pink",
-      "Ivory handle brown",
-      "Mustard",
-      "Mint",
-      "Brown",
-      "Peach",
-      "Ivory",
-      "Light Gray",
-      "Silver Gray",
-      "Rare Blue",
-      "Mint/Ivory",
-      "Dark Green/Navy",
-      "Pink/Brown",
-      "Blue/Dark Brown",
-      "Silver",
-    ],
+  "Black",
+  "Beige",
+  "Blue",
+  "Gray",
+  "Light Gray",
+  "Olive",
+  "Navy",
+  "Light Brown",
+  "Dark Brown",
+  "Brown",
+  "Icy Blue",
+  "Lavender",
+  "Pale Pink",
+  "Purple",
+  "Ivory",
+  "Ivory handle brown",
+  "Mustard",
+  "Mint",
+  "Peach",
+  "Silver Gray",
+  "Rare Blue",
+  "Mint/Ivory",
+  "Dark Green/Navy",
+  "Pink/Brown",
+  "Pink/Gray",
+  "Blue/Dark Brown",
+  "Silver",
+  "Black handle brown",
+],
   },
 ];
 
 const variants: VariantDef[] = [
-  // Small / Nylon
-  { material: "Nylon", size: "Small", color: "Black", sku: "LGH-NY-S-BK", price: 590000 },
-  { material: "Nylon", size: "Small", color: "Beige", sku: "LGH-NY-S-BE", price: 590000 },
-  { material: "Nylon", size: "Small", color: "Gray", sku: "LGH-NY-S-GY", price: 590000 },
-  { material: "Nylon", size: "Small", color: "Olive", sku: "LGH-NY-S-OLV", price: 590000 },
-  { material: "Nylon", size: "Small", color: "Navy", sku: "LGH-NY-S-NV", price: 590000 },
-  { material: "Nylon", size: "Small", color: "Mint", sku: "LGH-NY-S-MGR", price: 590000 },
-  { material: "Nylon", size: "Small", color: "Pale Pink", sku: "LGH-NY-S-PPI", price: 590000 },
-  { material: "Nylon", size: "Small", color: "Lavender", sku: "LGH-NY-S-LV", price: 590000 },
-  { material: "Nylon", size: "Small", color: "Ivory", sku: "LGH-NY-S-IV", price: 590000 },
-  { material: "Nylon", size: "Small", color: "Ivory handle brown", sku: "LGH-NY-S-IVB", price: 590000 },
-  // Small / PU
-  { material: "PU Leather", size: "Small", color: "Black", sku: "LGH-PU-S-BK", price: 665000 },
-  { material: "PU Leather", size: "Small", color: "Silver", sku: "LGH-PU-S-SI", price: 665000 },
-  // Small / Nylon Two-tone
-  { material: "Nylon", size: "Small", color: "Mint/Ivory", sku: "LGH-NY-S-MGR/IV", price: 750000 },
-  { material: "Nylon", size: "Small", color: "Dark Green/Navy", sku: "LGH-NY-S-DG/NV", price: 750000 },
-  { material: "Nylon", size: "Small", color: "Pink/Brown", sku: "LGH-NY-S-PI/BR", price: 750000 },
-  // Medium / Nylon
-  { material: "Nylon", size: "Medium", color: "Black", sku: "LGH-NY-M-BK", price: 680000 },
-  { material: "Nylon", size: "Medium", color: "Beige", sku: "LGH-NY-M-BE", price: 680000 },
-  { material: "Nylon", size: "Medium", color: "Gray", sku: "LGH-NY-M-GY", price: 680000 },
-  { material: "Nylon", size: "Medium", color: "Navy", sku: "LGH-NY-M-NV", price: 680000 },
-  { material: "Nylon", size: "Medium", color: "Light Brown", sku: "LGH-NY-M-LBR", price: 680000 },
-  { material: "Nylon", size: "Medium", color: "Icy Blue", sku: "LGH-NY-M-ICY", price: 680000 },
-  { material: "Nylon", size: "Medium", color: "Lavender", sku: "LGH-NY-M-LV", price: 680000 },
-  { material: "Nylon", size: "Medium", color: "Pale Pink", sku: "LGH-NY-M-PPI", price: 680000 },
-  { material: "Nylon", size: "Medium", color: "Ivory handle brown", sku: "LGH-NY-M-IVB", price: 680000 },
-  { material: "Nylon", size: "Medium", color: "Mustard", sku: "LGH-NY-M-MUS", price: 680000 },
-  // Large / Nylon
-  { material: "Nylon", size: "Large", color: "Black", sku: "LGH-NY-L-BK", price: 690000 },
-  { material: "Nylon", size: "Large", color: "Beige", sku: "LGH-NY-L-BE", price: 690000 },
-  { material: "Nylon", size: "Large", color: "Gray", sku: "LGH-NY-L-GY", price: 690000 },
-  { material: "Nylon", size: "Large", color: "Olive", sku: "LGH-NY-L-OLV", price: 690000 },
-  { material: "Nylon", size: "Large", color: "Navy", sku: "LGH-NY-L-NV", price: 690000 },
-  { material: "Nylon", size: "Large", color: "Light Brown", sku: "LGH-NY-L-LBR", price: 690000 },
-  { material: "Nylon", size: "Large", color: "Icy Blue", sku: "LGH-NY-L-ICY", price: 690000 },
-  { material: "Nylon", size: "Large", color: "Lavender", sku: "LGH-NY-L-LV", price: 690000 },
-  { material: "Nylon", size: "Large", color: "Pale Pink", sku: "LGH-NY-L-PPI", price: 690000 },
-  { material: "Nylon", size: "Large", color: "Rare Blue", sku: "LGH-NY-L-RBL", price: 690000 },
-  { material: "Nylon", size: "Large", color: "Brown", sku: "LGH-NY-L-BRA", price: 690000 },
-  // Large / PU
-  { material: "PU Leather", size: "Large", color: "Black", sku: "LGH-PU-L-BK", price: 800000 },
-  // Micro / Nylon
-  { material: "Nylon", size: "Micro", color: "Black", sku: "LGH-NY-MC-BK", price: 566000 },
-  { material: "Nylon", size: "Micro", color: "Lavender", sku: "LGH-NY-MC-LV", price: 566000 },
+  // ───────── SMALL / PU ─────────
+  { material: "PU Leather", size: "Small", color: "Silver", sku: "LGH-PU-S-SI", price: 665000, stock_on_hand: 4 },
+  { material: "PU Leather", size: "Small", color: "Black", sku: "LGH-PU-S-BK", price: 665000, stock_on_hand: 1 },
+
+  // ───────── MEDIUM / PU ─────────
+  { material: "PU Leather", size: "Medium", color: "Silver", sku: "LGH-PU-M-SI", price: 780000, stock_on_hand: 2 },
+  { material: "PU Leather", size: "Medium", color: "Blue", sku: "LGH-PU-M-BL", price: 780000, stock_on_hand: 2 },
+  { material: "PU Leather", size: "Medium", color: "Beige", sku: "LGH-PU-M-BE", price: 780000, stock_on_hand: 1 },
+
+  // ───────── LARGE / PU ─────────
+  { material: "PU Leather", size: "Large", color: "Blue", sku: "LGH-PU-L-BL", price: 800000, stock_on_hand: 1 },
+  { material: "PU Leather", size: "Large", color: "Black", sku: "LGH-PU-L-BK", price: 800000, stock_on_hand: 2 },
+
+  // ───────── SMALL / NYLON ─────────
+  { material: "Nylon", size: "Small", color: "Pink/Gray", sku: "LGH-NY-S-PI/GY", price: 750000, stock_on_hand: 3 },
+  { material: "Nylon", size: "Small", color: "Pale Pink", sku: "LGH-NY-S-PPI", price: 590000, stock_on_hand: 1 },
+  { material: "Nylon", size: "Small", color: "Pink/Brown", sku: "LGH-NY-S-PI/BR", price: 750000, stock_on_hand: 7 },
+  { material: "Nylon", size: "Small", color: "Olive", sku: "LGH-NY-S-OLV", price: 590000, stock_on_hand: 7 },
+  { material: "Nylon", size: "Small", color: "Navy", sku: "LGH-NY-S-NV", price: 590000, stock_on_hand: 4 },
+  { material: "Nylon", size: "Small", color: "Mint/Ivory", sku: "LGH-NY-S-MGR/IV", price: 750000, stock_on_hand: 5 },
+  { material: "Nylon", size: "Small", color: "Mint", sku: "LGH-NY-S-MGR", price: 590000, stock_on_hand: 0 },
+  { material: "Nylon", size: "Small", color: "Light Gray", sku: "LGH-NY-S-LGA", price: 590000, stock_on_hand: 7 },
+  { material: "Nylon", size: "Small", color: "Light Brown", sku: "LGH-NY-S-LBR", price: 590000, stock_on_hand: 1 },
+  { material: "Nylon", size: "Small", color: "Blue/Dark Brown", sku: "LGH-NY-S-LB/DB", price: 750000, stock_on_hand: 11 },
+  { material: "Nylon", size: "Small", color: "Ivory handle brown", sku: "LGH-NY-S-IVB", price: 590000, stock_on_hand: 6 },
+  { material: "Nylon", size: "Small", color: "Ivory", sku: "LGH-NY-S-IV", price: 590000, stock_on_hand: 1 },
+  { material: "Nylon", size: "Small", color: "Gray", sku: "LGH-NY-S-GY", price: 590000, stock_on_hand: 7 },
+  { material: "Nylon", size: "Small", color: "Dark Green/Navy", sku: "LGH-NY-S-DG/NV", price: 750000, stock_on_hand: 11 },
+  { material: "Nylon", size: "Small", color: "Dark Brown", sku: "LGH-NY-S-BRA", price: 590000, stock_on_hand: 2 },
+  { material: "Nylon", size: "Small", color: "Black", sku: "LGH-NY-S-BK", price: 590000, stock_on_hand: 10 },
+  { material: "Nylon", size: "Small", color: "Beige", sku: "LGH-NY-S-BE", price: 590000, stock_on_hand: 11 },
+
+  // ───────── MEDIUM / NYLON ─────────
+  { material: "Nylon", size: "Medium", color: "Silver Gray", sku: "LGH-NY-M-SGY", price: 680000, stock_on_hand: 0 },
+  { material: "Nylon", size: "Medium", color: "Rare Blue", sku: "LGH-NY-M-RBL", price: 680000, stock_on_hand: 1 },
+  { material: "Nylon", size: "Medium", color: "Pale Pink", sku: "LGH-NY-M-PPI", price: 680000, stock_on_hand: 3 },
+  { material: "Nylon", size: "Medium", color: "Olive", sku: "LGH-NY-M-OLV", price: 680000, stock_on_hand: 2 },
+  { material: "Nylon", size: "Medium", color: "Navy", sku: "LGH-NY-M-NV", price: 680000, stock_on_hand: 6 },
+  { material: "Nylon", size: "Medium", color: "Mustard", sku: "LGH-NY-M-MUS", price: 680000, stock_on_hand: 1 },
+  { material: "Nylon", size: "Medium", color: "Light Brown", sku: "LGH-NY-M-LBR", price: 680000, stock_on_hand: 8 },
+  { material: "Nylon", size: "Medium", color: "Ivory handle brown", sku: "LGH-NY-M-IVB", price: 680000, stock_on_hand: 2 },
+  { material: "Nylon", size: "Medium", color: "Icy Blue", sku: "LGH-NY-M-ICY", price: 680000, stock_on_hand: 2 },
+  { material: "Nylon", size: "Medium", color: "Gray", sku: "LGH-NY-M-GY", price: 680000, stock_on_hand: 6 },
+  { material: "Nylon", size: "Medium", color: "Dark Brown", sku: "LGH-NY-M-BRA", price: 680000, stock_on_hand: 2 },
+  { material: "Nylon", size: "Medium", color: "Black", sku: "LGH-NY-M-BK", price: 680000, stock_on_hand: 8 },
+  { material: "Nylon", size: "Medium", color: "Beige", sku: "LGH-NY-M-BE", price: 680000, stock_on_hand: 2 },
+  { material: "Nylon", size: "Medium", color: "Purple", sku: "LGH-NY-M-PUA", price: 680000, stock_on_hand: 1 },
+
+  // ───────── MICRO / NYLON ─────────
+  { material: "Nylon", size: "Micro", color: "Lavender", sku: "LGH-NY-MC-LV", price: 566000, stock_on_hand: 1 },
+  { material: "Nylon", size: "Micro", color: "Black", sku: "LGH-NY-MC-BK", price: 566000, stock_on_hand: 2 },
+
+  // ───────── LARGE / NYLON ─────────
+  { material: "Nylon", size: "Large", color: "Silver Gray", sku: "LGH-NY-L-SGY", price: 690000, stock_on_hand: 1 },
+  { material: "Nylon", size: "Large", color: "Rare Blue", sku: "LGH-NY-L-RBL", price: 690000, stock_on_hand: 3 },
+  { material: "Nylon", size: "Large", color: "Pale Pink", sku: "LGH-NY-L-PPI", price: 690000, stock_on_hand: 3 },
+  { material: "Nylon", size: "Large", color: "Purple", sku: "LGH-NY-L-PL", price: 690000, stock_on_hand: 1 },
+  { material: "Nylon", size: "Large", color: "Peach", sku: "LGH-NY-L-PIA", price: 690000, stock_on_hand: 1 },
+  { material: "Nylon", size: "Large", color: "Olive", sku: "LGH-NY-L-OLV", price: 690000, stock_on_hand: 10 },
+  { material: "Nylon", size: "Large", color: "Navy", sku: "LGH-NY-L-NV", price: 690000, stock_on_hand: 12 },
+  { material: "Nylon", size: "Large", color: "Lavender", sku: "LGH-NY-L-LV", price: 690000, stock_on_hand: 3 },
+  { material: "Nylon", size: "Large", color: "Light Brown", sku: "LGH-NY-L-LBR", price: 690000, stock_on_hand: 8 },
+  { material: "Nylon", size: "Large", color: "Icy Blue", sku: "LGH-NY-L-ICY", price: 690000, stock_on_hand: 2 },
+  { material: "Nylon", size: "Large", color: "Gray", sku: "LGH-NY-L-GY", price: 690000, stock_on_hand: 11 },
+  { material: "Nylon", size: "Large", color: "Dark Brown", sku: "LGH-NY-L-BRA", price: 690000, stock_on_hand: 2 },
+  { material: "Nylon", size: "Large", color: "Black handle brown", sku: "LGH-NY-L-BKB", price: 690000, stock_on_hand: 1 },
+  { material: "Nylon", size: "Large", color: "Black", sku: "LGH-NY-L-BK", price: 690000, stock_on_hand: 13 },
+  { material: "Nylon", size: "Large", color: "Beige", sku: "LGH-NY-L-BE", price: 690000, stock_on_hand: 11 },
+
+  // ───────── CABIN / NYLON ─────────
+  { material: "Nylon", size: "Cabin", color: "Navy", sku: "LGH-NY-CABIN-NV", price: 1280000, stock_on_hand: 2 },
+  { material: "Nylon", size: "Cabin", color: "Black", sku: "LGH-NY-CABIN-BK", price: 1280000, stock_on_hand: 1 },
+
+  // ───────── BACKPACK / NYLON ─────────
+  { material: "Nylon", size: "BackPack Oval", color: "Black", sku: "LGH-NY-BPO-BK", price: 850000, stock_on_hand: 1 },
+  { material: "Nylon", size: "BackPack", color: "Navy", sku: "LGH-NY-BPK-NV", price: 790000, stock_on_hand: 1 },
+  { material: "Nylon", size: "BackPack", color: "Black", sku: "LGH-NY-BPK-BK", price: 790000, stock_on_hand: 2 },
+  { material: "Nylon", size: "BackPack", color: "Beige", sku: "LGH-NY-BPK-BE", price: 790000, stock_on_hand: 1 },
+
+  // ───────── LIGHT WEIGHT ─────────
+  { material: "Light Weight", size: "BackPack", color: "Brown", sku: "LGH-LW-BPK-BR", price: 695000, stock_on_hand: 1 },
+  { material: "Light Weight", size: "Bag", color: "Brown", sku: "LGH-LW-BAG-BR", price: 695000, stock_on_hand: 3 },
 ];
+
+
 
 function normalizeKeyPart(value: string): string {
   return value
@@ -309,7 +353,7 @@ async function upsertVariant(
       .set({
         sku: variant.sku,
         unit: UNIT,
-        stockOnHand: "0",
+        stockOnHand: variant.stock_on_hand.toString(),
         allowPreorder: false,
         updatedAt: new Date(),
       })
@@ -327,7 +371,7 @@ async function upsertVariant(
         sku: variant.sku,
         variantKey,
         unit: UNIT,
-        stockOnHand: "0",
+        stockOnHand: variant.stock_on_hand.toString(),
         allowPreorder: false,
       })
       .returning();
@@ -346,11 +390,11 @@ async function upsertVariant(
     .values({
       variantId,
       currency: CURRENCY,
-      priceCents: variant.price * 100,
+      priceCents: variant.price,
     })
     .onConflictDoUpdate({
       target: [variantPrices.variantId, variantPrices.currency],
-      set: { priceCents: variant.price * 100 },
+      set: { priceCents: variant.price },
     });
 
   return status;

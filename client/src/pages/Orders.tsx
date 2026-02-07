@@ -219,7 +219,7 @@ export default function Orders() {
             {/* Table Header */}
             <div className="hidden lg:grid grid-cols-12 gap-4 px-6 py-4 bg-slate-50/80 text-xs font-semibold text-slate-500 uppercase tracking-wider">
               <div className="col-span-3">Order</div>
-              <div className="col-span-1">Date</div>
+              <div className="col-span-1">xxxxDate</div>
               <div className="col-span-3">Customer</div>
               <div className="col-span-1">Items</div>
               <div className="col-span-2">Payment</div>

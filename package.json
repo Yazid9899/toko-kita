@@ -10,7 +10,8 @@
     "check": "tsc",
     "db:push": "drizzle-kit push",
     "seed:admins": "tsx script/seedAdmins.ts",
-    "seed:products": "tsx script/seedProducts.ts"
+    "seed:products": "tsx script/seedProducts.ts",
+    "seed:customers": "tsx script/seedCustomers.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
