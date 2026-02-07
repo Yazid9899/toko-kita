@@ -142,7 +142,7 @@ const variants: VariantDef[] = [
   { material: "Nylon", size: "Large", color: "Silver Gray", sku: "LGH-NY-L-SGY", price: 690000, stock_on_hand: 1 },
   { material: "Nylon", size: "Large", color: "Rare Blue", sku: "LGH-NY-L-RBL", price: 690000, stock_on_hand: 3 },
   { material: "Nylon", size: "Large", color: "Pale Pink", sku: "LGH-NY-L-PPI", price: 690000, stock_on_hand: 3 },
-  { material: "Nylon", size: "Large", color: "Purple", sku: "LGH-NY-L-PL", price: 690000, stock_on_hand: 1 },
+  { material: "Nylon", size: "Large", color: "Purple", sku: "LGH-NY-L-PUA", price: 690000, stock_on_hand: 1 },
   { material: "Nylon", size: "Large", color: "Peach", sku: "LGH-NY-L-PIA", price: 690000, stock_on_hand: 1 },
   { material: "Nylon", size: "Large", color: "Olive", sku: "LGH-NY-L-OLV", price: 690000, stock_on_hand: 10 },
   { material: "Nylon", size: "Large", color: "Navy", sku: "LGH-NY-L-NV", price: 690000, stock_on_hand: 12 },

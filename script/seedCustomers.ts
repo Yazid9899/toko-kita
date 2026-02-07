@@ -124,8 +124,8 @@ const seedCustomers: InsertCustomer[] = [
     customerType: "PERSONAL",
   },
   {
-    name: "diel miel anna",
-    phoneNumber: "085777065752",
+    name: "diel miel",
+    phoneNumber: "082110922802",
     addressLine: "Bukit Cengkeh 2 Blok D3 no 16, Kel Tugu Kec Cimanggis, Depok 16451",
     kecamatan: "Cimanggis",
     cityOrKabupaten: "Depok",
@@ -390,7 +390,7 @@ const seedCustomers: InsertCustomer[] = [
   },
   {
     name: "Noviyanti",
-    phoneNumber: "0859206665649",
+    phoneNumber: "085920665649",
     addressLine:
       "Jl slada II rt005/011 pondok cabe ilir (jl joglo kontrakan gang buntu ujung kiri), Pamulang, Kota Tangerang Selatan, Banten 15418 (Tolong ditaruh aja di sela pintu ya)",
     kecamatan: "Pamulang",
@@ -476,7 +476,7 @@ const seedCustomers: InsertCustomer[] = [
   },
   {
     name: "Sri Yulia Rinawati",
-    phoneNumber: "085714656496",
+    phoneNumber: "085714659496",
     addressLine: "Verdant Ville G3 no 40 The Icon BSD City Tangerang 15345",
     kecamatan: "Cisauk",
     cityOrKabupaten: "Tangerang",
@@ -528,7 +528,7 @@ const seedCustomers: InsertCustomer[] = [
   },
   {
     name: "tia",
-    phoneNumber: "081227717873",
+    phoneNumber: "08122771873",
     addressLine:
       "jalan raya patikraja- banyumas rt 2 rw 2 , desa Pegalongan, kec. Patikraja, kab. Banyumas 53171, JAwa Tengah",
     kecamatan: "Patikraja",

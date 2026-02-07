@@ -11,7 +11,8 @@
     "db:push": "drizzle-kit push",
     "seed:admins": "tsx script/seedAdmins.ts",
     "seed:products": "tsx script/seedProducts.ts",
-    "seed:customers": "tsx script/seedCustomers.ts"
+    "seed:customers": "tsx script/seedCustomers.ts",
+    "seed:orders": "tsx script/seedOrders.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
