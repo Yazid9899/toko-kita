@@ -109,11 +109,12 @@ export default function OrderDetail() {
     );
   };
 
-  const totalAmount =
-    order.items.reduce(
-      (sum: number, item: any) => sum + Number(item.quantity) * Number(item.unitPrice),
-      0,
-    ) + Number(order.deliveryFee);
+  const discountValue = Number(order.discount ?? 0);
+  const subtotal = order.items.reduce(
+    (sum: number, item: any) => sum + Number(item.quantity) * Number(item.unitPrice),
+    0,
+  );
+  const totalAmount = Math.max(0, subtotal - discountValue);
 
   const handleStatusUpdate = (
     field: "paymentStatus" | "packingStatus",
@@ -203,7 +204,7 @@ export default function OrderDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - Items */}
           <div className="lg:col-span-2 space-y-6">
-            <Card className="p-5">
+            <Card>
               <h2 className="text-lg font-bold text-slate-900 mb-5">
                 Order Items
               </h2>
@@ -252,14 +253,13 @@ export default function OrderDetail() {
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-500">Subtotal</span>
                   <span className="text-slate-700">
-                    Rp{" "}
-                    {(totalAmount - Number(order.deliveryFee)).toLocaleString()}
+                    Rp {subtotal.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Delivery</span>
+                  <span className="text-slate-500">Disc</span>
                   <span className="text-slate-700">
-                    Rp {Number(order.deliveryFee).toLocaleString()}
+                    - Rp {discountValue.toLocaleString()}
                   </span>
                 </div>
                 <Separator className="bg-slate-100" />

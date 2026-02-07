@@ -208,7 +208,7 @@ export const orders = pgTable("orders", {
   customerId: integer("customer_id").notNull().references(() => customers.id),
   paymentType: paymentTypeEnum("payment_type").default("MANUAL_TRANSFER").notNull(),
   paymentStatus: paymentStatusEnum("payment_status").default("NOT_PAID").notNull(),
-  deliveryFee: decimal("delivery_fee", { precision: 10, scale: 2 }).default("0").notNull(),
+  discount: decimal("discount", { precision: 10, scale: 2 }).default("0").notNull(),
   packingStatus: packingStatusEnum("packing_status").default("NOT_READY").notNull(),
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -221,7 +221,7 @@ export const insertOrderSchema = createInsertSchema(orders).omit({
   createdAt: true, 
   updatedAt: true 
 }).extend({
-  deliveryFee: z.number().default(0),
+  discount: z.number().default(0),
 });
 
 export type Order = typeof orders.$inferSelect;

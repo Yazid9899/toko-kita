@@ -56,7 +56,8 @@ export default function Dashboard() {
   const toBuyItems = procurements?.filter(p => p.status === "TO_BUY").length || 0;
   const totalRevenue = orders?.reduce((sum, o) => {
     const itemsTotal = o.items.reduce((iSum, item) => iSum + Number(item.unitPrice) * Number(item.quantity), 0);
-    return sum + itemsTotal + Number(o.deliveryFee);
+    const orderTotal = Math.max(0, itemsTotal - Number(o.discount));
+    return sum + orderTotal;
   }, 0) || 0;
 
   return (

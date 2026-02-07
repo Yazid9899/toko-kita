@@ -37,8 +37,8 @@ export default function CreateOrder() {
   }>>([]);
   
   const [notes, setNotes] = useState("");
-  const [deliveryFee, setDeliveryFee] = useState(0);
-  const [deliveryFeeInput, setDeliveryFeeInput] = useState("");
+  const [discount, setDiscount] = useState(0);
+  const [discountInput, setDiscountInput] = useState("");
   const [variantSearch, setVariantSearch] = useState("");
   const [variantProductFilter, setVariantProductFilter] = useState<number | "all">("all");
   const [variantStockFilter, setVariantStockFilter] = useState<"all" | "in" | "out">("all");
@@ -90,7 +90,8 @@ export default function CreateOrder() {
   };
 
   const calculateTotal = () => {
-    return items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0) + deliveryFee;
+    const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
+    return Math.max(0, subtotal - discount);
   };
 
   const formatCurrencyInput = (value: string) => {
@@ -99,11 +100,11 @@ export default function CreateOrder() {
     return Number(digits).toLocaleString("id-ID");
   };
 
-  const handleDeliveryFeeChange = (value: string) => {
+  const handleDiscountChange = (value: string) => {
     const formatted = formatCurrencyInput(value);
-    setDeliveryFeeInput(formatted);
+    setDiscountInput(formatted);
     const numeric = Number(value.replace(/\D/g, "")) || 0;
-    setDeliveryFee(numeric);
+    setDiscount(numeric);
   };
 
   const handleSubmit = () => {
@@ -111,7 +112,7 @@ export default function CreateOrder() {
     createOrder({
       customerId: selectedCustomerId,
       notes,
-      deliveryFee,
+      discount,
       items: items.map(i => ({
         productVariantId: i.productVariantId,
         quantity: i.quantity,
@@ -389,7 +390,7 @@ export default function CreateOrder() {
                 <span className="font-medium text-slate-800">Rp {(items.reduce((acc, i) => acc + (i.quantity * i.unitPrice), 0)).toLocaleString()}</span>
               </div>
               <div className="flex justify-between items-center text-sm">
-                <Label className="text-slate-500">Delivery Fee</Label>
+                <Label className="text-slate-500">Discount</Label>
                 <div className="relative">
                   <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400">
                     Rp
@@ -399,9 +400,9 @@ export default function CreateOrder() {
                     inputMode="numeric"
                     placeholder="0"
                     className="w-36 h-9 text-right rounded-lg border-slate-200 font-medium pl-8"
-                    value={deliveryFeeInput}
-                    onChange={(e) => handleDeliveryFeeChange(e.target.value)}
-                    data-testid="input-delivery-fee"
+                    value={discountInput}
+                    onChange={(e) => handleDiscountChange(e.target.value)}
+                    data-testid="input-discount"
                   />
                 </div>
               </div>
