@@ -46,7 +46,6 @@ const seeds: OrderSeed[] = [
   discount: 0,
   notes: "tania Amelia",
   items: [
-    { sku: "LGH-NY-L-RBL", quantity: 2 },
     { sku: "LGH-NY-L-BRA", quantity: 1 },
   ],
 },
@@ -382,28 +381,38 @@ const seeds: OrderSeed[] = [
   ],
 },
 {
-  customerPhone: "08170680662",
+  customerPhone: "081210762820",
   paymentStatus: "PAID",
   packingStatus: "PACKED",
   discount: 0,
-  notes: "Safrida (ika)",
+  notes: "Safrida",
   items: [
     { sku: "LGH-NY-S-IVB", quantity: 1 },
   ],
 },
 {
-  customerPhone: "081235070878",
+  customerPhone: "081380600071",
   paymentStatus: "PAID",
   packingStatus: "PACKED",
-  discount: 335000,
-  notes: "Micel, stella (gift)",
+  discount: 180000,
+  notes: "Micel",
   items: [
     { sku: "LGH-NY-CABIN-BK", quantity: 1 },
     { sku: "LGH-NY-CABIN-NV", quantity: 1 },
     { sku: "LGH-NY-L-RBL", quantity: 1 },
     { sku: "LGH-PU-M-BL", quantity: 1 },
     { sku: "LGH-NY-M-RBL", quantity: 1 },
-    { sku: "LGH-NY-S-IVB", quantity: 1 },
+    { sku: "LGH-NY-M-GY", quantity: 1 },
+  ],
+},
+{
+  customerPhone: "081235070878",
+  paymentStatus: "PAID",
+  packingStatus: "PACKED",
+  discount: 215000,
+  notes: "Hadiah buat stella",
+  items: [
+    { sku: "LGH-NY-S-IVB", quantity: 1 }
   ],
 },
 {
@@ -481,7 +490,7 @@ const seeds: OrderSeed[] = [
   customerPhone: "087894185471",
   paymentStatus: "PAID",
   packingStatus: "PACKED",
-  discount: 2060000,
+  discount: 7427000,
   notes: "KARTIKA",
   items: [
     { sku: "LGH-NY-CABIN-NV", quantity: 1 },
@@ -497,7 +506,7 @@ const seeds: OrderSeed[] = [
     { sku: "LGH-NY-M-ICY", quantity: 2 },
     { sku: "LGH-NY-L-ICY", quantity: 2 },
     { sku: "LGH-NY-MC-LV", quantity: 1 },
-    { sku: "LGH-NY-S-BRA", quantity: 2 },
+    { sku: "LGH-NY-S-BRA", quantity: 1 },
     { sku: "LGH-NY-S-GY", quantity: 2 },
     { sku: "LGH-NY-M-BK", quantity: 2 },
     { sku: "LGH-NY-M-NV", quantity: 3 },

@@ -12,7 +12,8 @@
     "seed:admins": "tsx script/seedAdmins.ts",
     "seed:products": "tsx script/seedProducts.ts",
     "seed:customers": "tsx script/seedCustomers.ts",
-    "seed:orders": "tsx script/seedOrders.ts"
+    "seed:orders": "tsx script/seedOrders.ts",
+    "seed:all": "npm run seed:admins && npm run seed:products && npm run seed:customers && npm run seed:orders"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
