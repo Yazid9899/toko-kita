@@ -1,8 +1,18 @@
 import { Layout } from "@/components/Layout";
 import { useOrders, useUpdateOrder } from "@/hooks/use-orders";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Plus, ShoppingCart, Package, Calendar, ChevronDown, Loader2 } from "lucide-react";
+import {
+  Plus,
+  ShoppingCart,
+  Package,
+  ChevronDown,
+  Loader2,
+  AlertTriangle,
+  BadgeDollarSign,
+  Store,
+  Truck,
+} from "lucide-react";
 import { baseStatusBadgeClasses, formatStatusLabel, getStatusBadgeStyles } from "@/components/StatusBadge";
 import { format } from "date-fns";
 import { useState } from "react";
@@ -22,6 +32,7 @@ export default function Orders() {
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const { mutate: updateOrder } = useUpdateOrder();
   const [updatingKey, setUpdatingKey] = useState<string | null>(null);
+  const [, navigate] = useLocation();
   
   const filters = statusFilter === "ALL" 
     ? {} 
@@ -78,7 +89,7 @@ export default function Orders() {
   };
 
   const renderStatusDropdown = (
-    orderId: number,
+    order: any,
     field: "paymentStatus" | "packingStatus",
     currentStatus: string,
   ) => {
@@ -88,7 +99,7 @@ export default function Orders() {
       field === "paymentStatus" ? paymentTransitions : packingTransitions,
       options.map((option) => option.value),
     );
-    const isUpdating = updatingKey === `${orderId}-${field}`;
+    const isUpdating = updatingKey === `${order.id}-${field}`;
 
     return (
       <DropdownMenu>
@@ -108,7 +119,7 @@ export default function Orders() {
               event.stopPropagation();
             }}
             disabled={isUpdating}
-            data-testid={`button-status-${field}-${orderId}`}
+            data-testid={`button-status-${field}-${order.id}`}
           >
             <span>{formatStatusLabel(currentStatus)}</span>
             {isUpdating ? (
@@ -128,16 +139,24 @@ export default function Orders() {
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           {options.map((option) => {
+            const packedGuard =
+              field === "packingStatus" &&
+              option.value === "PACKED" &&
+              (order.paymentStatus !== "PAID" || order.hasPendingProcurement);
             const isDisabled =
-              option.value === currentStatus || !allowedTargets.includes(option.value);
+              option.value === currentStatus ||
+              !allowedTargets.includes(option.value) ||
+              isUpdating ||
+              packedGuard;
             return (
               <DropdownMenuItem
                 key={option.value}
-                disabled={isDisabled || isUpdating}
+                disabled={isDisabled}
                 onClick={(event) => event.stopPropagation()}
-                onSelect={() => handleStatusChange(orderId, field, option.value)}
+                onSelect={() => handleStatusChange(order.id, field, option.value)}
                 className="flex items-center gap-2"
-                data-testid={`menuitem-${field}-${option.value}-${orderId}`}
+                title={packedGuard ? "Must be paid and items ready" : undefined}
+                data-testid={`menuitem-${field}-${option.value}-${order.id}`}
               >
                 <span
                   className={cn(
@@ -218,47 +237,96 @@ export default function Orders() {
           <div className="divide-y divide-slate-100">
             {/* Table Header */}
             <div className="hidden lg:grid grid-cols-12 gap-4 px-6 py-4 bg-slate-50/80 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              <div className="col-span-3">Order</div>
-              <div className="col-span-1">xxxxDate</div>
+              <div className="col-span-2">Order</div>
               <div className="col-span-3">Customer</div>
-              <div className="col-span-1">Items</div>
+              <div className="col-span-2">Items</div>
+              <div className="col-span-1 text-center">Alerts</div>
               <div className="col-span-2">Payment</div>
-              <div className="col-span-2">Status</div>
+              <div className="col-span-1">Packing</div>
+              <div className="col-span-1 text-right">Total</div>
             </div>
             {/* Order Rows */}
-            {orders?.map((order) => (
-              <Link key={order.id} href={`/orders/${order.id}`}>
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 px-6 py-5 hover:bg-slate-50/60 transition-colors cursor-pointer items-center" data-testid={`order-row-${order.id}`}>
-                  <div className="lg:col-span-3 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#5C6AC4]/10 to-[#00848E]/10 flex items-center justify-center shrink-0">
-                      <Package className="w-5 h-5 text-[#5C6AC4]" />
-                    </div>
+            {orders?.map((order: any) => {
+              const subtotal =
+                order.subtotal ??
+                order.items.reduce(
+                  (sum: number, item: any) => sum + Number(item.unitPrice) * Number(item.quantity),
+                  0,
+                );
+              const total = order.total ?? Math.max(0, subtotal - Number(order.discount ?? 0));
+              const hasToBuy =
+                order.hasPendingProcurement || order.items.some((item: any) => item.isPreorder);
+
+              return (
+              <div
+                key={order.id}
+                className="grid grid-cols-1 lg:grid-cols-12 gap-4 px-6 py-5 hover:bg-slate-50/60 transition-colors cursor-pointer items-center"
+                data-testid={`order-row-${order.id}`}
+                onClick={() => navigate(`/orders/${order.id}`)}
+              >
+                <div className="lg:col-span-2 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#5C6AC4]/10 to-[#00848E]/10 flex items-center justify-center shrink-0">
+                    <Package className="w-5 h-5 text-[#5C6AC4]" />
+                  </div>
+                  <div className="space-y-0.5">
                     <span className="font-bold text-[#5C6AC4]">{order.orderNumber}</span>
-                  </div>
-                  <div className="lg:col-span-1 hidden lg:flex items-center gap-2 text-slate-600">
-                    
-                    <span className="text-sm">{format(new Date(order.createdAt), "MMM d")}</span>
-                  </div>
-                  <div className="lg:col-span-3">
-                    <p className="font-medium text-slate-800">{order.customer.name}</p>
-                    <p className="text-sm text-slate-500 lg:hidden">{format(new Date(order.createdAt), "MMM d, yyyy")}</p>
-                  </div>
-                  <div className="lg:col-span-1 hidden lg:block">
-                    <span className="text-sm text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full font-medium">{order.items.length}</span>
-                  </div>
-                  <div className="lg:col-span-2">
-                    {renderStatusDropdown(order.id, "paymentStatus", order.paymentStatus)}
-                  </div>
-                  <div className="lg:col-span-2 flex items-center gap-2">
-                    {renderStatusDropdown(order.id, "packingStatus", order.packingStatus)}
+                    <p className="text-xs text-slate-500">{format(new Date(order.createdAt), "MMM d, yyyy")}</p>
                   </div>
                 </div>
-              </Link>
-            ))}
+                <div className="lg:col-span-3">
+                  <p className="font-medium text-slate-800">{order.customer.name}</p>
+                  {order.customer.customerType === "RESELLER" ? (
+                    <span className="inline-flex items-center text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">
+                      Reseller
+                    </span>
+                  ) : (
+                    <p className="text-sm text-slate-500">{order.customer.phoneNumber}</p>
+                  )}
+                </div>
+                <div className="lg:col-span-2">
+                  <div className="flex items-center gap-2 text-sm text-slate-700">
+                    <span>{order.items.length} items</span>
+                    {hasToBuy && (
+                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">
+                        ⚠ To buy
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="lg:col-span-1 hidden lg:flex items-center justify-center gap-2 text-slate-500">
+                  {order.paymentStatus !== "PAID" && (
+                    <BadgeDollarSign className="w-4 h-4 text-amber-600" title="Unpaid" />
+                  )}
+                  {hasToBuy && (
+                    <AlertTriangle className="w-4 h-4 text-amber-600" title="To buy / Preorder" />
+                  )}
+                  {order.customer.customerType === "RESELLER" && (
+                    <Store className="w-4 h-4 text-slate-500" title="Reseller" />
+                  )}
+                  {order.paymentType?.includes("SHOPEE") && (
+                    <Truck className="w-4 h-4 text-slate-500" title="Shopee" />
+                  )}
+                </div>
+                <div className="lg:col-span-2 flex items-center gap-2">
+                  {renderStatusDropdown(order, "paymentStatus", order.paymentStatus)}
+                </div>
+                <div className="lg:col-span-1 flex items-center gap-2">
+                  {renderStatusDropdown(order, "packingStatus", order.packingStatus)}
+                </div>
+                <div className="lg:col-span-1 text-right">
+                  <div className="text-sm font-semibold text-slate-800">
+                    Rp {total.toLocaleString()}
+                  </div>
+                  {Number(order.discount ?? 0) > 0 && (
+                    <p className="text-[11px] text-emerald-600">Disc {Number(order.discount).toLocaleString()}</p>
+                  )}
+                </div>
+              </div>
+              );
+            })}
           </div>
         )}
       </Card>
     </Layout>
   );
 }
-

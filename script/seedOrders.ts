@@ -18,9 +18,9 @@ type OrderSeedItem = {
 
 type OrderSeed = {
   customerPhone: string;
-  paymentType?: InsertOrder["paymentType"];
-  paymentStatus?: InsertOrder["paymentStatus"];
-  packingStatus?: InsertOrder["packingStatus"];
+  paymentType?: "MANUAL_TRANSFER" | "FULL_SHOPEE" | "SPLIT_SHOPEE";
+  paymentStatus?: "NOT_PAID" | "DOWN_PAYMENT" | "PAID";
+  packingStatus?: "NOT_READY" | "PACKING" | "PACKED";
   discount?: number;
   notes?: string;
   items: OrderSeedItem[];
@@ -473,7 +473,7 @@ const seeds: OrderSeed[] = [
   discount: 0,
   notes: "Syifa Fauziah",
   items: [
-    { sku: "LGH-NY-BPK-NV", quantity: 1 },
+    { sku: "LGH-NY-BPO-NV", quantity: 1 },
   ],
 },
 {
@@ -522,7 +522,7 @@ const seeds: OrderSeed[] = [
   customerPhone: "260123RGVXKQUF",
   paymentStatus: "PAID",
   packingStatus: "PACKED",
-  discount: 0,
+  discount: 127506,
   notes: "ftrmsyf",
   items: [
     { sku: "LGH-NY-L-BE", quantity: 1 },
@@ -532,7 +532,7 @@ const seeds: OrderSeed[] = [
   customerPhone: "260129B817AM92",
   paymentStatus: "PAID",
   packingStatus: "PACKED",
-  discount: 0,
+  discount: 39870,
   notes: "indirabungac",
   items: [
     { sku: "LGH-NY-L-NV", quantity: 1 },
@@ -542,7 +542,7 @@ const seeds: OrderSeed[] = [
   customerPhone: "260120J2N0RQFX",
   paymentStatus: "PAID",
   packingStatus: "PACKED",
-  discount: 0,
+  discount: 39870,
   notes: "hellopandahehe",
   items: [
     { sku: "LGH-NY-L-LBR", quantity: 1 },
@@ -552,7 +552,7 @@ const seeds: OrderSeed[] = [
   customerPhone: "260118CB5U5KKJ",
   paymentStatus: "PAID",
   packingStatus: "PACKED",
-  discount: 0,
+  discount: 15030,
   notes: "bundadazame",
   items: [
     { sku: "LGH-NY-L-LV", quantity: 1 },
@@ -562,7 +562,7 @@ const seeds: OrderSeed[] = [
   customerPhone: "260201HTP4YK5V",
   paymentStatus: "PAID",
   packingStatus: "PACKED",
-  discount: 0,
+  discount: 127506,
   notes: "dear_cha",
   items: [
     { sku: "LGH-NY-L-BE", quantity: 1 },

@@ -15,7 +15,7 @@ import {
   type OrderItem, type InsertOrderItem,
   type Procurement, type InsertProcurement,
 } from "@shared/schema";
-import { eq, desc, inArray, sql } from "drizzle-orm";
+import { eq, desc, inArray, sql, and } from "drizzle-orm";
 
 function mapAttributesWithOptions(
   attributes: ProductAttribute[],
@@ -37,9 +37,9 @@ function mapAttributesWithOptions(
     attributesByProduct.set(attribute.productId, existing);
   });
 
-  for (const list of attributesByProduct.values()) {
+  Array.from(attributesByProduct.values()).forEach((list) => {
     list.sort((a, b) => a.sortOrder - b.sortOrder);
-  }
+  });
 
   return attributesByProduct;
 }
@@ -591,7 +591,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // --- Orders ---
-  async getOrders(status?: string, packingStatus?: string): Promise<(Order & { customer: Customer, items: OrderItem[] })[]> {
+  async getOrders(status?: string, packingStatus?: string): Promise<(Order & { customer: Customer, items: OrderItem[], subtotal: number, total: number, hasPendingProcurement: boolean })[]> {
     let query = db.select().from(orders);
 
     if (status) {
@@ -602,15 +602,50 @@ export class DatabaseStorage implements IStorage {
     }
 
     const allOrders = await query.orderBy(desc(orders.createdAt));
-    
-    // Fetch related data
-    // Optimisation: Could use JOINs but simple relation fetch is fine for now
-    const result: (Order & { customer: Customer, items: OrderItem[] })[] = [];
-    
+
+    const orderIds = allOrders.map((o) => o.id);
+    const [allItems, pendingProcurements] = await Promise.all([
+      orderIds.length
+        ? db.select().from(orderItems).where(inArray(orderItems.orderId, orderIds))
+        : Promise.resolve([]),
+      orderIds.length
+        ? db
+            .select()
+            .from(procurements)
+            .where(
+              and(
+                inArray(procurements.orderId, orderIds),
+                eq(procurements.status, "TO_BUY" as any)
+              )
+            )
+        : Promise.resolve([]),
+    ]);
+
+    const itemsByOrder = new Map<number, OrderItem[]>();
+    allItems.forEach((item) => {
+      const list = itemsByOrder.get(item.orderId) || [];
+      list.push(item);
+      itemsByOrder.set(item.orderId, list);
+    });
+
+    const pendingProcurementByOrder = new Set<number>();
+    pendingProcurements.forEach((p) => pendingProcurementByOrder.add(p.orderId));
+
+    const result: (Order & { customer: Customer; items: OrderItem[]; subtotal: number; total: number; hasPendingProcurement: boolean })[] = [];
+
     for (const order of allOrders) {
       const [customer] = await db.select().from(customers).where(eq(customers.id, order.customerId));
-      const items = await db.select().from(orderItems).where(eq(orderItems.orderId, order.id));
-      result.push({ ...order, customer, items });
+      const items = itemsByOrder.get(order.id) || [];
+
+      const subtotal = items.reduce(
+        (sum, item) => sum + Number(item.unitPrice) * Number(item.quantity),
+        0
+      );
+      const discount = Number(order.discount ?? 0);
+      const total = Math.max(0, subtotal - discount);
+      const hasPendingProcurement = pendingProcurementByOrder.has(order.id);
+
+      result.push({ ...order, customer, items, subtotal, total, hasPendingProcurement });
     }
 
     return result;
@@ -657,8 +692,11 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  async createOrder(order: InsertOrder): Promise<Order> {
-    const data = { ...order, discount: order.discount?.toString() };
+  async createOrder(order: InsertOrder & { orderNumber?: string }): Promise<Order> {
+    const orderNumber =
+      order.orderNumber ??
+      `TK-${String(Date.now()).slice(-6)}`; // fallback guard to satisfy NOT NULL
+    const data = { ...order, orderNumber, discount: order.discount?.toString() };
     const [newOrder] = await db.insert(orders).values(data).returning();
     return newOrder;
   }

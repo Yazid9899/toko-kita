@@ -14,7 +14,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Kab. Bantul",
     postCode: "55182",
     note: "YEELE / Dyota toys",
-    customerType: "PERSONAL",
   },
   {
     name: "Neera Puri",
@@ -25,7 +24,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Kota Jakarta Pusat",
     postCode: "10440",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "Agnes Angelin",
@@ -36,7 +34,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Surabaya",
     postCode: "60112",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "Andi Zuchairiny",
@@ -47,7 +44,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Kota Bogor",
     postCode: "16115",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "anengsih",
@@ -58,7 +54,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Jakarta Utara",
     postCode: "14140",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "Ayu Citra F.",
@@ -69,7 +64,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Kab. Batang",
     postCode: "51215",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "bundadazame",
@@ -79,7 +73,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "",
     postCode: "",
     note: "Shopee",
-    customerType: "PERSONAL",
   },
   {
     name: "Chika laily",
@@ -90,7 +83,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Jakarta Barat",
     postCode: "11530",
     note: "Rumah tingkat, gerbang hitam coklat",
-    customerType: "PERSONAL",
   },
   {
     name: "Cytra Primasari",
@@ -101,7 +93,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Bekasi",
     postCode: "17111",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "dear_cha",
@@ -111,7 +102,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "",
     postCode: "",
     note: "Shopee",
-    customerType: "PERSONAL",
   },
   {
     name: "Devi Eddie",
@@ -121,7 +111,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Kota Tangerang Selatan",
     postCode: "15227",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "diel miel",
@@ -131,7 +120,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Depok",
     postCode: "16451",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "Dienar Ria",
@@ -141,7 +129,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Sidoarjo",
     postCode: "61256",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "Dilla",
@@ -152,7 +139,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Kota Bekasi",
     postCode: "17114",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "Dupit Malinda",
@@ -163,7 +149,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Kab. Sambas",
     postCode: "79463",
     note: "Depan SMA Negeri 1 Sambas",
-    customerType: "PERSONAL",
   },
   {
     name: "Eva noprrianti",
@@ -174,7 +159,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Palembang",
     postCode: "30961",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "Firly",
@@ -184,7 +168,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Tangerang Selatan",
     postCode: "15228",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "ftrmsyf",
@@ -194,7 +177,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "",
     postCode: "",
     note: "Shopee",
-    customerType: "PERSONAL",
   },
   {
     name: "Hana Tan",
@@ -216,7 +198,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Jakarta Barat",
     postCode: "11740",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "Hefi Setiawati",
@@ -226,7 +207,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Tangerang Selatan",
     postCode: "15224",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "hellopandahehe",
@@ -236,7 +216,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "",
     postCode: "",
     note: "Shopee",
-    customerType: "PERSONAL",
   },
   {
     name: "indirabungac",
@@ -246,7 +225,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "",
     postCode: "",
     note: "Shopee",
-    customerType: "PERSONAL",
   },
   {
     name: "irma avianti",
@@ -257,7 +235,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Depok",
     postCode: "16438",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "Juwita. R",
@@ -268,7 +245,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Kab. Cirebon",
     postCode: "45151",
     note: "PAUD Miftahul Ilmi",
-    customerType: "PERSONAL",
   },
   {
     name: "Karen Pungki",
@@ -279,7 +255,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Kota Palembang",
     postCode: "30268",
     note: "Klinik Pratama Pertamina RU III",
-    customerType: "PERSONAL",
   },
   {
     name: "KARTIKA",
@@ -301,7 +276,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Pekanbaru",
     postCode: "28284",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "maria goreti nur tyas p",
@@ -312,7 +286,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Jakarta Selatan",
     postCode: "12110",
     note: "ATR/BPN lantai 1",
-    customerType: "PERSONAL",
   },
   {
     name: "meli ginting",
@@ -322,7 +295,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Medan",
     postCode: "20131",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "Micel",
@@ -343,7 +315,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Kota Tangerang Selatan",
     postCode: "15226",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "nia ikrimah",
@@ -354,7 +325,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Kota Tangerang",
     postCode: "15141",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "Nikchy",
@@ -365,7 +335,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Bogor",
     postCode: "16710",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "Ningsih Musef",
@@ -376,7 +345,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Jakarta Timur",
     postCode: "13960",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "NOVITA RIEZKY MAYANGSARI",
@@ -386,7 +354,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Bojonegoro",
     postCode: "62152",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "Noviyanti",
@@ -397,7 +364,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Kota Tangerang Selatan",
     postCode: "15418",
     note: "Tolong ditaruh di sela pintu",
-    customerType: "PERSONAL",
   },
   {
     name: "nuri pratama",
@@ -408,7 +374,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Kota Cilegon",
     postCode: "42442",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "Regina Yulandari",
@@ -419,7 +384,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Kota Banda Aceh",
     postCode: "23231",
     note: "RSUD Meuraxa (Ruangan Arafah)",
-    customerType: "PERSONAL",
   },
   {
     name: "Safrida",
@@ -430,7 +394,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Jakarta Timur",
     postCode: "13850",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "Sita",
@@ -440,7 +403,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Surabaya",
     postCode: "60115",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "Siti Rahayu",
@@ -451,7 +413,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Kab. Bogor",
     postCode: "16916",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "soraya",
@@ -462,7 +423,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Kabupaten Sleman",
     postCode: "55573",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "Sri Yulia Rinawati",
@@ -472,7 +432,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Tangerang",
     postCode: "15345",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "stella",
@@ -482,7 +441,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "",
     postCode: "",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "sulis",
@@ -492,7 +450,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Jakarta Selatan",
     postCode: "12510",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "Syifa Fauziah",
@@ -503,7 +460,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Kota Bekasi",
     postCode: "17134",
     note: "Patokan: Mie Ayam Pakde Kumis pinggir jalan",
-    customerType: "PERSONAL",
   },
   {
     name: "tania Amelia",
@@ -514,7 +470,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Kab. Tangerang",
     postCode: "01534",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "tia",
@@ -525,7 +480,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Kab. Banyumas",
     postCode: "53171",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "Tita Eka Fuspita",
@@ -536,7 +490,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Kab. Kuningan",
     postCode: "45554",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "Titi Tamira",
@@ -547,7 +500,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Makassar",
     postCode: "90211",
     note: "Samping SMP 10",
-    customerType: "PERSONAL",
   },
   {
     name: "Tri Winarni",
@@ -558,7 +510,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Kabupaten Kudus",
     postCode: "59319",
     note: "Kantor BPJS Ketenagakerjaan",
-    customerType: "PERSONAL",
   },
   {
     name: "tuty",
@@ -568,7 +519,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Bekasi",
     postCode: "17158",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "Vina",
@@ -578,7 +528,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Jakarta Barat",
     postCode: "11220",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "viniazizah",
@@ -588,7 +537,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Kab. Sidoarjo",
     postCode: "61253",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "Yanna",
@@ -599,7 +547,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Jakarta Selatan",
     postCode: "12520",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "yanti Pt bangun mitra makmur",
@@ -609,7 +556,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Bandar Lampung",
     postCode: "35221",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "Yenny",
@@ -620,7 +566,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Jakarta Utara",
     postCode: "14250",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "Yurie Wulandari",
@@ -630,7 +575,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Cirebon",
     postCode: "45153",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "zelwia",
@@ -640,7 +584,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Bandar Lampung",
     postCode: "25414",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "Diana Rakhmawaty Eddy",
@@ -651,7 +594,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Kab. Bandung Timur",
     postCode: "40393",
     note: "Samping TK Mutiara Kartika",
-    customerType: "PERSONAL",
   },
   {
     name: "indriyani",
@@ -661,7 +603,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Kab Bogor",
     postCode: "16811",
     note: "",
-    customerType: "PERSONAL",
   },
   {
     name: "Indri Indrayani",
@@ -672,7 +613,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Tangerang",
     postCode: "15154",
     note: "Depan rumah no 3",
-    customerType: "PERSONAL",
   },
   {
     name: "ida setyawati",
@@ -683,7 +623,6 @@ const seedCustomers: InsertCustomer[] = [
     cityOrKabupaten: "Kota Semarang",
     postCode: "50149",
     note: "",
-    customerType: "PERSONAL",
   }
 
 ];

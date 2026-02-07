@@ -161,12 +161,13 @@ const variants: VariantDef[] = [
 
   // ───────── BACKPACK / NYLON ─────────
   { material: "Nylon", size: "BackPack Oval", color: "Black", sku: "LGH-NY-BPO-BK", price: 850000, stock_on_hand: 1 },
-  { material: "Nylon", size: "BackPack", color: "Navy", sku: "LGH-NY-BPK-NV", price: 790000, stock_on_hand: 1 },
+  { material: "Nylon", size: "BackPack Oval", color: "Navy", sku: "LGH-NY-BPO-NV", price: 850000, stock_on_hand: 1 },
+  { material: "Nylon", size: "BackPack", color: "Navy", sku: "LGH-NY-BPK-NV", price: 790000, stock_on_hand: 0 },
   { material: "Nylon", size: "BackPack", color: "Black", sku: "LGH-NY-BPK-BK", price: 790000, stock_on_hand: 2 },
   { material: "Nylon", size: "BackPack", color: "Beige", sku: "LGH-NY-BPK-BE", price: 790000, stock_on_hand: 1 },
 
   // ───────── LIGHT WEIGHT ─────────
-  { material: "Light Weight", size: "BackPack", color: "Brown", sku: "LGH-LW-BPK-BR", price: 695000, stock_on_hand: 1 },
+  { material: "Light Weight", size: "BackPack", color: "Brown", sku: "LGH-LW-BPK-BR", price: 830000, stock_on_hand: 1 },
   { material: "Light Weight", size: "Bag", color: "Brown", sku: "LGH-LW-BAG-BR", price: 695000, stock_on_hand: 3 },
 ];
 
