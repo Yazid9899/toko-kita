@@ -2,13 +2,14 @@ import { Layout } from "@/components/Layout";
 import { useOrders, useUpdateOrder } from "@/hooks/use-orders";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Plus, ShoppingCart, ChevronDown, Loader2, Store } from "lucide-react";
+import { Plus, ShoppingCart, ChevronDown, Loader2, Store, Search } from "lucide-react";
 import { formatStatusLabel } from "@/components/StatusBadge";
 import { formatPrice } from "@/lib/variant-utils";
 import { format } from "date-fns";
 import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   DropdownMenu,
@@ -22,6 +23,7 @@ import { cn } from "@/lib/utils";
 
 export default function Orders() {
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [searchQuery, setSearchQuery] = useState("");
   const { mutate: updateOrder } = useUpdateOrder();
   const [updatingKey, setUpdatingKey] = useState<string | null>(null);
   const [, navigate] = useLocation();
@@ -35,6 +37,18 @@ export default function Orders() {
         : {};
 
   const { data: orders, isLoading } = useOrders(filters);
+  const normalizedSearch = searchQuery.trim().toLowerCase();
+  const filteredOrders = orders?.filter((order: any) => {
+    if (!normalizedSearch) return true;
+    const orderNumber = String(order.orderNumber ?? "").toLowerCase();
+    const customerName = String(order.customer?.name ?? "").toLowerCase();
+    const phoneNumber = String(order.customer?.phoneNumber ?? "").toLowerCase();
+    return (
+      orderNumber.includes(normalizedSearch) ||
+      customerName.includes(normalizedSearch) ||
+      phoneNumber.includes(normalizedSearch)
+    );
+  });
 
   const paymentOptions = [
     { value: "NOT_PAID", label: "Not Paid" },
@@ -186,6 +200,18 @@ export default function Orders() {
           </TabsList>
         </Tabs>
       </div>
+      <div className="mb-4 max-w-sm">
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Input
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder="Search order, customer, phone..."
+            className="h-10 pl-9"
+            data-testid="input-search-orders"
+          />
+        </div>
+      </div>
 
       {/* Orders List */}
       <Card className="overflow-hidden border border-slate-100 shadow-sm rounded-2xl">
@@ -203,6 +229,10 @@ export default function Orders() {
               <Button variant="default">Create your first order</Button>
             </Link>
           </div>
+        ) : filteredOrders?.length === 0 ? (
+          <div className="text-center py-16">
+            <p className="text-slate-500">No matching orders</p>
+          </div>
         ) : (
           <Table className="min-w-[1000px]">
             <TableHeader className="bg-slate-50/80">
@@ -212,11 +242,11 @@ export default function Orders() {
                 <TableHead className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500">Phone</TableHead>
                 <TableHead className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500">Items</TableHead>
                 <TableHead className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500">Order Progress</TableHead>
-                <TableHead className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">Total</TableHead>
+                <TableHead className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500">Total</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {orders?.map((order: any) => {
+              {filteredOrders?.map((order: any) => {
                 const subtotal =
                   order.subtotal ??
                   order.items.reduce(
@@ -234,13 +264,13 @@ export default function Orders() {
                     data-testid={`order-row-${order.id}`}
                     onClick={() => navigate(`/orders/${order.id}`)}
                   >
-                    <TableCell className="px-4 py-2.5 align-top">
+                    <TableCell className="px-4 py-2 align-middle">
                       <div className="space-y-0.5">
                         <p className="text-xs font-medium text-slate-800">{order.orderNumber}</p>
                         <p className="text-xs text-slate-500">{format(new Date(order.createdAt), "MMM d, yyyy")}</p>
                       </div>
                     </TableCell>
-                    <TableCell className="px-4 py-2.5 align-top">
+                    <TableCell className="px-4 py-2 align-middle">
                       <p className="flex items-center gap-1.5 text-sm font-medium text-slate-800">
                         {order.customer.name}
                         {order.customer.customerType === "RESELLER" && (
@@ -248,7 +278,7 @@ export default function Orders() {
                         )}
                       </p>
                     </TableCell>
-                    <TableCell className="px-4 py-2.5 align-top">
+                    <TableCell className="px-4 py-2 align-middle">
                       <button
                         type="button"
                         onClick={(event) => {
@@ -261,7 +291,7 @@ export default function Orders() {
                         {getPhonePreview(order.customer.phoneNumber)}
                       </button>
                     </TableCell>
-                    <TableCell className="px-4 py-2.5 align-top">
+                    <TableCell className="px-4 py-2 align-middle">
                       <div className="flex items-center gap-2 text-sm text-slate-700">
                         <span>{order.items.length} item{order.items.length === 1 ? "" : "s"}</span>
                         {hasToBuy && (
@@ -271,7 +301,7 @@ export default function Orders() {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="px-4 py-2.5 align-top">
+                    <TableCell className="px-4 py-2 align-middle">
                       <div className="flex items-center justify-start gap-1.5">
                         <div className="flex items-center">
                           {renderStatusDropdown(order, "paymentStatus", order.paymentStatus)}
@@ -281,7 +311,7 @@ export default function Orders() {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="px-4 py-2.5 text-right align-top">
+                    <TableCell className="px-4 py-2 align-middle">
                       <div className="text-sm font-semibold text-slate-800">
                         Rp {formatPrice(total)}
                       </div>

@@ -3,6 +3,7 @@ import { useCustomers, useDeleteCustomer } from "@/hooks/use-customers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
@@ -23,7 +24,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
 import { type Customer } from "@shared/schema";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Plus, Search, Users, Phone, MapPin, Pencil, Trash2 } from "lucide-react";
 import { CustomerForm } from "@/components/CustomerForm";
@@ -102,108 +102,112 @@ export default function Customers() {
       </div>
 
       {/* Search Bar */}
-      <div className="relative mb-6">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" data-testid="icon-search" />
-        <Input 
-          placeholder="Search by name or phone..." 
-          className="pl-11 max-w-md"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          data-testid="input-search-customers"
-        />
+      <div className="mb-4 max-w-sm">
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" data-testid="icon-search" />
+          <Input
+            placeholder="Search by name or phone..."
+            className="h-10 pl-9"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            data-testid="input-search-customers"
+          />
+        </div>
       </div>
 
-      {/* Customer Cards Grid */}
-      <Card className="overflow-hidden">
+      {/* Customers Table */}
+      <Card className="overflow-hidden border border-slate-100 shadow-sm rounded-2xl">
         {isLoading ? (
-          <div className="flex flex-wrap items-center justify-center py-16">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" data-testid="loader-customers" />
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="w-8 h-8 animate-spin text-[#5C6AC4]" data-testid="loader-customers" />
           </div>
         ) : customers?.length === 0 ? (
           <div className="text-center py-16">
-            <div className="w-16 h-16 rounded-full bg-muted flex flex-wrap items-center justify-center mx-auto mb-4">
-              <Users className="w-8 h-8 text-muted-foreground" data-testid="icon-no-customers" />
+            <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
+              <Users className="w-8 h-8 text-slate-300" data-testid="icon-no-customers" />
             </div>
-            <p className="text-muted-foreground mb-2" data-testid="text-no-customers">No customers found</p>
+            <p className="text-slate-500 mb-2" data-testid="text-no-customers">No customers found</p>
             <Button variant="ghost" onClick={() => setCreateOpen(true)} data-testid="button-add-first-customer">Add your first customer</Button>
           </div>
         ) : (
-          <div className="divide-y divide-border">
-            {/* Table Header */}
-            <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-4 bg-muted text-xs font-semibold text-muted-foreground uppercase tracking-wider" data-testid="table-header-customers">
-              <div className="col-span-4" data-testid="header-customer">Customer</div>
-              <div className="col-span-2" data-testid="header-contact">Contact</div>
-              <div className="col-span-2" data-testid="header-type">Type</div>
-              <div className="col-span-2" data-testid="header-location">Address</div>
-              <div className="col-span-2 text-right" data-testid="header-actions">Actions</div>
-            </div>
-            {/* Customer Rows */}
-            {customers?.map((customer) => (
-              <div key={customer.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 px-6 py-5 items-center" data-testid={`customer-row-${customer.id}`}>
-                <div className="md:col-span-4 flex flex-wrap items-center gap-4">
-                  <div className="w-11 h-11 rounded-full bg-muted flex flex-wrap items-center justify-center text-muted-foreground font-bold text-sm shrink-0">
-                    {customer.name.charAt(0).toUpperCase()}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-foreground" data-testid={`text-customer-name-${customer.id}`}>{customer.name}</p>
-                    <p className="text-sm text-muted-foreground md:hidden" data-testid={`text-customer-phone-mobile-${customer.id}`}>{customer.phoneNumber}</p>
+          <Table className="min-w-[1000px]">
+            <TableHeader className="bg-slate-50/80">
+              <TableRow className="hover:bg-transparent" data-testid="table-header-customers">
+                <TableHead className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500" data-testid="header-customer">Customer</TableHead>
+                <TableHead className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500" data-testid="header-contact">Contact</TableHead>
+                <TableHead className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500" data-testid="header-type">Type</TableHead>
+                <TableHead className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500" data-testid="header-location">Address</TableHead>
+                <TableHead className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500" data-testid="header-actions">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {customers?.map((customer, index) => (
+                <TableRow key={customer.id} className="hover:bg-slate-50/60" data-testid={`customer-row-${customer.id}`}>
+                  <TableCell className="px-4 py-2 align-middle">
+                    <div className="flex items-center gap-2.5">
+                      <span className="w-5 shrink-0 text-xs text-slate-500">
+                        {index + 1}.
+                      </span>
+                      <p className="text-sm font-medium text-slate-800" data-testid={`text-customer-name-${customer.id}`}>{customer.name}</p>
+                    </div>
+                  </TableCell>
+                  <TableCell className="px-4 py-2 align-middle">
+                    <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                      <Phone className="h-3.5 w-3.5" />
+                      <span data-testid={`text-customer-phone-${customer.id}`}>{customer.phoneNumber}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="px-4 py-2 align-middle">
+                    <span
+                      className="inline-flex items-center gap-1.5 text-xs text-slate-500"
+                      data-testid={`badge-customer-type-${customer.id}`}
+                    >
+                      <span
+                        className={`h-2 w-2 rounded-full ${
+                          customer.customerType === "RESELLER" ? "bg-violet-500" : "bg-emerald-500"
+                        }`}
+                      />
+                      {customer.customerType === "RESELLER" ? "Reseller" : "Personal"}
+                    </span>
+                  </TableCell>
+                  <TableCell className="px-4 py-2 align-middle">
                     <button
                       type="button"
                       onClick={() => handleCopyAddress(customer)}
-                      className="mt-1 md:hidden inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors truncate max-w-[240px]"
+                      className="inline-flex max-w-[280px] items-center gap-1.5 truncate text-left text-xs text-slate-500 transition-colors hover:text-slate-700"
                       title="Click to copy address"
-                      data-testid={`button-copy-address-mobile-${customer.id}`}
+                      data-testid={`button-copy-address-${customer.id}`}
                     >
                       <MapPin className="h-3.5 w-3.5 shrink-0" />
                       <span className="truncate">{customer.cityOrKabupaten || "-"}</span>
                     </button>
-                  </div>
-                </div>
-                <div className="md:col-span-2 hidden md:flex flex-wrap items-center gap-2 text-muted-foreground">
-                  <Phone className="w-4 h-4" />
-                  <span className="text-sm" data-testid={`text-customer-phone-${customer.id}`}>{customer.phoneNumber}</span>
-                </div>
-                <div className="md:col-span-2">
-                  <Badge 
-                    variant={customer.customerType === 'RESELLER' ? 'default' : 'secondary'} 
-                    data-testid={`badge-customer-type-${customer.id}`}
-                  >
-                    {customer.customerType}
-                  </Badge>
-                </div>
-                <div className="md:col-span-2 hidden md:flex flex-wrap items-center gap-2 text-muted-foreground">
-                  <button
-                    type="button"
-                    onClick={() => handleCopyAddress(customer)}
-                    className="inline-flex items-center gap-2 text-sm text-left hover:text-foreground transition-colors truncate max-w-[220px] lg:max-w-[260px]"
-                    title="Click to copy address"
-                    data-testid={`button-copy-address-${customer.id}`}
-                  >
-                    <MapPin className="w-4 h-4 shrink-0" />
-                    <span className="truncate">{customer.cityOrKabupaten || "-"}</span>
-                  </button>
-                </div>
-                <div className="md:col-span-2 flex flex-wrap items-center justify-end gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleEdit(customer)}
-                    data-testid={`button-edit-customer-${customer.id}`}
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDeleteClick(customer)}
-                    data-testid={`button-delete-customer-${customer.id}`}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
+                  </TableCell>
+                  <TableCell className="px-4 py-2 text-right align-middle">
+                    <div className="flex items-center justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-slate-500 hover:text-slate-700"
+                        onClick={() => handleEdit(customer)}
+                        data-testid={`button-edit-customer-${customer.id}`}
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-slate-500 hover:text-slate-700"
+                        onClick={() => handleDeleteClick(customer)}
+                        data-testid={`button-delete-customer-${customer.id}`}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
       </Card>
 
