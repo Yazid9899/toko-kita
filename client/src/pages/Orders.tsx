@@ -2,22 +2,14 @@ import { Layout } from "@/components/Layout";
 import { useOrders, useUpdateOrder } from "@/hooks/use-orders";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import {
-  Plus,
-  ShoppingCart,
-  Package,
-  ChevronDown,
-  Loader2,
-  AlertTriangle,
-  BadgeDollarSign,
-  Store,
-  Truck,
-} from "lucide-react";
-import { baseStatusBadgeClasses, formatStatusLabel, getStatusBadgeStyles } from "@/components/StatusBadge";
+import { Plus, ShoppingCart, ChevronDown, Loader2, Store } from "lucide-react";
+import { formatStatusLabel } from "@/components/StatusBadge";
+import { formatPrice } from "@/lib/variant-utils";
 import { format } from "date-fns";
 import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -56,21 +48,6 @@ export default function Orders() {
     { value: "PACKED", label: "Packed" },
   ];
 
-  const paymentTransitions: Record<string, string[]> = {
-    NOT_PAID: ["DOWN_PAYMENT", "PAID"],
-    DOWN_PAYMENT: ["PAID"],
-    PAID: [],
-  };
-
-  const packingTransitions: Record<string, string[]> = {
-    NOT_READY: ["PACKING"],
-    PACKING: ["PACKED"],
-    PACKED: [],
-  };
-
-  const getAllowedTargets = (current: string, transitions: Record<string, string[]>, all: string[]) =>
-    transitions[current] ?? all;
-
   const handleStatusChange = (
     orderId: number,
     field: "paymentStatus" | "packingStatus",
@@ -88,28 +65,38 @@ export default function Orders() {
     );
   };
 
+  const getPhonePreview = (phoneNumber?: string | null) => {
+    if (!phoneNumber) return "-";
+    const normalized = phoneNumber.trim();
+    if (normalized.length <= 5) return normalized;
+    return `${normalized.slice(0, 5)}...`;
+  };
+
   const renderStatusDropdown = (
     order: any,
     field: "paymentStatus" | "packingStatus",
     currentStatus: string,
   ) => {
-    const options = field === "paymentStatus" ? paymentOptions : packingOptions;
-    const allowedTargets = getAllowedTargets(
-      currentStatus,
-      field === "paymentStatus" ? paymentTransitions : packingTransitions,
-      options.map((option) => option.value),
-    );
-    const isUpdating = updatingKey === `${order.id}-${field}`;
+    const getStatusDotClass = (status: string) => {
+      if (status === "PAID" || status === "ARRIVED") return "bg-emerald-500";
+      if (status === "DOWN_PAYMENT" || status === "ORDERED") return "bg-amber-500";
+      if (status === "NOT_PAID") return "bg-rose-500";
+      if (status === "PACKED") return "bg-sky-500";
+      if (status === "PACKING") return "bg-indigo-500";
+      if (status === "TO_BUY") return "bg-teal-500";
+      return "bg-slate-400";
+    };
 
+    const options = field === "paymentStatus" ? paymentOptions : packingOptions;
+    const isUpdating = updatingKey === `${order.id}-${field}`;
+    
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
             type="button"
             className={cn(
-              baseStatusBadgeClasses,
-              getStatusBadgeStyles(currentStatus),
-              "gap-1.5 pr-2 pl-3 transition hover:opacity-90",
+              "inline-flex h-7 w-28 items-center justify-between rounded-md border border-slate-200 bg-white px-2 text-[11px] font-medium text-slate-700 transition-colors hover:bg-slate-50",
               isUpdating && "opacity-70 cursor-wait",
             )}
             onClick={(event) => {
@@ -118,14 +105,16 @@ export default function Orders() {
             onPointerDown={(event) => {
               event.stopPropagation();
             }}
-            disabled={isUpdating}
             data-testid={`button-status-${field}-${order.id}`}
           >
-            <span>{formatStatusLabel(currentStatus)}</span>
+            <span className="inline-flex min-w-0 items-center gap-1.5">
+              <span className={cn("h-2 w-2 shrink-0 rounded-full", getStatusDotClass(currentStatus))} />
+              <span className="truncate">{formatStatusLabel(currentStatus)}</span>
+            </span>
             {isUpdating ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <Loader2 className="h-3 w-3 animate-spin" />
             ) : (
-              <ChevronDown className="w-3.5 h-3.5" />
+              <ChevronDown className="h-3 w-3" />
             )}
           </button>
         </DropdownMenuTrigger>
@@ -139,46 +128,27 @@ export default function Orders() {
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           {options.map((option) => {
-            const packedGuard =
-              field === "packingStatus" &&
-              option.value === "PACKED" &&
-              (order.paymentStatus !== "PAID" || order.hasPendingProcurement);
-            const isDisabled =
-              option.value === currentStatus ||
-              !allowedTargets.includes(option.value) ||
-              isUpdating ||
-              packedGuard;
             return (
               <DropdownMenuItem
                 key={option.value}
-                disabled={isDisabled}
                 onClick={(event) => event.stopPropagation()}
                 onSelect={() => handleStatusChange(order.id, field, option.value)}
                 className="flex items-center gap-2"
-                title={packedGuard ? "Must be paid and items ready" : undefined}
                 data-testid={`menuitem-${field}-${option.value}-${order.id}`}
               >
                 <span
                   className={cn(
-                    "h-2.5 w-2.5 rounded-full",
-                    getStatusBadgeStyles(option.value),
+                    "h-2 w-2 rounded-full",
+                    getStatusDotClass(option.value),
                   )}
                 />
-                <span className="text-sm">{option.label}</span>
+                <span className="text-sm text-slate-700">{option.label}</span>
                 {option.value === currentStatus ? (
                   <span className="ml-auto text-xs text-slate-400">Current</span>
                 ) : null}
               </DropdownMenuItem>
             );
           })}
-          {allowedTargets.length === 0 && (
-            <>
-              <DropdownMenuSeparator />
-              <div className="px-2 py-1.5 text-xs text-slate-400">
-                No further transitions
-              </div>
-            </>
-          )}
         </DropdownMenuContent>
       </DropdownMenu>
     );
@@ -218,7 +188,7 @@ export default function Orders() {
       </div>
 
       {/* Orders List */}
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden border border-slate-100 shadow-sm rounded-2xl">
         {isLoading ? (
           <div className="flex items-center justify-center py-16">
             <Loader2 className="w-8 h-8 animate-spin text-[#5C6AC4]" />
@@ -234,97 +204,96 @@ export default function Orders() {
             </Link>
           </div>
         ) : (
-          <div className="divide-y divide-slate-100">
-            {/* Table Header */}
-            <div className="hidden lg:grid grid-cols-12 gap-4 px-6 py-4 bg-slate-50/80 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              <div className="col-span-2">Order</div>
-              <div className="col-span-3">Customer</div>
-              <div className="col-span-2">Items</div>
-              <div className="col-span-1 text-center">Alerts</div>
-              <div className="col-span-2">Payment</div>
-              <div className="col-span-1">Packing</div>
-              <div className="col-span-1 text-right">Total</div>
-            </div>
-            {/* Order Rows */}
-            {orders?.map((order: any) => {
-              const subtotal =
-                order.subtotal ??
-                order.items.reduce(
-                  (sum: number, item: any) => sum + Number(item.unitPrice) * Number(item.quantity),
-                  0,
-                );
-              const total = order.total ?? Math.max(0, subtotal - Number(order.discount ?? 0));
-              const hasToBuy =
-                order.hasPendingProcurement || order.items.some((item: any) => item.isPreorder);
+          <Table className="min-w-[1000px]">
+            <TableHeader className="bg-slate-50/80">
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500">Order</TableHead>
+                <TableHead className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500">Customer</TableHead>
+                <TableHead className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500">Phone</TableHead>
+                <TableHead className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500">Items</TableHead>
+                <TableHead className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500">Order Progress</TableHead>
+                <TableHead className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">Total</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {orders?.map((order: any) => {
+                const subtotal =
+                  order.subtotal ??
+                  order.items.reduce(
+                    (sum: number, item: any) => sum + Number(item.unitPrice) * Number(item.quantity),
+                    0,
+                  );
+                const total = order.total ?? Math.max(0, subtotal - Number(order.discount ?? 0));
+                const hasToBuy =
+                  order.hasPendingProcurement || order.items.some((item: any) => item.isPreorder);
 
-              return (
-              <div
-                key={order.id}
-                className="grid grid-cols-1 lg:grid-cols-12 gap-4 px-6 py-5 hover:bg-slate-50/60 transition-colors cursor-pointer items-center"
-                data-testid={`order-row-${order.id}`}
-                onClick={() => navigate(`/orders/${order.id}`)}
-              >
-                <div className="lg:col-span-2 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#5C6AC4]/10 to-[#00848E]/10 flex items-center justify-center shrink-0">
-                    <Package className="w-5 h-5 text-[#5C6AC4]" />
-                  </div>
-                  <div className="space-y-0.5">
-                    <span className="font-bold text-[#5C6AC4]">{order.orderNumber}</span>
-                    <p className="text-xs text-slate-500">{format(new Date(order.createdAt), "MMM d, yyyy")}</p>
-                  </div>
-                </div>
-                <div className="lg:col-span-3">
-                  <p className="font-medium text-slate-800">{order.customer.name}</p>
-                  {order.customer.customerType === "RESELLER" ? (
-                    <span className="inline-flex items-center text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">
-                      Reseller
-                    </span>
-                  ) : (
-                    <p className="text-sm text-slate-500">{order.customer.phoneNumber}</p>
-                  )}
-                </div>
-                <div className="lg:col-span-2">
-                  <div className="flex items-center gap-2 text-sm text-slate-700">
-                    <span>{order.items.length} items</span>
-                    {hasToBuy && (
-                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">
-                        ⚠ To buy
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <div className="lg:col-span-1 hidden lg:flex items-center justify-center gap-2 text-slate-500">
-                  {order.paymentStatus !== "PAID" && (
-                    <BadgeDollarSign className="w-4 h-4 text-amber-600" title="Unpaid" />
-                  )}
-                  {hasToBuy && (
-                    <AlertTriangle className="w-4 h-4 text-amber-600" title="To buy / Preorder" />
-                  )}
-                  {order.customer.customerType === "RESELLER" && (
-                    <Store className="w-4 h-4 text-slate-500" title="Reseller" />
-                  )}
-                  {order.paymentType?.includes("SHOPEE") && (
-                    <Truck className="w-4 h-4 text-slate-500" title="Shopee" />
-                  )}
-                </div>
-                <div className="lg:col-span-2 flex items-center gap-2">
-                  {renderStatusDropdown(order, "paymentStatus", order.paymentStatus)}
-                </div>
-                <div className="lg:col-span-1 flex items-center gap-2">
-                  {renderStatusDropdown(order, "packingStatus", order.packingStatus)}
-                </div>
-                <div className="lg:col-span-1 text-right">
-                  <div className="text-sm font-semibold text-slate-800">
-                    Rp {total.toLocaleString()}
-                  </div>
-                  {Number(order.discount ?? 0) > 0 && (
-                    <p className="text-[11px] text-emerald-600">Disc {Number(order.discount).toLocaleString()}</p>
-                  )}
-                </div>
-              </div>
-              );
-            })}
-          </div>
+                return (
+                  <TableRow
+                    key={order.id}
+                    className="cursor-pointer hover:bg-slate-50/60"
+                    data-testid={`order-row-${order.id}`}
+                    onClick={() => navigate(`/orders/${order.id}`)}
+                  >
+                    <TableCell className="px-4 py-2.5 align-top">
+                      <div className="space-y-0.5">
+                        <p className="text-xs font-medium text-slate-800">{order.orderNumber}</p>
+                        <p className="text-xs text-slate-500">{format(new Date(order.createdAt), "MMM d, yyyy")}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell className="px-4 py-2.5 align-top">
+                      <p className="flex items-center gap-1.5 text-sm font-medium text-slate-800">
+                        {order.customer.name}
+                        {order.customer.customerType === "RESELLER" && (
+                          <Store className="h-4 w-4 text-amber-600" aria-label="Reseller" />
+                        )}
+                      </p>
+                    </TableCell>
+                    <TableCell className="px-4 py-2.5 align-top">
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          navigator.clipboard.writeText(order.customer.phoneNumber ?? "");
+                        }}
+                        className="text-sm text-slate-500 transition hover:text-slate-700"
+                        title="Click to copy phone"
+                      >
+                        {getPhonePreview(order.customer.phoneNumber)}
+                      </button>
+                    </TableCell>
+                    <TableCell className="px-4 py-2.5 align-top">
+                      <div className="flex items-center gap-2 text-sm text-slate-700">
+                        <span>{order.items.length} item{order.items.length === 1 ? "" : "s"}</span>
+                        {hasToBuy && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700">
+                            To buy
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="px-4 py-2.5 align-top">
+                      <div className="flex items-center justify-start gap-1.5">
+                        <div className="flex items-center">
+                          {renderStatusDropdown(order, "paymentStatus", order.paymentStatus)}
+                        </div>
+                        <div className="flex items-center">
+                          {renderStatusDropdown(order, "packingStatus", order.packingStatus)}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="px-4 py-2.5 text-right align-top">
+                      <div className="text-sm font-semibold text-slate-800">
+                        Rp {formatPrice(total)}
+                      </div>
+                      {Number(order.discount ?? 0) > 0 && (
+                        <p className="text-[11px] text-emerald-600">Disc {Number(order.discount).toLocaleString()}</p>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
         )}
       </Card>
     </Layout>

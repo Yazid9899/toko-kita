@@ -12,9 +12,13 @@ interface StatusBadgeProps {
 }
 
 export const baseStatusBadgeClasses =
-  "inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide whitespace-nowrap";
+  "inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold tracking-wide whitespace-nowrap";
 
-export const formatStatusLabel = (status: string) => status.replace(/_/g, " ");
+export const formatStatusLabel = (status: string) =>
+  status
+    .toLowerCase()
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 
 export const getStatusBadgeStyles = (status: string) => {
   let styles = "bg-slate-100 text-slate-600";
