@@ -1,5 +1,5 @@
 import { Layout } from "@/components/Layout";
-import { useProducts, useCreateProduct, useCreateVariant, useBrands, useCreateBrand, useCreateAttribute, useCreateAttributeOption, useUpdateProduct, useUpdateBrand, useUpdateVariant, useUpdateAttribute, useUpdateAttributeOption } from "@/hooks/use-products";
+import { useProducts, useCreateProduct, useCreateVariant, useBrands, useCreateBrand, useCreateAttribute, useCreateAttributeOption, useUpdateProduct, useUpdateBrand, useUpdateVariant, useUpdateAttribute, useUpdateAttributeOption, useDeleteVariant } from "@/hooks/use-products";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,10 +24,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertProductSchema, type InsertProduct } from "@shared/schema";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Loader2, Plus, Package, ChevronDown, ChevronUp, Box, Tag, Layers, Pencil, Sparkles, Shapes, PenLine, MoreHorizontal, Trash2 } from "lucide-react";
+import { Loader2, Plus, Package, ChevronDown, ChevronUp, Box, Tag, Layers, Pencil, Sparkles, PenLine, MoreHorizontal, Trash2 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { formatPrice, getVariantPrice } from "@/lib/variant-utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,6 +39,37 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+
+const COLOR_HEX_MAP: Record<string, string> = {
+  black: "#111827",
+  beige: "#D6C3A1",
+  blue: "#2563EB",
+  gray: "#6B7280",
+  "light gray": "#9CA3AF",
+  olive: "#6B8E23",
+  navy: "#1E3A8A",
+  "light brown": "#B08968",
+  "dark brown": "#5C4033",
+  brown: "#8B5E3C",
+  "icy blue": "#93C5FD",
+  lavender: "#A78BFA",
+  "pale pink": "#F9A8D4",
+  purple: "#8B5CF6",
+  ivory: "#F5F1E8",
+  "ivory handle brown": "#C2A184",
+  mustard: "#CA8A04",
+  mint: "#6EE7B7",
+  peach: "#FDBA74",
+  "silver gray": "#94A3B8",
+  "rare blue": "#3B82F6",
+  "mint/ivory": "#BDE6D5",
+  "dark green/navy": "#14532D",
+  "pink/brown": "#C97A87",
+  "pink/gray": "#C08497",
+  "blue/dark brown": "#355E8A",
+  silver: "#9CA3AF",
+  "black handle brown": "#4B352A",
+};
 
 function BrandForm({ onSuccess }: { onSuccess: () => void }) {
   const { mutate, isPending } = useCreateBrand();
@@ -877,6 +909,7 @@ export default function Products() {
   const { data: products, isLoading } = useProducts();
   const { data: brands } = useBrands();
   const { mutate: updateAttribute } = useUpdateAttribute();
+  const { mutate: deleteVariant, isPending: isDeletingVariant } = useDeleteVariant();
   const [addProductOpen, setAddProductOpen] = useState(false);
   const [addBrandOpen, setAddBrandOpen] = useState(false);
   const [openItems, setOpenItems] = useState<Record<number, boolean>>({});
@@ -888,11 +921,16 @@ export default function Products() {
   const [activeEditAttributeId, setActiveEditAttributeId] = useState<number | null>(null);
   const [activeEditOptionId, setActiveEditOptionId] = useState<number | null>(null);
   const [activeEditVariantId, setActiveEditVariantId] = useState<number | null>(null);
+  const [expandedOptionRows, setExpandedOptionRows] = useState<Record<number, boolean>>({});
   const [variantFilters, setVariantFilters] = useState<Record<number, Record<number, number | "all">>>({});
   const [deleteAttributeTarget, setDeleteAttributeTarget] = useState<{
     productId: number;
     attributeId: number;
     name: string;
+  } | null>(null);
+  const [deleteVariantTarget, setDeleteVariantTarget] = useState<{
+    id: number;
+    sku: string;
   } | null>(null);
   const hasBrands = (brands?.length || 0) > 0;
 
@@ -914,20 +952,20 @@ export default function Products() {
     }));
   };
 
+  const toggleOptionRow = (attributeId: number) => {
+    setExpandedOptionRows((prev) => ({
+      ...prev,
+      [attributeId]: !prev[attributeId],
+    }));
+  };
+
   return (
     <Layout>
       {/* Page Header */}
-      <div className="page-header flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <div className="flex items-center gap-2">
-            <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-[#3B82F6]/15 to-[#06B6D4]/15 flex items-center justify-center">
-              <Shapes className="h-5 w-5 text-[#3B82F6]" />
-            </div>
-            <div>
-              <h1 className="page-title">Inventory</h1>
-              <p className="page-subtitle">Manage products and stock levels</p>
-            </div>
-          </div>
+          <h1 className="page-title">Inventory</h1>
+          <p className="page-subtitle">Manage products and stock levels</p>
         </div>
         <div className="flex items-center gap-3">
           <Dialog open={addProductOpen} onOpenChange={setAddProductOpen}>
@@ -994,43 +1032,70 @@ export default function Products() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <AlertDialog open={!!deleteVariantTarget} onOpenChange={(open) => !open && setDeleteVariantTarget(null)}>
+        <AlertDialogContent className="rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete variant?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently remove variant <span className="font-semibold">{deleteVariantTarget?.sku || "-"}</span>.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-cancel-delete-variant">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (!deleteVariantTarget) return;
+                deleteVariant(deleteVariantTarget.id, {
+                  onSuccess: () => setDeleteVariantTarget(null),
+                });
+              }}
+              disabled={isDeletingVariant}
+              className="bg-rose-600 hover:bg-rose-700 text-white"
+              data-testid="button-confirm-delete-variant"
+            >
+              {isDeletingVariant ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Products Grid */}
-      <div className="space-y-6">
+      <div className="space-y-4">
         {isLoading ? (
           <div className="flex justify-center py-16">
-            <Loader2 className="animate-spin w-8 h-8 text-[#3B82F6]" />
+            <Loader2 className="w-8 h-8 animate-spin text-[#5C6AC4]" />
           </div>
         ) : products?.length === 0 ? (
-          <Card className="text-center">
+          <Card className="rounded-2xl border border-slate-100 shadow-sm text-center py-16">
             <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
               <Package className="w-8 h-8 text-slate-300" />
             </div>
-            <p className="text-muted-foreground mb-2">No products yet</p>
+            <p className="text-slate-500 mb-2">No products yet</p>
             <Button variant="default" onClick={() => setAddProductOpen(true)}>Add your first product</Button>
           </Card>
         ) : (
           products?.map((product) => (
-            <Card key={product.id} className="overflow-hidden" data-testid={`product-card-${product.id}`}>
+            <Card key={product.id} className="overflow-hidden border border-slate-100 shadow-sm rounded-2xl" data-testid={`product-card-${product.id}`}>
               <Collapsible open={openItems[product.id]} onOpenChange={() => toggleItem(product.id)}>
-                <div className="p-6 flex items-center justify-between">
+                <div className="px-4 py-3 flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#3B82F6]/12 to-[#06B6D4]/12 flex items-center justify-center">
-                      <Package className="w-7 h-7 text-[#3B82F6]" />
+                    <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center">
+                      <Package className="w-5 h-5 text-slate-500" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-slate-900">{product.name}</h3>
-                      <div className="flex items-center gap-3 mt-1">
-                        <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
-                          <Layers className="w-4 h-4" />
+                      <h3 className="text-sm font-medium text-slate-800">{product.name}</h3>
+                      <div className="mt-1 flex items-center gap-3">
+                        <span className="inline-flex items-center gap-1 text-xs text-slate-500">
+                          <Layers className="w-3.5 h-3.5" />
                           {product.variants.length} variants
                         </span>
-                        <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
-                          <Tag className="w-4 h-4" />
+                        <span className="inline-flex items-center gap-1 text-xs text-slate-500">
+                          <Tag className="w-3.5 h-3.5" />
                           {product.brand?.name || "No brand"}
                         </span>
-                        <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
-                          <Tag className="w-4 h-4" />
+                        <span className="inline-flex items-center gap-1 text-xs text-slate-500">
+                          <Tag className="w-3.5 h-3.5" />
                           {product.type}
                         </span>
                       </div>
@@ -1095,7 +1160,7 @@ export default function Products() {
                 </div>
                 
                 <CollapsibleContent>
-                  <div className="border-t border-slate-100 bg-slate-50/60 px-6 py-5 space-y-6">
+                  <div className="border-t border-slate-100 bg-slate-50/60 px-4 py-4 space-y-5">
                     <Dialog open={activeEditProductId === product.id} onOpenChange={(open) => setActiveEditProductId(open ? product.id : null)}>
                       <DialogContent className="sm:max-w-[520px] rounded-2xl">
                         <DialogHeader>
@@ -1123,13 +1188,13 @@ export default function Products() {
                       {product.attributes.length === 0 ? (
                         <p className="text-sm text-muted-foreground">No attributes yet. Add one to build variants.</p>
                       ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           {product.attributes.map((attribute) => {
                             const isUsedByVariant = product.variants.some((variant) =>
                               variant.optionValues.some((value) => value.attributeId === attribute.id)
                             );
                             return (
-                              <Card key={attribute.id}>
+                              <Card key={attribute.id} className="border border-slate-100 shadow-sm rounded-xl">
                                 <div className="flex items-center justify-between">
                                   <div>
                                     <p className="font-semibold text-slate-800">{attribute.name}</p>
@@ -1188,11 +1253,16 @@ export default function Products() {
                                     <AttributeEditForm productId={product.id} attribute={attribute} onSuccess={() => setActiveEditAttributeId(null)} />
                                   </DialogContent>
                                 </Dialog>
-                                <div className="mt-3 flex flex-wrap gap-2">
+                                <div
+                                  className={cn(
+                                    "mt-2.5 flex gap-2",
+                                    expandedOptionRows[attribute.id] ? "flex-wrap" : "flex-nowrap overflow-hidden",
+                                  )}
+                                >
                                   {attribute.options.length === 0 ? (
                                     <span className="text-xs text-muted-foreground">No options yet</span>
                                   ) : (
-                                    attribute.options.map((option) => (
+                                    (expandedOptionRows[attribute.id] ? attribute.options : attribute.options.slice(0, 6)).map((option) => (
                                       <Dialog key={option.id} open={activeEditOptionId === option.id} onOpenChange={(open) => setActiveEditOptionId(open ? option.id : null)}>
                                         <DialogTrigger asChild>
                                           <button type="button" className="text-xs bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full hover:bg-slate-200 transition-colors shadow-[inset_0_0_0_1px_rgba(148,163,184,0.2)]">
@@ -1209,6 +1279,24 @@ export default function Products() {
                                       </Dialog>
                                     ))
                                   )}
+                                  {attribute.options.length > 6 && !expandedOptionRows[attribute.id] && (
+                                    <button
+                                      type="button"
+                                      onClick={() => toggleOptionRow(attribute.id)}
+                                      className="shrink-0 rounded-full border border-dashed border-slate-300 px-2.5 py-1 text-xs font-semibold text-slate-500 transition-colors hover:bg-slate-100"
+                                    >
+                                      +{attribute.options.length - 6} more
+                                    </button>
+                                  )}
+                                  {attribute.options.length > 6 && expandedOptionRows[attribute.id] && (
+                                    <button
+                                      type="button"
+                                      onClick={() => toggleOptionRow(attribute.id)}
+                                      className="rounded-full border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-500 transition-colors hover:bg-slate-100"
+                                    >
+                                      Show less
+                                    </button>
+                                  )}
                                 </div>
                               </Card>
                             );
@@ -1218,41 +1306,41 @@ export default function Products() {
                     </div>
                     <div className="space-y-3">
                       {product.attributes.length > 0 && (
-                      <Card className="px-4 py-3">
-                        <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-                          Filter variants
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                          {product.attributes.map((attribute) => (
-                            <div key={attribute.id} className="space-y-1">
-                              <Label className="text-xs text-muted-foreground">{attribute.name}</Label>
-                              <Select
-                                value={String(variantFilters[product.id]?.[attribute.id] ?? "all")}
-                                onValueChange={(value) => {
-                                  setVariantFilter(product.id, attribute.id, value === "all" ? "all" : Number(value));
-                                }}
-                              >
-                                <SelectTrigger className="h-9 rounded-lg text-xs">
-                                  <SelectValue placeholder="All" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="all">All</SelectItem>
-                                  {attribute.options
-                                    .filter((option) => option.isActive)
-                                    .map((option) => (
-                                      <SelectItem key={option.id} value={String(option.id)}>
-                                        {option.value}
-                                      </SelectItem>
-                                    ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          ))}
-                        </div>
-                      </Card>
+                        <Card className="px-4 py-3 border border-slate-100 shadow-sm rounded-xl">
+                          <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            Filter variants
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            {product.attributes.map((attribute) => (
+                              <div key={attribute.id} className="space-y-1">
+                                <Label className="text-xs text-slate-500">{attribute.name}</Label>
+                                <Select
+                                  value={String(variantFilters[product.id]?.[attribute.id] ?? "all")}
+                                  onValueChange={(value) => {
+                                    setVariantFilter(product.id, attribute.id, value === "all" ? "all" : Number(value));
+                                  }}
+                                >
+                                  <SelectTrigger className="h-9 rounded-lg text-xs">
+                                    <SelectValue placeholder="All" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="all">All</SelectItem>
+                                    {attribute.options
+                                      .filter((option) => option.isActive)
+                                      .map((option) => (
+                                        <SelectItem key={option.id} value={String(option.id)}>
+                                          {option.value}
+                                        </SelectItem>
+                                      ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            ))}
+                          </div>
+                        </Card>
                       )}
-                      {product.variants
-                        .filter((variant) =>
+                      {(() => {
+                        const filteredVariants = product.variants.filter((variant) =>
                           product.attributes.every((attribute) => {
                             const selected = variantFilters[product.id]?.[attribute.id];
                             if (!selected || selected === "all") return true;
@@ -1260,68 +1348,142 @@ export default function Products() {
                               (value) => value.attributeId === attribute.id && value.optionId === selected
                             );
                           })
-                        )
-                        .map(variant => {
-                        const stockNum = Number(variant.stockOnHand);
-                        const isInStock = stockNum > 0;
-                        const price = getVariantPrice(variant, "IDR");
-                        const chipLimit = 4;
-                        const visibleChips = variant.optionValues.slice(0, chipLimit);
-                        const overflowCount = Math.max(0, variant.optionValues.length - visibleChips.length);
+                        );
+
+                        const getAttributeValue = (variant: any, keys: string[]) => {
+                          const found = variant.optionValues.find((value: any) => {
+                            const attributeName = String(value.attributeName ?? "").toLowerCase();
+                            return keys.some((key) => attributeName.includes(key));
+                          });
+                          return found?.optionValue ?? "-";
+                        };
+
+                        if (filteredVariants.length === 0) {
+                          return (
+                            <div className="col-span-full text-center py-8 text-muted-foreground">
+                              <Box className="w-10 h-10 mx-auto mb-2 text-slate-300" />
+                              <p>{product.variants.length === 0 ? "No variants yet. Add one to start selling." : "No variants match current filters."}</p>
+                            </div>
+                          );
+                        }
+
                         return (
-                          <Card key={variant.id} className="transition-shadow hover:shadow-md" data-testid={`variant-card-${variant.id}`}>
-                            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                              <div className="min-w-0 flex-1">
-                                <div className="flex flex-wrap gap-2 max-h-16 overflow-hidden">
-                                  {visibleChips.map((chip) => (
-                                    <span
-                                      key={`${variant.id}-${chip.attributeId}`}
-                                      className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700 border border-slate-200 max-w-[180px]"
-                                      title={`${chip.attributeName}: ${chip.optionValue}`}
-                                    >
-                                      <span className="truncate">{chip.attributeName}: {chip.optionValue}</span>
-                                    </span>
-                                  ))}
-                                  {overflowCount > 0 && (
-                                    <span className="inline-flex items-center rounded-full bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-500 border border-dashed border-slate-200">
-                                      +{overflowCount} more
-                                    </span>
-                                  )}
-                                </div>
-                                <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                                  <span className="font-medium text-slate-600">SKU: {variant.sku || "-"}</span>
-                                  <span className="font-semibold text-slate-800">Rp {formatPrice(price?.priceCents ?? 0)}</span>
-                                </div>
+                          <Card className="overflow-hidden border border-slate-100 shadow-sm rounded-xl">
+                            <div className="divide-y divide-slate-100">
+                              <div className="hidden lg:grid grid-cols-12 gap-4 px-6 py-4 bg-slate-50/80 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                <div className="col-span-6">Variant</div>
+                                <div className="col-span-1">Color</div>
+                                <div className="col-span-2 text-right">Price</div>
+                                <div className="col-span-2 text-center">Stock</div>
+                                <div className="col-span-1 text-right">Action</div>
                               </div>
-                              <div className="flex items-center gap-3">
-                                <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${isInStock ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>
-                                  {isInStock ? "In Stock" : "Out of Stock"}
-                                </span>
-                                <Dialog open={activeEditVariantId === variant.id} onOpenChange={(open) => setActiveEditVariantId(open ? variant.id : null)}>
-                                  <DialogTrigger asChild>
-                                    <Button variant="ghost" size="icon" data-testid={`button-edit-variant-${variant.id}`} aria-label="Edit variant">
-                                      <Pencil className="h-4 w-4" />
-                                    </Button>
-                                  </DialogTrigger>
-                                  <DialogContent className="sm:max-w-[520px] max-h-[85vh] overflow-hidden rounded-2xl">
-                                    <DialogHeader>
-                                      <DialogTitle className="text-xl font-bold">Edit Variant</DialogTitle>
-                                      <DialogDescription>Update variant details and selections.</DialogDescription>
-                                    </DialogHeader>
-                                    <VariantEditForm productId={product.id} variant={variant} attributes={product.attributes} onSuccess={() => setActiveEditVariantId(null)} />
-                                  </DialogContent>
-                                </Dialog>
-                              </div>
+                              {filteredVariants.map((variant) => {
+                                const stockNum = Number(variant.stockOnHand);
+                                const price = getVariantPrice(variant, "IDR");
+                                const material = getAttributeValue(variant, ["material", "bahan"]);
+                                const size = getAttributeValue(variant, ["size", "ukuran"]);
+                                const colorFromAttribute = getAttributeValue(variant, ["color", "colour", "warna"]);
+                                const variantName = [material, size, colorFromAttribute].map((v) => v || "-").join(" - ");
+                                const inferredFromLabel = variantName
+                                  .split(" - ")
+                                  .map((part) => part.trim())
+                                  .filter((part) => part.length > 0 && part !== "-")
+                                  .at(-1);
+                                const colorNameCandidate =
+                                  colorFromAttribute && colorFromAttribute !== "-" ? colorFromAttribute : inferredFromLabel;
+                                const colorHex = colorNameCandidate ? COLOR_HEX_MAP[colorNameCandidate.toLowerCase()] : undefined;
+                                const displayColorName = colorHex ? colorNameCandidate : "Unknown";
+                                const displayColorHex = colorHex ?? "#94A3B8";
+                                const slashColorParts = (colorNameCandidate ?? "")
+                                  .split("/")
+                                  .map((part) => part.trim().toLowerCase())
+                                  .filter((part) => part.length > 0);
+                                const leftHex = slashColorParts.length === 2 ? COLOR_HEX_MAP[slashColorParts[0]] : undefined;
+                                const rightHex = slashColorParts.length === 2 ? COLOR_HEX_MAP[slashColorParts[1]] : undefined;
+                                const dualColorBackground =
+                                  leftHex && rightHex
+                                    ? `linear-gradient(90deg, ${leftHex} 0 50%, ${rightHex} 50% 100%)`
+                                    : undefined;
+
+                                return (
+                                  <div
+                                    key={variant.id}
+                                    className="group grid grid-cols-1 lg:grid-cols-12 gap-4 px-6 py-4 hover:bg-slate-50/60 transition-colors items-center"
+                                    data-testid={`variant-card-${variant.id}`}
+                                  >
+                                    <div className="lg:col-span-6">
+                                      <p className="lg:hidden mb-0.5 text-[11px] uppercase tracking-wide text-slate-400">Variant</p>
+                                      <p className="text-sm font-medium text-slate-800">{variantName}</p>
+                                      <p className="text-xs text-slate-500">{variant.sku || "-"}</p>
+                                    </div>
+                                    <div className="lg:col-span-1">
+                                      <p className="lg:hidden mb-0.5 text-[11px] uppercase tracking-wide text-slate-400">Color</p>
+                                      <span
+                                        className="inline-block h-4 w-4 rounded-full border border-slate-300"
+                                        style={
+                                          dualColorBackground
+                                            ? { backgroundImage: dualColorBackground }
+                                            : { backgroundColor: displayColorHex }
+                                        }
+                                        title={displayColorName}
+                                        aria-label={displayColorName}
+                                      />
+                                    </div>
+                                    <div className="lg:col-span-2 lg:text-right">
+                                      <p className="lg:hidden mb-0.5 text-[11px] uppercase tracking-wide text-slate-400">Price</p>
+                                      <p className="text-sm font-medium text-slate-800">Rp {formatPrice(price?.priceCents ?? 0)}</p>
+                                    </div>
+                                    <div className="lg:col-span-2 lg:text-center">
+                                      <p className="lg:hidden mb-0.5 text-[11px] uppercase tracking-wide text-slate-400">Stock</p>
+                                      <p
+                                        className={cn(
+                                          "text-sm font-medium",
+                                          stockNum === 0
+                                            ? "text-orange-500"
+                                            : stockNum <= 2
+                                              ? "text-amber-600"
+                                              : "text-slate-700",
+                                        )}
+                                      >
+                                        {stockNum}
+                                      </p>
+                                    </div>
+                                    <div className="lg:col-span-1 lg:text-right">
+                                      <p className="lg:hidden mb-0.5 text-[11px] uppercase tracking-wide text-slate-400">Action</p>
+                                      <div className="flex items-center justify-start gap-1 lg:justify-end opacity-100 lg:opacity-40 lg:group-hover:opacity-100 transition-opacity">
+                                        <Dialog open={activeEditVariantId === variant.id} onOpenChange={(open) => setActiveEditVariantId(open ? variant.id : null)}>
+                                          <DialogTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-slate-700" data-testid={`button-edit-variant-${variant.id}`} aria-label="Edit variant">
+                                              <Pencil className="h-4 w-4" />
+                                            </Button>
+                                          </DialogTrigger>
+                                          <DialogContent className="sm:max-w-[520px] max-h-[85vh] overflow-hidden rounded-2xl">
+                                            <DialogHeader>
+                                              <DialogTitle className="text-xl font-bold">Edit Variant</DialogTitle>
+                                              <DialogDescription>Update variant details and selections.</DialogDescription>
+                                            </DialogHeader>
+                                            <VariantEditForm productId={product.id} variant={variant} attributes={product.attributes} onSuccess={() => setActiveEditVariantId(null)} />
+                                          </DialogContent>
+                                        </Dialog>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-8 w-8 text-slate-500 hover:text-rose-600"
+                                          onClick={() => setDeleteVariantTarget({ id: variant.id, sku: variant.sku || "-" })}
+                                          data-testid={`button-delete-variant-${variant.id}`}
+                                          aria-label="Delete variant"
+                                        >
+                                          <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })}
                             </div>
                           </Card>
                         );
-                      })}
-                      {product.variants.length === 0 && (
-                        <div className="col-span-full text-center py-8 text-muted-foreground">
-                          <Box className="w-10 h-10 mx-auto mb-2 text-slate-300" />
-                          <p>No variants yet. Add one to start selling.</p>
-                        </div>
-                      )}
+                      })()}
                     </div>
                   </div>
                 </CollapsibleContent>

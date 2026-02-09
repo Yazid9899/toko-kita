@@ -32,7 +32,7 @@ type VariantDef = {
 
 const CURRENCY = "IDR";
 const UNIT = "piece";
-const PRODUCT_NAME = "Legatto HandBag - LGH";
+const PRODUCT_NAME = "Legatto-LGH";
 const PRODUCT_DESCRIPTION = "Legatto handbag line";
 
 const attributes: AttributeDef[] = [
