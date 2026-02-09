@@ -24,9 +24,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertProductSchema, type InsertProduct } from "@shared/schema";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Loader2, Plus, Package, ChevronDown, ChevronUp, Box, Tag, Layers, Pencil, Sparkles, PenLine, MoreHorizontal, Trash2 } from "lucide-react";
+import { Loader2, Plus, Package, ChevronDown, ChevronUp, Tag, Layers, Pencil, Sparkles, PenLine, MoreHorizontal, Trash2 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { formatPrice, getVariantPrice } from "@/lib/variant-utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import {
@@ -39,37 +38,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-
-const COLOR_HEX_MAP: Record<string, string> = {
-  black: "#111827",
-  beige: "#D6C3A1",
-  blue: "#2563EB",
-  gray: "#6B7280",
-  "light gray": "#9CA3AF",
-  olive: "#6B8E23",
-  navy: "#1E3A8A",
-  "light brown": "#B08968",
-  "dark brown": "#5C4033",
-  brown: "#8B5E3C",
-  "icy blue": "#93C5FD",
-  lavender: "#A78BFA",
-  "pale pink": "#F9A8D4",
-  purple: "#8B5CF6",
-  ivory: "#F5F1E8",
-  "ivory handle brown": "#C2A184",
-  mustard: "#CA8A04",
-  mint: "#6EE7B7",
-  peach: "#FDBA74",
-  "silver gray": "#94A3B8",
-  "rare blue": "#3B82F6",
-  "mint/ivory": "#BDE6D5",
-  "dark green/navy": "#14532D",
-  "pink/brown": "#C97A87",
-  "pink/gray": "#C08497",
-  "blue/dark brown": "#355E8A",
-  silver: "#9CA3AF",
-  "black handle brown": "#4B352A",
-};
+import { VariantFiltersCard, VariantsTable, type VariantFilterValue } from "@/pages/products/VariantsSection";
 
 function BrandForm({ onSuccess }: { onSuccess: () => void }) {
   const { mutate, isPending } = useCreateBrand();
@@ -922,7 +891,7 @@ export default function Products() {
   const [activeEditOptionId, setActiveEditOptionId] = useState<number | null>(null);
   const [activeEditVariantId, setActiveEditVariantId] = useState<number | null>(null);
   const [expandedOptionRows, setExpandedOptionRows] = useState<Record<number, boolean>>({});
-  const [variantFilters, setVariantFilters] = useState<Record<number, Record<number, number | "all">>>({});
+  const [variantFilters, setVariantFilters] = useState<Record<number, Record<number, VariantFilterValue>>>({});
   const [deleteAttributeTarget, setDeleteAttributeTarget] = useState<{
     productId: number;
     attributeId: number;
@@ -942,7 +911,7 @@ export default function Products() {
     updateAttribute({ id: attributeId, productId, data: { isActive: false } });
   };
 
-  const setVariantFilter = (productId: number, attributeId: number, value: number | "all") => {
+  const setVariantFilter = (productId: number, attributeId: number, value: VariantFilterValue) => {
     setVariantFilters((prev) => ({
       ...prev,
       [productId]: {
@@ -1305,185 +1274,22 @@ export default function Products() {
                       )}
                     </div>
                     <div className="space-y-3">
-                      {product.attributes.length > 0 && (
-                        <Card className="px-4 py-3 border border-slate-100 shadow-sm rounded-xl">
-                          <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                            Filter variants
-                          </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                            {product.attributes.map((attribute) => (
-                              <div key={attribute.id} className="space-y-1">
-                                <Label className="text-xs text-slate-500">{attribute.name}</Label>
-                                <Select
-                                  value={String(variantFilters[product.id]?.[attribute.id] ?? "all")}
-                                  onValueChange={(value) => {
-                                    setVariantFilter(product.id, attribute.id, value === "all" ? "all" : Number(value));
-                                  }}
-                                >
-                                  <SelectTrigger className="h-9 rounded-lg text-xs">
-                                    <SelectValue placeholder="All" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="all">All</SelectItem>
-                                    {attribute.options
-                                      .filter((option) => option.isActive)
-                                      .map((option) => (
-                                        <SelectItem key={option.id} value={String(option.id)}>
-                                          {option.value}
-                                        </SelectItem>
-                                      ))}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            ))}
-                          </div>
-                        </Card>
-                      )}
-                      {(() => {
-                        const filteredVariants = product.variants.filter((variant) =>
-                          product.attributes.every((attribute) => {
-                            const selected = variantFilters[product.id]?.[attribute.id];
-                            if (!selected || selected === "all") return true;
-                            return variant.optionValues.some(
-                              (value) => value.attributeId === attribute.id && value.optionId === selected
-                            );
-                          })
-                        );
-
-                        const getAttributeValue = (variant: any, keys: string[]) => {
-                          const found = variant.optionValues.find((value: any) => {
-                            const attributeName = String(value.attributeName ?? "").toLowerCase();
-                            return keys.some((key) => attributeName.includes(key));
-                          });
-                          return found?.optionValue ?? "-";
-                        };
-
-                        if (filteredVariants.length === 0) {
-                          return (
-                            <div className="col-span-full text-center py-8 text-muted-foreground">
-                              <Box className="w-10 h-10 mx-auto mb-2 text-slate-300" />
-                              <p>{product.variants.length === 0 ? "No variants yet. Add one to start selling." : "No variants match current filters."}</p>
-                            </div>
-                          );
-                        }
-
-                        return (
-                          <Card className="overflow-hidden border border-slate-100 shadow-sm rounded-xl">
-                            <div className="divide-y divide-slate-100">
-                              <div className="hidden lg:grid grid-cols-12 gap-4 px-6 py-4 bg-slate-50/80 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                                <div className="col-span-6">Variant</div>
-                                <div className="col-span-1">Color</div>
-                                <div className="col-span-2 text-right">Price</div>
-                                <div className="col-span-2 text-center">Stock</div>
-                                <div className="col-span-1 text-right">Action</div>
-                              </div>
-                              {filteredVariants.map((variant) => {
-                                const stockNum = Number(variant.stockOnHand);
-                                const price = getVariantPrice(variant, "IDR");
-                                const material = getAttributeValue(variant, ["material", "bahan"]);
-                                const size = getAttributeValue(variant, ["size", "ukuran"]);
-                                const colorFromAttribute = getAttributeValue(variant, ["color", "colour", "warna"]);
-                                const variantName = [material, size, colorFromAttribute].map((v) => v || "-").join(" - ");
-                                const inferredFromLabel = variantName
-                                  .split(" - ")
-                                  .map((part) => part.trim())
-                                  .filter((part) => part.length > 0 && part !== "-")
-                                  .at(-1);
-                                const colorNameCandidate =
-                                  colorFromAttribute && colorFromAttribute !== "-" ? colorFromAttribute : inferredFromLabel;
-                                const colorHex = colorNameCandidate ? COLOR_HEX_MAP[colorNameCandidate.toLowerCase()] : undefined;
-                                const displayColorName = colorHex ? colorNameCandidate : "Unknown";
-                                const displayColorHex = colorHex ?? "#94A3B8";
-                                const slashColorParts = (colorNameCandidate ?? "")
-                                  .split("/")
-                                  .map((part) => part.trim().toLowerCase())
-                                  .filter((part) => part.length > 0);
-                                const leftHex = slashColorParts.length === 2 ? COLOR_HEX_MAP[slashColorParts[0]] : undefined;
-                                const rightHex = slashColorParts.length === 2 ? COLOR_HEX_MAP[slashColorParts[1]] : undefined;
-                                const dualColorBackground =
-                                  leftHex && rightHex
-                                    ? `linear-gradient(90deg, ${leftHex} 0 50%, ${rightHex} 50% 100%)`
-                                    : undefined;
-
-                                return (
-                                  <div
-                                    key={variant.id}
-                                    className="group grid grid-cols-1 lg:grid-cols-12 gap-4 px-6 py-4 hover:bg-slate-50/60 transition-colors items-center"
-                                    data-testid={`variant-card-${variant.id}`}
-                                  >
-                                    <div className="lg:col-span-6">
-                                      <p className="lg:hidden mb-0.5 text-[11px] uppercase tracking-wide text-slate-400">Variant</p>
-                                      <p className="text-sm font-medium text-slate-800">{variantName}</p>
-                                      <p className="text-xs text-slate-500">{variant.sku || "-"}</p>
-                                    </div>
-                                    <div className="lg:col-span-1">
-                                      <p className="lg:hidden mb-0.5 text-[11px] uppercase tracking-wide text-slate-400">Color</p>
-                                      <span
-                                        className="inline-block h-4 w-4 rounded-full border border-slate-300"
-                                        style={
-                                          dualColorBackground
-                                            ? { backgroundImage: dualColorBackground }
-                                            : { backgroundColor: displayColorHex }
-                                        }
-                                        title={displayColorName}
-                                        aria-label={displayColorName}
-                                      />
-                                    </div>
-                                    <div className="lg:col-span-2 lg:text-right">
-                                      <p className="lg:hidden mb-0.5 text-[11px] uppercase tracking-wide text-slate-400">Price</p>
-                                      <p className="text-sm font-medium text-slate-800">Rp {formatPrice(price?.priceCents ?? 0)}</p>
-                                    </div>
-                                    <div className="lg:col-span-2 lg:text-center">
-                                      <p className="lg:hidden mb-0.5 text-[11px] uppercase tracking-wide text-slate-400">Stock</p>
-                                      <p
-                                        className={cn(
-                                          "text-sm font-medium",
-                                          stockNum === 0
-                                            ? "text-orange-500"
-                                            : stockNum <= 2
-                                              ? "text-amber-600"
-                                              : "text-slate-700",
-                                        )}
-                                      >
-                                        {stockNum}
-                                      </p>
-                                    </div>
-                                    <div className="lg:col-span-1 lg:text-right">
-                                      <p className="lg:hidden mb-0.5 text-[11px] uppercase tracking-wide text-slate-400">Action</p>
-                                      <div className="flex items-center justify-start gap-1 lg:justify-end opacity-100 lg:opacity-40 lg:group-hover:opacity-100 transition-opacity">
-                                        <Dialog open={activeEditVariantId === variant.id} onOpenChange={(open) => setActiveEditVariantId(open ? variant.id : null)}>
-                                          <DialogTrigger asChild>
-                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-slate-700" data-testid={`button-edit-variant-${variant.id}`} aria-label="Edit variant">
-                                              <Pencil className="h-4 w-4" />
-                                            </Button>
-                                          </DialogTrigger>
-                                          <DialogContent className="sm:max-w-[520px] max-h-[85vh] overflow-hidden rounded-2xl">
-                                            <DialogHeader>
-                                              <DialogTitle className="text-xl font-bold">Edit Variant</DialogTitle>
-                                              <DialogDescription>Update variant details and selections.</DialogDescription>
-                                            </DialogHeader>
-                                            <VariantEditForm productId={product.id} variant={variant} attributes={product.attributes} onSuccess={() => setActiveEditVariantId(null)} />
-                                          </DialogContent>
-                                        </Dialog>
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-8 w-8 text-slate-500 hover:text-rose-600"
-                                          onClick={() => setDeleteVariantTarget({ id: variant.id, sku: variant.sku || "-" })}
-                                          data-testid={`button-delete-variant-${variant.id}`}
-                                          aria-label="Delete variant"
-                                        >
-                                          <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                      </div>
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </Card>
-                        );
-                      })()}
+                      <VariantFiltersCard
+                        productId={product.id}
+                        attributes={product.attributes}
+                        activeFilters={variantFilters[product.id]}
+                        onSetVariantFilter={setVariantFilter}
+                      />
+                      <VariantsTable
+                        productId={product.id}
+                        variants={product.variants}
+                        attributes={product.attributes}
+                        activeFilters={variantFilters[product.id]}
+                        activeEditVariantId={activeEditVariantId}
+                        setActiveEditVariantId={setActiveEditVariantId}
+                        onDeleteVariant={(id, sku) => setDeleteVariantTarget({ id, sku })}
+                        VariantEditFormComponent={VariantEditForm}
+                      />
                     </div>
                   </div>
                 </CollapsibleContent>
