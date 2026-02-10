@@ -183,11 +183,11 @@ export function VariantsTable({
       <Table className="min-w-[1000px]">
         <TableHeader className="bg-slate-50/80">
           <TableRow className="hover:bg-transparent">
-            <TableHead className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-500">Variant</TableHead>
-            <TableHead className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-500">Color</TableHead>
-            <TableHead className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">Price</TableHead>
-            <TableHead className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">Stock</TableHead>
-            <TableHead className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">Action</TableHead>
+            <TableHead className="px-6 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500">Variant</TableHead>
+            <TableHead className="px-6 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500">Color</TableHead>
+            <TableHead className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">Price</TableHead>
+            <TableHead className="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">Stock</TableHead>
+            <TableHead className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -213,12 +213,12 @@ export function VariantsTable({
                 className="group hover:bg-slate-50/60"
                 data-testid={`variant-card-${variant.id}`}
               >
-                <TableCell className="px-6 py-4 align-middle">
+                <TableCell className="px-6 py-3 align-middle">
                   <p className="lg:hidden mb-0.5 text-[11px] uppercase tracking-wide text-slate-400">Variant</p>
                   <p className="text-sm font-medium text-slate-800">{variantName}</p>
                   <p className="text-xs text-slate-500">{variant.sku || "-"}</p>
                 </TableCell>
-                <TableCell className="px-6 py-4 align-middle">
+                <TableCell className="px-6 py-3 align-middle">
                   <p className="lg:hidden mb-0.5 text-[11px] uppercase tracking-wide text-slate-400">Color</p>
                   <span
                     className="inline-block h-4 w-4 rounded-full border border-slate-300"
@@ -227,11 +227,11 @@ export function VariantsTable({
                     aria-label={colorDisplay.displayColorName}
                   />
                 </TableCell>
-                <TableCell className="px-6 py-4 text-right align-middle">
+                <TableCell className="px-6 py-3 text-right align-middle">
                   <p className="lg:hidden mb-0.5 text-[11px] uppercase tracking-wide text-slate-400">Price</p>
                   <p className="text-sm font-medium text-slate-800">Rp {formatPrice(price?.priceCents ?? 0)}</p>
                 </TableCell>
-                <TableCell className="px-6 py-4 text-center align-middle">
+                <TableCell className="px-6 py-3 text-center align-middle">
                   <p className="lg:hidden mb-0.5 text-[11px] uppercase tracking-wide text-slate-400">Stock</p>
                   <p
                     className={cn(
@@ -246,7 +246,7 @@ export function VariantsTable({
                     {stockNum}
                   </p>
                 </TableCell>
-                <TableCell className="px-6 py-4 text-right align-middle">
+                <TableCell className="px-6 py-3 text-right align-middle">
                   <p className="lg:hidden mb-0.5 text-[11px] uppercase tracking-wide text-slate-400">Action</p>
                   <div className="flex items-center justify-start gap-1 lg:justify-end opacity-100 lg:opacity-40 lg:group-hover:opacity-100 transition-opacity">
                     <Dialog open={activeEditVariantId === variant.id} onOpenChange={(open) => setActiveEditVariantId(open ? variant.id : null)}>

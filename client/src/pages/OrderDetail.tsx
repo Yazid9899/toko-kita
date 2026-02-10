@@ -46,7 +46,18 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
-import { formatVariantLabel } from "@/lib/variant-utils";
+
+const formatVariantOptionsOnly = (variant: any) => {
+  const options = Array.isArray(variant?.optionValues) ? variant.optionValues : [];
+  const productName = String(variant?.productName ?? "").trim();
+  const optionPart = options
+    .map((selection: any) => selection?.optionValue ?? selection?.value)
+    .filter(Boolean)
+    .join(" - ");
+
+  if (optionPart) return productName ? `${productName} - ${optionPart}` : optionPart;
+  return productName || String(variant?.sku ?? "Default");
+};
 
 export default function OrderDetail() {
   const [, params] = useRoute("/orders/:id");
@@ -221,7 +232,7 @@ export default function OrderDetail() {
                       </div>
                       <div>
                         <p className="font-semibold text-slate-800">
-                          {formatVariantLabel(item.variant)}
+                          {formatVariantOptionsOnly(item.variant)}
                         </p>
                         <p className="text-sm text-slate-500">
                           {item.isPreorder && (
@@ -285,7 +296,7 @@ export default function OrderDetail() {
                       data-testid={`procurement-item-${p.id}`}
                     >
                       <span className="font-medium text-slate-800">
-                        {formatVariantLabel(p.variant)}
+                        {formatVariantOptionsOnly(p.variant)}
                       </span>
                       <div className="flex items-center gap-4">
                         <span className="font-bold text-amber-700">
