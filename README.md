@@ -34,6 +34,10 @@ Then seed your admin accounts:
 ```bash
 npm run seed:admins
 ```
+Optional: seed product catalog + variant procurement baseline:
+```bash
+npm run seed:products
+```
 
 ## Step 5: Start the Application
 Run the development server:
@@ -47,3 +51,5 @@ The app will be available at `http://localhost:5000`.
 - Login uses a local **username/password** stored in the database with a **JWT** stored in an HTTP-only cookie.
 - You can remove `ADMIN_SEED_USERS` from `.env` after seeding.
 - Products now use **brands, attributes, options, variants, and variant prices** (see shared/schema.ts).
+- Product seeding (`script/seedProducts.ts`) also seeds procurement baseline and syncs `stockOnHand` from each variant `procurement_qty`.
+- Procurement page provides a **Purchase Items** action for selecting multiple **TO_BUY** rows and marking them as arrived in one submit.

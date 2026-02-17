@@ -1,5 +1,5 @@
 import { Layout } from "@/components/Layout";
-import { useBulkArriveProcurements, useProcurements, useUpdateProcurement } from "@/hooks/use-procurements";
+import { useBulkArriveProcurements, useProcurements } from "@/hooks/use-procurements";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -15,14 +15,23 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, CheckCircle2, ShoppingBag, Package, Clock, Search } from "lucide-react";
-import { format } from "date-fns";
+import { Loader2, CheckCircle2, ShoppingBag, Package, Search } from "lucide-react";
 import { useMemo, useState } from "react";
-import { formatVariantLabel } from "@/lib/variant-utils";
+
+function formatVariantOptionValues(variant: { optionValues: { attributeId: number; optionValue: string }[]; sku?: string }) {
+  const values = [...variant.optionValues]
+    .sort((a, b) => a.attributeId - b.attributeId)
+    .map((selection) => selection.optionValue);
+
+  if (values.length === 0) {
+    return variant.sku || "Default";
+  }
+
+  return values.join(" - ");
+}
 
 export default function Procurement() {
   const { data: procurements, isLoading } = useProcurements();
-  const { mutate: updateStatus, isPending } = useUpdateProcurement();
   const { mutate: bulkArrive, isPending: isBulkPurchasing } = useBulkArriveProcurements();
   const [filter, setFilter] = useState("TO_BUY");
   const [purchaseOpen, setPurchaseOpen] = useState(false);
@@ -46,7 +55,7 @@ export default function Procurement() {
     return toBuyItems.filter((item) => {
       const text = [
         item.variant.sku,
-        formatVariantLabel(item.variant),
+        formatVariantOptionValues(item.variant),
         item.order?.orderNumber,
         item.order?.customer?.name,
       ]
@@ -139,7 +148,7 @@ export default function Procurement() {
                     <div className="px-4 py-10 text-center text-sm text-slate-500">No to-buy items found.</div>
                   ) : (
                     filteredToBuyItems.map((item) => (
-                      <div key={item.id} className="grid grid-cols-12 gap-3 px-4 py-3 items-center">
+                      <div key={item.id} className="grid grid-cols-12 gap-3 px-4 py-2 items-center">
                         <div className="col-span-1">
                           <Checkbox
                             checked={!!selectedIds[item.id]}
@@ -149,7 +158,8 @@ export default function Procurement() {
                           />
                         </div>
                         <div className="col-span-5">
-                          <p className="text-sm font-medium text-slate-800">{item.variant.sku}</p>
+                          <p className="text-sm font-medium text-slate-800">{formatVariantOptionValues(item.variant)}</p>
+                          <p className="text-xs text-slate-500">{item.variant.sku}</p>
                         </div>
                         <div className="col-span-2 text-center text-sm font-semibold text-[#00848E]">
                           {Number(item.neededQty)}
@@ -235,22 +245,22 @@ export default function Procurement() {
         ) : (
           <div className="divide-y divide-slate-100">
             <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-4 bg-slate-50/80 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              <div className="col-span-4">Item</div>
+              <div className="col-span-5">Item</div>
               <div className="col-span-2">Quantity</div>
               <div className="col-span-3">Reference</div>
-              <div className="col-span-1">Status</div>
-              <div className="col-span-2 text-right">Action</div>
+              <div className="col-span-2">Status</div>
             </div>
 
             {filteredProcurements?.map((item) => (
               <div
                 key={item.id}
-                className={`grid grid-cols-1 md:grid-cols-12 gap-4 px-6 py-5 items-center transition-colors ${item.status === "ARRIVED" ? "bg-slate-50/50" : "hover:bg-slate-50/60"}`}
+                className={`grid grid-cols-1 md:grid-cols-12 gap-4 px-6 py-3 items-center transition-colors ${item.status === "ARRIVED" ? "bg-slate-50/50" : "hover:bg-slate-50/60"}`}
                 data-testid={`procurement-row-${item.id}`}
               >
-                <div className="md:col-span-4">
+                <div className="md:col-span-5">
                   <div>
-                    <p className="font-semibold text-slate-800">{item.variant.sku}</p>
+                    <p className="text-sm font-medium text-slate-800">{formatVariantOptionValues(item.variant)}</p>
+                    <p className="text-xs text-slate-500">{item.variant.sku}</p>
                   </div>
                 </div>
 
@@ -264,27 +274,8 @@ export default function Procurement() {
                   <p className="text-sm text-slate-500">{item.order?.customer?.name ?? "-"}</p>
                 </div>
 
-                <div className="md:col-span-1">
+                <div className="md:col-span-2">
                   <StatusBadge status={item.status} type="procurement" />
-                </div>
-
-                <div className="md:col-span-2 flex items-center justify-end gap-2">
-                  {item.status === "TO_BUY" ? (
-                    <Button
-                      variant="outline"
-                      className="rounded-xl border-emerald-200 text-emerald-600 hover:bg-emerald-50"
-                      onClick={() => updateStatus({ id: item.id, status: "ARRIVED" })}
-                      disabled={isPending}
-                      data-testid={`button-mark-arrived-${item.id}`}
-                    >
-                      <CheckCircle2 className="w-4 h-4 mr-2" /> Arrived
-                    </Button>
-                  ) : (
-                    <span className="text-xs text-slate-400 flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5" />
-                      {format(new Date(item.updatedAt), "MMM d")}
-                    </span>
-                  )}
                 </div>
               </div>
             ))}
