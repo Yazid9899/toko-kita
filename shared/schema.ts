@@ -8,7 +8,7 @@ export const customerTypeEnum = pgEnum("customer_type", ["PERSONAL", "RESELLER"]
 export const paymentTypeEnum = pgEnum("payment_type", ["MANUAL_TRANSFER", "FULL_SHOPEE", "SPLIT_SHOPEE"]);
 export const paymentStatusEnum = pgEnum("payment_status", ["NOT_PAID", "DOWN_PAYMENT", "PAID"]);
 export const packingStatusEnum = pgEnum("packing_status", ["NOT_READY", "PACKING", "PACKED"]);
-export const procurementStatusEnum = pgEnum("procurement_status", ["TO_BUY", "ORDERED", "ARRIVED"]);
+export const procurementStatusEnum = pgEnum("procurement_status", ["TO_BUY", "ARRIVED"]);
 export const productTypeEnum = pgEnum("product_type", ["apparel", "accessory"]);
 
 // --- BRANDS ---
@@ -255,9 +255,11 @@ export type InsertOrderItem = z.infer<typeof insertOrderItemSchema>;
 // --- PROCUREMENT (TO BUY) ---
 export const procurements = pgTable("procurements", {
   id: serial("id").primaryKey(),
-  orderId: integer("order_id").notNull().references(() => orders.id),
+  orderId: integer("order_id").references(() => orders.id),
   productVariantId: integer("product_variant_id").notNull().references(() => productVariants.id),
   neededQty: decimal("needed_qty", { precision: 10, scale: 2 }).notNull(),
+  capitalCostCents: integer("capital_cost_cents"),
+  capitalCurrency: varchar("capital_currency", { length: 3 }).default("IDR").notNull(),
   status: procurementStatusEnum("status").default("TO_BUY").notNull(),
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -270,6 +272,7 @@ export const insertProcurementSchema = createInsertSchema(procurements).omit({
   updatedAt: true 
 }).extend({
   neededQty: z.number(),
+  capitalCostCents: z.number().int().nonnegative().optional(),
 });
 
 export type Procurement = typeof procurements.$inferSelect;

@@ -193,7 +193,7 @@ export default function Dashboard() {
                   <div key={p.id} className="flex items-center justify-between p-4 bg-[#00848E]/5 rounded-xl border border-[#00848E]/10" data-testid={`procurement-row-${p.id}`}>
                     <div>
                       <p className="font-medium text-slate-800">{formatVariantLabel(p.variant)}</p>
-                      <p className="text-xs text-slate-500 mt-0.5">For {p.order.orderNumber}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">For {p.order?.orderNumber ?? "Manual Purchase"}</p>
                     </div>
                     <span className="text-sm font-bold text-[#00848E] bg-[#00848E]/10 px-3 py-1.5 rounded-full">{Number(p.neededQty)} needed</span>
                   </div>

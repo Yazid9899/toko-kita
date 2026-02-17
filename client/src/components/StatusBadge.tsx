@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 type StatusType = 
   | "NOT_PAID" | "DOWN_PAYMENT" | "PAID"
   | "NOT_READY" | "PACKING" | "PACKED"
-  | "TO_BUY" | "ORDERED" | "ARRIVED";
+  | "TO_BUY" | "ARRIVED";
 
 interface StatusBadgeProps {
   status: StatusType | string;
@@ -35,7 +35,6 @@ export const getStatusBadgeStyles = (status: string) => {
 
   // PROCUREMENT
   else if (status === "ARRIVED") styles = "bg-emerald-100 text-emerald-700";
-  else if (status === "ORDERED") styles = "bg-amber-100 text-amber-700";
   else if (status === "TO_BUY") styles = "bg-[#00848E]/10 text-[#00848E]";
 
   return styles;

@@ -275,6 +275,23 @@ export const api = {
     }
   },
   procurements: {
+    create: {
+      method: 'POST' as const,
+      path: '/api/procurements',
+      input: z.object({
+        orderId: z.number().optional(),
+        productVariantId: z.number(),
+        neededQty: z.number().positive(),
+        capitalCostCents: z.number().int().nonnegative().optional(),
+        capitalCurrency: z.string().length(3).optional(),
+        status: z.enum(procurementStatusEnum.enumValues).default("ARRIVED"),
+        notes: z.string().optional(),
+      }),
+      responses: {
+        201: z.custom<typeof procurements.$inferSelect>(),
+        400: errorSchemas.validation,
+      },
+    },
     list: {
       method: 'GET' as const,
       path: '/api/procurements',
@@ -284,7 +301,7 @@ export const api = {
       responses: {
         200: z.array(z.custom<typeof procurements.$inferSelect & { 
             variant: ProductVariantWithRelations,
-            order: typeof orders.$inferSelect & { customer: typeof customers.$inferSelect }
+            order: (typeof orders.$inferSelect & { customer: typeof customers.$inferSelect }) | null
         }>()),
       },
     },

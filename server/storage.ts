@@ -262,7 +262,7 @@ export interface IStorage {
   // Procurement
   getProcurements(status?: string): Promise<(Procurement & { 
     variant: ProductVariantWithRelations,
-    order: Order & { customer: Customer }
+    order: (Order & { customer: Customer }) | null
   })[]>;
   createProcurement(procurement: InsertProcurement): Promise<Procurement>;
   updateProcurement(id: number, procurement: Partial<InsertProcurement>): Promise<Procurement>;
@@ -629,7 +629,9 @@ export class DatabaseStorage implements IStorage {
     });
 
     const pendingProcurementByOrder = new Set<number>();
-    pendingProcurements.forEach((p) => pendingProcurementByOrder.add(p.orderId));
+    pendingProcurements.forEach((p) => {
+      if (p.orderId != null) pendingProcurementByOrder.add(p.orderId);
+    });
 
     const result: (Order & { customer: Customer; items: OrderItem[]; subtotal: number; total: number; hasPendingProcurement: boolean })[] = [];
 
@@ -725,7 +727,7 @@ export class DatabaseStorage implements IStorage {
   // --- Procurements ---
   async getProcurements(status?: string): Promise<(Procurement & { 
     variant: ProductVariantWithRelations,
-    order: Order & { customer: Customer }
+    order: (Order & { customer: Customer }) | null
   })[]> {
     let query = db.select({
       procurement: procurements,
@@ -733,8 +735,8 @@ export class DatabaseStorage implements IStorage {
       customer: customers
     })
     .from(procurements)
-    .innerJoin(orders, eq(procurements.orderId, orders.id))
-    .innerJoin(customers, eq(orders.customerId, customers.id));
+    .leftJoin(orders, eq(procurements.orderId, orders.id))
+    .leftJoin(customers, eq(orders.customerId, customers.id));
 
     if (status) {
       query = query.where(eq(procurements.status, status as any)) as any;
@@ -753,10 +755,12 @@ export class DatabaseStorage implements IStorage {
     return result.map(row => ({
       ...row.procurement,
       variant: variantRelations.get(row.procurement.productVariantId)!,
-      order: {
-        ...row.order,
-        customer: row.customer
-      }
+      order: row.order && row.customer
+        ? {
+            ...row.order,
+            customer: row.customer
+          }
+        : null
     }));
   }
 

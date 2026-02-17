@@ -323,6 +323,35 @@ export async function registerRoutes(
     res.json(procurements);
   });
 
+  app.post(api.procurements.create.path, async (req, res) => {
+    try {
+      const input = api.procurements.create.input.parse(req.body);
+      const procurement = await storage.createProcurement({
+        orderId: input.orderId,
+        productVariantId: input.productVariantId,
+        neededQty: input.neededQty,
+        capitalCostCents: input.capitalCostCents,
+        capitalCurrency: input.capitalCurrency ?? "IDR",
+        status: input.status,
+        notes: input.notes,
+      });
+
+      if (input.status === "ARRIVED") {
+        const variant = await storage.getVariant(input.productVariantId);
+        if (variant) {
+          await storage.updateVariant(variant.id, {
+            stockOnHand: Number(variant.stockOnHand) + Number(input.neededQty),
+          });
+        }
+      }
+
+      res.status(201).json(procurement);
+    } catch (err) {
+      if (err instanceof z.ZodError) res.status(400).json(err.errors);
+      else throw err;
+    }
+  });
+
   app.put(api.procurements.update.path, async (req, res) => {
     try {
         const input = api.procurements.update.input.parse(req.body);
