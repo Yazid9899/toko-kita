@@ -3,6 +3,7 @@ import { api, buildUrl } from "@shared/routes";
 import { useToast } from "@/hooks/use-toast";
 
 export type CreateProcurementInput = {
+  purchaseNumber?: string;
   orderId?: number;
   productVariantId: number;
   neededQty: number;

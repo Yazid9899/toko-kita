@@ -279,6 +279,7 @@ export const api = {
       method: 'POST' as const,
       path: '/api/procurements',
       input: z.object({
+        purchaseNumber: z.string().optional(),
         orderId: z.number().optional(),
         productVariantId: z.number(),
         neededQty: z.number().positive(),

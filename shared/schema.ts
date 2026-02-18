@@ -255,6 +255,7 @@ export type InsertOrderItem = z.infer<typeof insertOrderItemSchema>;
 // --- PROCUREMENT (TO BUY) ---
 export const procurements = pgTable("procurements", {
   id: serial("id").primaryKey(),
+  purchaseNumber: text("purchase_number"),
   orderId: integer("order_id").references(() => orders.id),
   productVariantId: integer("product_variant_id").notNull().references(() => productVariants.id),
   neededQty: decimal("needed_qty", { precision: 10, scale: 2 }).notNull(),

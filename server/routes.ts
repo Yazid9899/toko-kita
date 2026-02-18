@@ -271,6 +271,7 @@ export async function registerRoutes(
             const neededQty = requestQty - Math.max(0, currentStock); // Simplification: assume we use existing stock
             
             await storage.createProcurement({
+                purchaseNumber: newOrder.orderNumber,
                 orderId: newOrder.id,
                 productVariantId: item.productVariantId,
                 neededQty,
@@ -327,6 +328,7 @@ export async function registerRoutes(
     try {
       const input = api.procurements.create.input.parse(req.body);
       const procurement = await storage.createProcurement({
+        purchaseNumber: input.purchaseNumber,
         orderId: input.orderId,
         productVariantId: input.productVariantId,
         neededQty: input.neededQty,

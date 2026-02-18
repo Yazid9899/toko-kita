@@ -12,7 +12,7 @@ import Products from "@/pages/Products";
 import Orders from "@/pages/Orders";
 import CreateOrder from "@/pages/CreateOrder";
 import OrderDetail from "@/pages/OrderDetail";
-import Procurement from "@/pages/Procurement";
+import Purchases from "@/pages/Purchases";
 import Login from "@/pages/Login";
 import NotFound from "@/pages/not-found";
 
@@ -58,8 +58,8 @@ function Router() {
       <Route path="/orders/:id">
         {() => <ProtectedRoute component={OrderDetail} />}
       </Route>
-      <Route path="/procurement">
-        {() => <ProtectedRoute component={Procurement} />}
+      <Route path="/purchases">
+        {() => <ProtectedRoute component={Purchases} />}
       </Route>
 
       <Route component={NotFound} />

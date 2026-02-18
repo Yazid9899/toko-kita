@@ -269,6 +269,12 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  private async generatePurchaseNumber(): Promise<string> {
+    const [row] = await db.select({ count: sql<number>`count(*)::int` }).from(procurements);
+    const next = (row?.count ?? 0) + 1;
+    return `PUR-${String(next).padStart(6, "0")}`;
+  }
+
   // --- Brands ---
   async getBrands(): Promise<Brand[]> {
     return await db.select().from(brands).orderBy(desc(brands.createdAt));
@@ -765,7 +771,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createProcurement(procurement: InsertProcurement): Promise<Procurement> {
-    const data = { ...procurement, neededQty: procurement.neededQty.toString() };
+    let purchaseNumber = procurement.purchaseNumber;
+
+    if (!purchaseNumber && procurement.orderId) {
+      const [linkedOrder] = await db
+        .select({ orderNumber: orders.orderNumber })
+        .from(orders)
+        .where(eq(orders.id, procurement.orderId));
+      purchaseNumber = linkedOrder?.orderNumber;
+    }
+
+    if (!purchaseNumber) {
+      purchaseNumber = await this.generatePurchaseNumber();
+    }
+
+    const data = {
+      ...procurement,
+      purchaseNumber,
+      neededQty: procurement.neededQty.toString(),
+    };
     const [newProcurement] = await db.insert(procurements).values(data).returning();
     return newProcurement;
   }

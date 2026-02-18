@@ -52,7 +52,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { href: "/orders", label: "Orders", icon: ShoppingCart },
     { href: "/customers", label: "Customers", icon: Users },
     { href: "/products", label: "Products", icon: Package },
-    { href: "/procurement", label: "To Buy", icon: ShoppingBag },
+    { href: "/purchases", label: "Purchases", icon: ShoppingBag },
   ];
 
   return (

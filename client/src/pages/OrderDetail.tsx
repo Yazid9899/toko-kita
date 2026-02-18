@@ -275,7 +275,7 @@ export default function OrderDetail() {
             {order.procurements.length > 0 && (
               <Card className="border-l-4 border-l-amber-500">
                 <h2 className="text-lg font-bold text-amber-700 mb-4">
-                  Procurement Items (To Buy)
+                  Purchase Items (To Buy)
                 </h2>
                 <div className="space-y-3">
                   {order.procurements.map((p: any) => (

@@ -170,14 +170,14 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Urgent Procurement */}
+        {/* Urgent Purchases */}
         <Card className="lg:col-span-3 border-l-4 border-l-[#00848E]">
           <CardHeader className="flex-row items-center gap-3 space-y-0 pb-4">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00848E] to-[#00A3AE] flex items-center justify-center shadow-lg">
               <AlertCircle className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-900">Urgent Procurement</h2>
+              <h2 className="text-lg font-bold text-slate-900">Urgent Purchases</h2>
               <p className="text-sm text-slate-500">Items that need restocking</p>
             </div>
           </CardHeader>
@@ -210,9 +210,9 @@ export default function Dashboard() {
               </div>
             )}
             {procurements && procurements.filter(p => p.status === "TO_BUY").length > 0 && (
-              <Link href="/procurement">
+              <Link href="/purchases">
                 <Button variant="outline" className="w-full mt-4" data-testid="link-view-all-procurement">
-                  View All Procurement
+                  View All Purchases
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
