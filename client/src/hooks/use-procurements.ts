@@ -128,14 +128,16 @@ export function useBulkArriveProcurements() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (ids: number[]) => {
+    mutationFn: async (input: number[] | { ids: number[]; notes?: string }) => {
+      const ids = Array.isArray(input) ? input : input.ids;
+      const notes = Array.isArray(input) ? undefined : input.notes;
       await Promise.all(
         ids.map(async (id) => {
           const url = buildUrl(api.procurements.update.path, { id });
           const res = await fetch(url, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ status: "ARRIVED" }),
+            body: JSON.stringify({ status: "ARRIVED", notes }),
             credentials: "include",
           });
           if (!res.ok) throw new Error("Failed to update procurement status");
@@ -143,7 +145,8 @@ export function useBulkArriveProcurements() {
         }),
       );
     },
-    onSuccess: (_, ids) => {
+    onSuccess: (_, input) => {
+      const ids = Array.isArray(input) ? input : input.ids;
       queryClient.invalidateQueries({ queryKey: [api.procurements.list.path] });
       queryClient.invalidateQueries({ queryKey: [api.products.list.path] });
       toast({

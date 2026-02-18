@@ -160,7 +160,7 @@ const variants: VariantDef[] = [
 
   // ───────── MEDIUM / PU ─────────
   { material: "PU Leather", size: "Medium", color: "Silver", sku: "LGH-PU-M-SI", price: 780000, procurement_qty: 2 },
-  { material: "PU Leather", size: "Medium", color: "Blue", sku: "LGH-PU-M-BL", price: 780000, procurement_qty: 2 },
+  { material: "PU Leather", size: "Medium", color: "Blue", sku: "LGH-PU-M-BL", price: 780000, procurement_qty: 1 },
   { material: "PU Leather", size: "Medium", color: "Beige", sku: "LGH-PU-M-BE", price: 780000, procurement_qty: 1 },
 
   // ───────── LARGE / PU ─────────
@@ -172,7 +172,7 @@ const variants: VariantDef[] = [
   { material: "Nylon", size: "Small", color: "Pale Pink", sku: "LGH-NY-S-PPI", price: 590000, procurement_qty: 1 },
   { material: "Nylon", size: "Small", color: "Pink/Brown", sku: "LGH-NY-S-PI/BR", price: 750000, procurement_qty: 7 },
   { material: "Nylon", size: "Small", color: "Olive", sku: "LGH-NY-S-OLV", price: 590000, procurement_qty: 7 },
-  { material: "Nylon", size: "Small", color: "Navy", sku: "LGH-NY-S-NV", price: 590000, procurement_qty: 4 },
+  { material: "Nylon", size: "Small", color: "Navy", sku: "LGH-NY-S-NV", price: 590000, procurement_qty: 1 },
   { material: "Nylon", size: "Small", color: "Mint/Ivory", sku: "LGH-NY-S-MGR/IV", price: 750000, procurement_qty: 5 },
   { material: "Nylon", size: "Small", color: "Mint", sku: "LGH-NY-S-MGR", price: 590000, procurement_qty: 0 },
   { material: "Nylon", size: "Small", color: "Light Gray", sku: "LGH-NY-S-LGA", price: 590000, procurement_qty: 7 },
@@ -183,23 +183,23 @@ const variants: VariantDef[] = [
   { material: "Nylon", size: "Small", color: "Gray", sku: "LGH-NY-S-GY", price: 590000, procurement_qty: 7 },
   { material: "Nylon", size: "Small", color: "Dark Green/Navy", sku: "LGH-NY-S-DG/NV", price: 750000, procurement_qty: 11 },
   { material: "Nylon", size: "Small", color: "Dark Brown", sku: "LGH-NY-S-BRA", price: 590000, procurement_qty: 2 },
-  { material: "Nylon", size: "Small", color: "Black", sku: "LGH-NY-S-BK", price: 590000, procurement_qty: 10 },
+  { material: "Nylon", size: "Small", color: "Black", sku: "LGH-NY-S-BK", price: 590000, procurement_qty: 8 },
   { material: "Nylon", size: "Small", color: "Beige", sku: "LGH-NY-S-BE", price: 590000, procurement_qty: 11 },
 
   // ───────── MEDIUM / NYLON ─────────
   { material: "Nylon", size: "Medium", color: "Silver Gray", sku: "LGH-NY-M-SGY", price: 680000, procurement_qty: 0 },
-  { material: "Nylon", size: "Medium", color: "Rare Blue", sku: "LGH-NY-M-RBL", price: 680000, procurement_qty: 1 },
-  { material: "Nylon", size: "Medium", color: "Pale Pink", sku: "LGH-NY-M-PPI", price: 680000, procurement_qty: 3 },
+  { material: "Nylon", size: "Medium", color: "Rare Blue", sku: "LGH-NY-M-RBL", price: 680000, procurement_qty: 0 },
+  { material: "Nylon", size: "Medium", color: "Pale Pink", sku: "LGH-NY-M-PPI", price: 680000, procurement_qty: 2 },
   { material: "Nylon", size: "Medium", color: "Olive", sku: "LGH-NY-M-OLV", price: 680000, procurement_qty: 2 },
-  { material: "Nylon", size: "Medium", color: "Navy", sku: "LGH-NY-M-NV", price: 680000, procurement_qty: 6 },
+  { material: "Nylon", size: "Medium", color: "Navy", sku: "LGH-NY-M-NV", price: 680000, procurement_qty: 7 },
   { material: "Nylon", size: "Medium", color: "Mustard", sku: "LGH-NY-M-MUS", price: 680000, procurement_qty: 1 },
   { material: "Nylon", size: "Medium", color: "Light Brown", sku: "LGH-NY-M-LBR", price: 680000, procurement_qty: 8 },
   { material: "Nylon", size: "Medium", color: "Ivory handle brown", sku: "LGH-NY-M-IVB", price: 680000, procurement_qty: 2 },
   { material: "Nylon", size: "Medium", color: "Icy Blue", sku: "LGH-NY-M-ICY", price: 680000, procurement_qty: 2 },
-  { material: "Nylon", size: "Medium", color: "Gray", sku: "LGH-NY-M-GY", price: 680000, procurement_qty: 6 },
+  { material: "Nylon", size: "Medium", color: "Gray", sku: "LGH-NY-M-GY", price: 680000, procurement_qty: 3 },
   { material: "Nylon", size: "Medium", color: "Dark Brown", sku: "LGH-NY-M-BRA", price: 680000, procurement_qty: 2 },
   { material: "Nylon", size: "Medium", color: "Black", sku: "LGH-NY-M-BK", price: 680000, procurement_qty: 8 },
-  { material: "Nylon", size: "Medium", color: "Beige", sku: "LGH-NY-M-BE", price: 680000, procurement_qty: 2 },
+  { material: "Nylon", size: "Medium", color: "Beige", sku: "LGH-NY-M-BE", price: 680000, procurement_qty: 1 },
   { material: "Nylon", size: "Medium", color: "Purple", sku: "LGH-NY-M-PUA", price: 680000, procurement_qty: 1 },
 
   // ───────── MICRO / NYLON ─────────
@@ -213,15 +213,15 @@ const variants: VariantDef[] = [
   { material: "Nylon", size: "Large", color: "Purple", sku: "LGH-NY-L-PUA", price: 690000, procurement_qty: 1 },
   { material: "Nylon", size: "Large", color: "Peach", sku: "LGH-NY-L-PIA", price: 690000, procurement_qty: 1 },
   { material: "Nylon", size: "Large", color: "Olive", sku: "LGH-NY-L-OLV", price: 690000, procurement_qty: 10 },
-  { material: "Nylon", size: "Large", color: "Navy", sku: "LGH-NY-L-NV", price: 690000, procurement_qty: 12 },
+  { material: "Nylon", size: "Large", color: "Navy", sku: "LGH-NY-L-NV", price: 690000, procurement_qty: 10 },
   { material: "Nylon", size: "Large", color: "Lavender", sku: "LGH-NY-L-LV", price: 690000, procurement_qty: 3 },
   { material: "Nylon", size: "Large", color: "Light Brown", sku: "LGH-NY-L-LBR", price: 690000, procurement_qty: 8 },
   { material: "Nylon", size: "Large", color: "Icy Blue", sku: "LGH-NY-L-ICY", price: 690000, procurement_qty: 2 },
-  { material: "Nylon", size: "Large", color: "Gray", sku: "LGH-NY-L-GY", price: 690000, procurement_qty: 11 },
-  { material: "Nylon", size: "Large", color: "Dark Brown", sku: "LGH-NY-L-BRA", price: 690000, procurement_qty: 2 },
+  { material: "Nylon", size: "Large", color: "Gray", sku: "LGH-NY-L-GY", price: 690000, procurement_qty: 12 },
+  { material: "Nylon", size: "Large", color: "Dark Brown", sku: "LGH-NY-L-BRA", price: 690000, procurement_qty: 1 },
   { material: "Nylon", size: "Large", color: "Black handle brown", sku: "LGH-NY-L-BKB", price: 690000, procurement_qty: 1 },
   { material: "Nylon", size: "Large", color: "Black", sku: "LGH-NY-L-BK", price: 690000, procurement_qty: 13 },
-  { material: "Nylon", size: "Large", color: "Beige", sku: "LGH-NY-L-BE", price: 690000, procurement_qty: 11 },
+  { material: "Nylon", size: "Large", color: "Beige", sku: "LGH-NY-L-BE", price: 690000, procurement_qty: 10 },
 
   // ───────── CABIN / NYLON ─────────
   { material: "Nylon", size: "Cabin", color: "Navy", sku: "LGH-NY-CABIN-NV", price: 1280000, procurement_qty: 2 },
@@ -561,4 +561,3 @@ async function main() {
 }
 
 await main();
-

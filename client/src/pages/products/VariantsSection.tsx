@@ -1,4 +1,5 @@
-import { Box, Pencil, Trash2 } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Box, Download, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -94,6 +95,75 @@ const resolveVariantColorDisplay = (colorNameCandidate?: string) => {
   };
 };
 
+type SortDirection = "asc" | "desc" | null;
+type VariantSortKey = "variant" | "color" | "price" | "stock";
+
+function sortData<T>(
+  data: T[],
+  sortKey: VariantSortKey | null,
+  sortDirection: SortDirection,
+  getSortValue: (item: T, key: VariantSortKey) => string | number,
+) {
+  if (!sortKey || !sortDirection) return data;
+
+  return data
+    .map((item, index) => ({ item, index }))
+    .sort((a, b) => {
+      const aVal = getSortValue(a.item, sortKey);
+      const bVal = getSortValue(b.item, sortKey);
+
+      let result = 0;
+      if (typeof aVal === "number" && typeof bVal === "number") {
+        result = aVal - bVal;
+      } else {
+        result = String(aVal).localeCompare(String(bVal), undefined, { sensitivity: "base" });
+      }
+
+      if (result === 0) return a.index - b.index;
+      return sortDirection === "asc" ? result : -result;
+    })
+    .map((entry) => entry.item);
+}
+
+function SortIndicator({ direction }: { direction: SortDirection }) {
+  return (
+    <span className="inline-flex items-center gap-0.5 text-[10px] leading-none">
+      <span className={cn(direction === "asc" ? "text-slate-700" : "text-slate-300")}>{"\u25B2"}</span>
+      <span className={cn(direction === "desc" ? "text-slate-700" : "text-slate-300")}>{"\u25BC"}</span>
+    </span>
+  );
+}
+function SortableHeader({
+  label,
+  isActive,
+  direction,
+  onClick,
+  align = "left",
+}: {
+  label: string;
+  isActive: boolean;
+  direction: SortDirection;
+  onClick: () => void;
+  align?: "left" | "center" | "right";
+}) {
+  const alignClass = align === "right" ? "justify-end" : align === "center" ? "justify-center" : "justify-start";
+
+  return (
+    <button
+      type="button"
+      className={cn(
+        "inline-flex w-full items-center gap-2 rounded-md px-1 py-1 cursor-pointer transition-colors hover:bg-slate-100/70",
+        alignClass,
+        isActive ? "text-slate-700" : "text-slate-500",
+      )}
+      onClick={onClick}
+    >
+      <span>{label}</span>
+      <SortIndicator direction={direction} />
+    </button>
+  );
+}
+
 export function VariantFiltersCard({
   productId,
   attributes,
@@ -167,37 +237,167 @@ export function VariantsTable({
     onSuccess: () => void;
   }>;
 }) {
+  const [sortKey, setSortKey] = useState<VariantSortKey | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
   const filteredVariants = filterVariantsBySelections(variants, attributes, activeFilters);
-
-  if (filteredVariants.length === 0) {
-    return (
-      <div className="col-span-full text-center py-8 text-muted-foreground">
-        <Box className="w-10 h-10 mx-auto mb-2 text-slate-300" />
-        <p>{variants.length === 0 ? "No variants yet. Add one to start selling." : "No variants match current filters."}</p>
-      </div>
+  const variantPresentationMap = useMemo(() => {
+    return new Map<number, { variantName: string; colorName: string }>(
+      filteredVariants.map((variant) => {
+        const material = getVariantAttributeValue(variant, ["material", "bahan"]);
+        const size = getVariantAttributeValue(variant, ["size", "ukuran"]);
+        const colorFromAttribute = getVariantAttributeValue(variant, ["color", "colour", "warna"]);
+        const variantName = [material, size, colorFromAttribute].map((v) => v || "-").join(" - ");
+        const inferredFromLabel = variantName
+          .split(" - ")
+          .map((part) => part.trim())
+          .filter((part) => part.length > 0 && part !== "-")
+          .at(-1);
+        const colorName = colorFromAttribute && colorFromAttribute !== "-" ? colorFromAttribute : inferredFromLabel ?? "";
+        return [variant.id, { variantName, colorName }];
+      }),
     );
-  }
+  }, [filteredVariants]);
+
+  const sortedFilteredVariants = useMemo(
+    () =>
+      sortData(filteredVariants, sortKey, sortDirection, (variant, key) => {
+        const view = variantPresentationMap.get(variant.id);
+        if (key === "price") return Number(getVariantPrice(variant, "IDR")?.priceCents ?? 0);
+        if (key === "stock") return Number(variant.stockOnHand ?? 0);
+        if (key === "color") return view?.colorName ?? "";
+        return view?.variantName ?? "";
+      }),
+    [filteredVariants, sortDirection, sortKey, variantPresentationMap],
+  );
+
+  const cycleSort = (nextKey: VariantSortKey) => {
+    if (sortKey !== nextKey) {
+      setSortKey(nextKey);
+      setSortDirection("asc");
+      return;
+    }
+    if (sortDirection === "asc") {
+      setSortDirection("desc");
+      return;
+    }
+    if (sortDirection === "desc") {
+      setSortKey(null);
+      setSortDirection(null);
+      return;
+    }
+    setSortDirection("asc");
+  };
+
+  const escapeCsv = (value: string | number) => {
+    const text = String(value ?? "");
+    const escaped = text.replace(/"/g, '""');
+    return `"${escaped}"`;
+  };
+
+  const handleDownloadCsv = () => {
+    if (sortedFilteredVariants.length === 0) return;
+
+    const headers = ["Variant name", "SKU", "Color", "Price", "Stock"];
+    const rows = sortedFilteredVariants.map((variant) => {
+      const mapped = variantPresentationMap.get(variant.id);
+      const variantName = mapped?.variantName ?? "";
+      const colorName = mapped?.colorName ?? "";
+      const sku = variant.sku ?? "";
+      const price = Number(getVariantPrice(variant, "IDR")?.priceCents ?? 0);
+      const stock = Number(variant.stockOnHand ?? 0);
+
+      return [variantName, sku, colorName, price, stock].map(escapeCsv).join(",");
+    });
+
+    const csv = [headers.map(escapeCsv).join(","), ...rows].join("\n");
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, "0");
+    const dd = String(now.getDate()).padStart(2, "0");
+    const filename = `variants-${yyyy}-${mm}-${dd}.csv`;
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <Card className="overflow-hidden border border-slate-100 shadow-sm rounded-xl">
-      <Table className="min-w-[1000px]">
-        <TableHeader className="bg-slate-50/80">
-          <TableRow className="hover:bg-transparent">
-            <TableHead className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-500">Variant</TableHead>
-            <TableHead className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-500">Color</TableHead>
-            <TableHead className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">Price</TableHead>
-            <TableHead className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">Stock</TableHead>
-            <TableHead className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">Action</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {filteredVariants.map((variant) => {
+      <div className="flex items-center justify-end gap-3 border-b border-slate-100 px-4 py-3">
+        {sortedFilteredVariants.length === 0 ? (
+          <p className="text-xs text-slate-500">No data</p>
+        ) : null}
+        <Button
+          type="button"
+          variant="ghost"
+          className="h-9"
+          onClick={handleDownloadCsv}
+          disabled={sortedFilteredVariants.length === 0}
+          data-testid={`button-download-variants-csv-${productId}`}
+        >
+          <Download className="mr-2 h-4 w-4" />
+          Download CSV
+        </Button>
+      </div>
+      {sortedFilteredVariants.length === 0 ? (
+        <div className="col-span-full text-center py-8 text-muted-foreground">
+          <Box className="w-10 h-10 mx-auto mb-2 text-slate-300" />
+          <p>{variants.length === 0 ? "No variants yet. Add one to start selling." : "No variants match current filters."}</p>
+        </div>
+      ) : (
+        <Table className="min-w-[1000px]">
+          <TableHeader className="bg-slate-50/80">
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <SortableHeader
+                  label="Variant"
+                  isActive={sortKey === "variant"}
+                  direction={sortKey === "variant" ? sortDirection : null}
+                  onClick={() => cycleSort("variant")}
+                />
+              </TableHead>
+              <TableHead className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <SortableHeader
+                  label="Color"
+                  isActive={sortKey === "color"}
+                  direction={sortKey === "color" ? sortDirection : null}
+                  onClick={() => cycleSort("color")}
+                />
+              </TableHead>
+              <TableHead className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <SortableHeader
+                  label="Price"
+                  align="right"
+                  isActive={sortKey === "price"}
+                  direction={sortKey === "price" ? sortDirection : null}
+                  onClick={() => cycleSort("price")}
+                />
+              </TableHead>
+              <TableHead className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <SortableHeader
+                  label="Stock"
+                  align="center"
+                  isActive={sortKey === "stock"}
+                  direction={sortKey === "stock" ? sortDirection : null}
+                  onClick={() => cycleSort("stock")}
+                />
+              </TableHead>
+              <TableHead className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">Action</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {sortedFilteredVariants.map((variant) => {
             const stockNum = Number(variant.stockOnHand);
             const price = getVariantPrice(variant, "IDR");
-            const material = getVariantAttributeValue(variant, ["material", "bahan"]);
-            const size = getVariantAttributeValue(variant, ["size", "ukuran"]);
-            const colorFromAttribute = getVariantAttributeValue(variant, ["color", "colour", "warna"]);
-            const variantName = [material, size, colorFromAttribute].map((v) => v || "-").join(" - ");
+            const mapped = variantPresentationMap.get(variant.id);
+            const variantName = mapped?.variantName ?? "-";
+            const colorFromAttribute = mapped?.colorName ?? "-";
             const inferredFromLabel = variantName
               .split(" - ")
               .map((part) => part.trim())
@@ -233,16 +433,7 @@ export function VariantsTable({
                 </TableCell>
                 <TableCell className="px-6 py-4 text-center align-middle">
                   <p className="lg:hidden mb-0.5 text-[11px] uppercase tracking-wide text-slate-400">Stock</p>
-                  <p
-                    className={cn(
-                      "text-sm font-medium",
-                      stockNum === 0
-                        ? "text-orange-500"
-                        : stockNum <= 2
-                          ? "text-amber-600"
-                          : "text-slate-700",
-                    )}
-                  >
+                  <p className="text-sm font-medium text-slate-700">
                     {stockNum}
                   </p>
                 </TableCell>
@@ -277,9 +468,11 @@ export function VariantsTable({
                 </TableCell>
               </TableRow>
             );
-          })}
-        </TableBody>
-      </Table>
+            })}
+          </TableBody>
+        </Table>
+      )}
     </Card>
   );
 }
+
