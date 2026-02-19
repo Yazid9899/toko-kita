@@ -37,6 +37,7 @@ const PRODUCT_NAME = "Legatto-LGH";
 const PRODUCT_DESCRIPTION = "Legatto handbag line";
 const PROCUREMENT_SEED_NOTE = "seed:product-variant-base-stock";
 const PROCUREMENT_SEED_PURCHASE_NUMBER = "PUR-0001";
+const SEED_CREATED_AT = new Date("2026-01-28T12:00:00.000Z");
 const procurementCapitalCentsBySku: Record<string, number> = {
   "LGH-PU-S-SI": 379300,
   "LGH-PU-S-BK": 379300,
@@ -508,6 +509,7 @@ async function upsertSeedProcurement(
         capitalCurrency: CURRENCY,
         status: "ARRIVED",
         notes: PROCUREMENT_SEED_NOTE,
+        createdAt: SEED_CREATED_AT,
         updatedAt: new Date(),
       })
       .where(eq(procurements.id, existing[0].id));
@@ -527,6 +529,7 @@ async function upsertSeedProcurement(
     capitalCurrency: CURRENCY,
     status: "ARRIVED",
     notes: PROCUREMENT_SEED_NOTE,
+    createdAt: SEED_CREATED_AT,
   });
   await db
     .update(productVariants)

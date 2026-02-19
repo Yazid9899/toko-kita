@@ -11,6 +11,9 @@ export type CreateProcurementInput = {
   capitalCurrency?: string;
   status?: "TO_BUY" | "ARRIVED";
   notes?: string;
+  additionalCosts?: Array<{ type: string; amount: number }>;
+  extraCapital?: number;
+  grandTotalCapital?: number;
 };
 
 export function useProcurements() {
@@ -128,9 +131,20 @@ export function useBulkArriveProcurements() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (input: number[] | { ids: number[]; notes?: string }) => {
+    mutationFn: async (
+      input:
+        | number[]
+        | {
+            ids: number[];
+            notes?: string;
+            additionalCosts?: Array<{ type: string; amount: number }>;
+            extraCapital?: number;
+            grandTotalCapital?: number;
+          },
+    ) => {
       const ids = Array.isArray(input) ? input : input.ids;
       const notes = Array.isArray(input) ? undefined : input.notes;
+      // TODO: Persist additional capital metadata after procurement purchase API supports it.
       await Promise.all(
         ids.map(async (id) => {
           const url = buildUrl(api.procurements.update.path, { id });

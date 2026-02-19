@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { Loader2, Trash2, ChevronRight, UserPlus, AlertCircle, ShoppingBag, Search } from "lucide-react";
+import { Loader2, Trash2, ChevronRight, UserPlus, AlertCircle, ShoppingBag, Search, CalendarDays } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,6 +17,25 @@ import { type Customer } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { formatPrice, formatVariantLabel, getVariantPrice } from "@/lib/variant-utils";
 import { CustomerForm } from "@/components/CustomerForm";
+
+function getTodayDateInputValue() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function formatReadableDate(dateValue: string) {
+  if (!dateValue) return "";
+  const parsed = new Date(`${dateValue}T00:00:00`);
+  if (Number.isNaN(parsed.getTime())) return "";
+  return parsed.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
 
 export default function CreateOrder() {
   const [, setLocation] = useLocation();
@@ -37,6 +56,7 @@ export default function CreateOrder() {
   }>>([]);
   
   const [notes, setNotes] = useState("");
+  const [orderDate, setOrderDate] = useState(getTodayDateInputValue());
   const [discount, setDiscount] = useState(0);
   const [discountInput, setDiscountInput] = useState("");
   const [variantSearch, setVariantSearch] = useState("");
@@ -109,10 +129,16 @@ export default function CreateOrder() {
 
   const handleSubmit = () => {
     if (!selectedCustomerId) return;
+    const effectiveOrderDate = orderDate || getTodayDateInputValue();
+    if (!orderDate) {
+      setOrderDate(effectiveOrderDate);
+    }
     createOrder({
       customerId: selectedCustomerId,
       notes,
       discount,
+      // TODO: Send orderDate once orders.create API supports explicit createdAt/orderDate input.
+      // Keep UI-only for now to avoid backend/data contract changes.
       items: items.map(i => ({
         productVariantId: i.productVariantId,
         quantity: i.quantity,
@@ -169,21 +195,52 @@ export default function CreateOrder() {
                 </DialogContent>
               </Dialog>
             </div>
-            <Select
-              value={selectedCustomerId ? String(selectedCustomerId) : undefined}
-              onValueChange={(value) => setSelectedCustomerId(Number(value))}
-            >
-              <SelectTrigger className="h-11 rounded-xl" data-testid="select-customer">
-                <SelectValue placeholder="Choose customer" />
-              </SelectTrigger>
-              <SelectContent>
-                {customers?.map((customer) => (
-                  <SelectItem key={customer.id} value={String(customer.id)}>
-                    {customer.name} ({customer.phoneNumber})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_260px] md:items-end">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-slate-700">Customer</Label>
+                <Select
+                  value={selectedCustomerId ? String(selectedCustomerId) : undefined}
+                  onValueChange={(value) => setSelectedCustomerId(Number(value))}
+                >
+                  <SelectTrigger className="h-11 rounded-xl" data-testid="select-customer">
+                    <SelectValue placeholder="Choose customer" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {customers?.map((customer) => (
+                      <SelectItem key={customer.id} value={String(customer.id)}>
+                        {customer.name} ({customer.phoneNumber})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-medium text-slate-700">Order Date</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2 text-xs text-slate-500 hover:text-slate-700"
+                    onClick={() => setOrderDate(getTodayDateInputValue())}
+                    data-testid="button-order-date-today"
+                  >
+                    Today
+                  </Button>
+                </div>
+                <div className="relative">
+                  <Input
+                    type="date"
+                    value={orderDate}
+                    onChange={(event) => setOrderDate(event.target.value)}
+                    className="h-11 rounded-xl pr-10 [color-scheme:light] [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:w-10 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0"
+                    data-testid="input-order-date"
+                  />
+                  <CalendarDays className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                </div>
+                <p className="text-xs text-slate-500">{formatReadableDate(orderDate)}</p>
+              </div>
+            </div>
           </Card>
 
           {/* Products Card */}

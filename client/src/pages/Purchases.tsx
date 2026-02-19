@@ -38,8 +38,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from "date-fns";
-import { Boxes, Check, ChevronRight, Copy, Package, Plus, Search, ShoppingBag, Trash2, Wallet } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Boxes, Check, ChevronDown, ChevronRight, Copy, Package, Plus, Search, ShoppingBag, Trash2, Wallet } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type ProcurementLineItem = {
   id: number;
@@ -78,6 +78,37 @@ type ManualPurchaseRow = {
   qty: string;
   unitCapital: string;
 };
+
+type AdditionalCostType =
+  | "SHIPPING_FREIGHT"
+  | "GAS_FUEL"
+  | "PACKAGING"
+  | "HANDLING_FEE"
+  | "HOTEL"
+  | "FLIGHT_TICKET"
+  | "TAX"
+  | "CUSTOMS_IMPORT_FEE"
+  | "INSURANCE"
+  | "OTHER";
+
+type AdditionalCostRow = {
+  key: string;
+  type: AdditionalCostType | "";
+  amount: string;
+};
+
+const ADDITIONAL_COST_TYPE_OPTIONS: { value: AdditionalCostType; label: string }[] = [
+  { value: "SHIPPING_FREIGHT", label: "Shipping/Freight" },
+  { value: "GAS_FUEL", label: "Gas/Fuel" },
+  { value: "PACKAGING", label: "Packaging" },
+  { value: "HANDLING_FEE", label: "Handling Fee" },
+  { value: "HOTEL", label: "Hotel" },
+  { value: "FLIGHT_TICKET", label: "Flight Ticket" },
+  { value: "TAX", label: "Tax" },
+  { value: "CUSTOMS_IMPORT_FEE", label: "Customs/Import Fee" },
+  { value: "INSURANCE", label: "Insurance" },
+  { value: "OTHER", label: "Other" },
+];
 
 type DrawerSortKey = "item" | "qty" | "unitCapital" | "subtotal";
 type SortDirection = "asc" | "desc" | null;
@@ -164,10 +195,14 @@ export default function Purchases() {
   const [manualRows, setManualRows] = useState<ManualPurchaseRow[]>([
     { key: "row-1", variantId: "", qty: "", unitCapital: "" },
   ]);
+  const [additionalCostRows, setAdditionalCostRows] = useState<AdditionalCostRow[]>([]);
+  const [additionalCostsExpanded, setAdditionalCostsExpanded] = useState(false);
+  const [pendingAdditionalCostFocusKey, setPendingAdditionalCostFocusKey] = useState<string | null>(null);
   const [selectedTransactionKey, setSelectedTransactionKey] = useState<string | null>(null);
   const [copiedPurchaseNo, setCopiedPurchaseNo] = useState<string | null>(null);
   const [drawerSortKey, setDrawerSortKey] = useState<DrawerSortKey | null>(null);
   const [drawerSortDirection, setDrawerSortDirection] = useState<SortDirection>(null);
+  const additionalCostAmountRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const toBuyItems = useMemo(
     () => ((procurements ?? []) as ProcurementLineItem[]).filter((item) => item.status === "TO_BUY"),
@@ -300,6 +335,10 @@ export default function Purchases() {
     () => Object.entries(selectedIds).filter(([, checked]) => checked).map(([id]) => Number(id)),
     [selectedIds],
   );
+  const selectedProcurementItems = useMemo(
+    () => toBuyItems.filter((item) => selectedIds[item.id]),
+    [selectedIds, toBuyItems],
+  );
 
   const allFilteredSelected =
     filteredToBuyItems.length > 0 && filteredToBuyItems.every((item) => selectedIds[item.id]);
@@ -310,10 +349,54 @@ export default function Purchases() {
     const variantId = Number(row.variantId);
     return variantId > 0 && qty > 0 && unitCapital > 0;
   });
+  const isManualRowValid = (row: ManualPurchaseRow) => {
+    const qty = Number(row.qty);
+    const unitCapital = Number(row.unitCapital);
+    const variantId = Number(row.variantId);
+    return variantId > 0 && qty > 0 && unitCapital > 0;
+  };
+  const isManualRowTouched = (row: ManualPurchaseRow) =>
+    row.variantId.trim().length > 0 || row.qty.trim().length > 0 || row.unitCapital.trim().length > 0;
 
   const isSubmittingPurchase = isBulkArriving || isCreatingManualPurchase;
   const canSubmitProcurement = selectedProcurementIds.length > 0;
   const canSubmitManual = validManualRows.length > 0 && validManualRows.length === manualRows.length;
+  const itemsCapital = useMemo(() => {
+    if (purchaseMode === "PROCUREMENT") {
+      return selectedProcurementItems.reduce((sum, item) => sum + getLineSubtotal(item), 0);
+    }
+    return validManualRows.reduce((sum, row) => sum + Number(row.qty) * Number(row.unitCapital), 0);
+  }, [purchaseMode, selectedProcurementItems, validManualRows]);
+
+  const hasInvalidAdditionalCost = useMemo(
+    () =>
+      additionalCostRows.some((row) => {
+        const amount = Number(row.amount);
+        const hasType = !!row.type;
+        if (!row.amount && !hasType) return false;
+        if (Number.isNaN(amount) || amount < 0) return true;
+        if (amount > 0 && !hasType) return true;
+        return false;
+      }),
+    [additionalCostRows],
+  );
+
+  const normalizedAdditionalCosts = useMemo(
+    () =>
+      additionalCostRows
+        .map((row) => ({
+          type: row.type,
+          amount: Number(row.amount || 0),
+        }))
+        .filter((row) => !!row.type && row.amount >= 0),
+    [additionalCostRows],
+  );
+
+  const extraCapital = useMemo(
+    () => normalizedAdditionalCosts.reduce((sum, row) => sum + row.amount, 0),
+    [normalizedAdditionalCosts],
+  );
+  const grandTotalCapital = itemsCapital + extraCapital;
 
   const toBuyCount = toBuyItems.length;
   const inventoryItemsCount = products
@@ -379,6 +462,31 @@ export default function Purchases() {
     setManualRows((prev) => (prev.length === 1 ? prev : prev.filter((row) => row.key !== key)));
   };
 
+  const addAdditionalCostRow = () => {
+    const key = `cost-${Date.now()}-${additionalCostRows.length}`;
+    setAdditionalCostsExpanded(true);
+    setAdditionalCostRows((prev) => [...prev, { key, type: "SHIPPING_FREIGHT", amount: "" }]);
+    setPendingAdditionalCostFocusKey(key);
+  };
+
+  const updateAdditionalCostRow = (key: string, patch: Partial<AdditionalCostRow>) => {
+    setAdditionalCostRows((prev) => prev.map((row) => (row.key === key ? { ...row, ...patch } : row)));
+  };
+
+  const removeAdditionalCostRow = (key: string) => {
+    setAdditionalCostRows((prev) => prev.filter((row) => row.key !== key));
+  };
+
+  useEffect(() => {
+    if (!pendingAdditionalCostFocusKey) return;
+    const input = additionalCostAmountRefs.current[pendingAdditionalCostFocusKey];
+    if (input) {
+      input.focus();
+      input.select();
+      setPendingAdditionalCostFocusKey(null);
+    }
+  }, [additionalCostRows, pendingAdditionalCostFocusKey]);
+
   const resetPurchaseDialog = () => {
     setPurchaseMode("PROCUREMENT");
     setPurchaseSearch("");
@@ -386,15 +494,27 @@ export default function Purchases() {
     setPurchaseNotes("");
     setSelectedIds({});
     setManualRows([{ key: "row-1", variantId: "", qty: "", unitCapital: "" }]);
+    setAdditionalCostRows([]);
+    setAdditionalCostsExpanded(false);
+    setPendingAdditionalCostFocusKey(null);
   };
 
   const handlePurchaseSubmit = async () => {
+    if (hasInvalidAdditionalCost) return;
     const notes = purchaseNotes.trim() || undefined;
+    const payloadMeta = {
+      additionalCosts: normalizedAdditionalCosts
+        .filter((row) => row.type)
+        .map((row) => ({ type: row.type as AdditionalCostType, amount: row.amount })),
+      extraCapital,
+      grandTotalCapital,
+    };
 
     try {
       if (purchaseMode === "PROCUREMENT") {
         if (!canSubmitProcurement) return;
-        await bulkArrive({ ids: selectedProcurementIds, notes });
+        // TODO: Persist additional costs for procurement purchases after backend supports these fields.
+        await bulkArrive({ ids: selectedProcurementIds, notes, ...payloadMeta });
         toast({ title: "Purchase recorded" });
         toast({ title: "Procurement marked as arrived" });
       } else {
@@ -409,6 +529,7 @@ export default function Purchases() {
           capitalCurrency: "IDR",
           status: "ARRIVED" as const,
           notes,
+          ...payloadMeta,
         }));
 
         await createBulkPurchases(payload);
@@ -469,27 +590,47 @@ export default function Purchases() {
           <DialogTrigger asChild>
             <Button data-testid="button-purchase-items">Purchase Items</Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[960px]">
-            <DialogHeader>
-              <DialogTitle>Purchase Items</DialogTitle>
-              <DialogDescription>Record purchases from procurement items or create a manual purchase.</DialogDescription>
-            </DialogHeader>
+          <DialogContent className="sm:max-w-[960px] max-h-[100vh] overflow-hidden p-0">
+            <div className="flex h-[min(100vh,820px)] flex-col">
+              <div className="shrink-0 border-b border-slate-100 bg-white px-6 py-4">
+                <DialogHeader>
+                  <DialogTitle>Purchase Items</DialogTitle>
+                  <DialogDescription>Record purchases from procurement items or create a manual purchase.</DialogDescription>
+                </DialogHeader>
+                <div className="mt-3 space-y-3">
+                  <Tabs
+                    defaultValue="PROCUREMENT"
+                    value={purchaseMode}
+                    onValueChange={(value) => setPurchaseMode(value as "PROCUREMENT" | "MANUAL")}
+                  >
+                    <TabsList className="inline-flex h-10 items-center justify-center rounded-xl bg-slate-100/80 p-1 text-slate-500">
+                      <TabsTrigger value="PROCUREMENT" className="rounded-lg px-4 py-1.5 text-sm font-semibold data-[state=active]:bg-white data-[state=active]:text-[#00848E]">
+                        From Procurement
+                      </TabsTrigger>
+                      <TabsTrigger value="MANUAL" className="rounded-lg px-4 py-1.5 text-sm font-semibold data-[state=active]:bg-white data-[state=active]:text-[#5C6AC4]">
+                        Manual
+                      </TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Input
+                      value={purchaseMode === "PROCUREMENT" ? purchaseSearch : manualSearch}
+                      onChange={(event) =>
+                        purchaseMode === "PROCUREMENT"
+                          ? setPurchaseSearch(event.target.value)
+                          : setManualSearch(event.target.value)
+                      }
+                      placeholder={purchaseMode === "PROCUREMENT" ? "Search purchase number, SKU, variant, order, or customer" : "Search product or SKU"}
+                      className="pl-9"
+                      data-testid="input-purchase-search"
+                    />
+                  </div>
+                </div>
+              </div>
 
-            <div className="space-y-4">
-              <Tabs
-                defaultValue="PROCUREMENT"
-                value={purchaseMode}
-                onValueChange={(value) => setPurchaseMode(value as "PROCUREMENT" | "MANUAL")}
-              >
-                <TabsList className="inline-flex h-10 items-center justify-center rounded-xl bg-slate-100/80 p-1 text-slate-500">
-                  <TabsTrigger value="PROCUREMENT" className="rounded-lg px-4 py-1.5 text-sm font-semibold data-[state=active]:bg-white data-[state=active]:text-[#00848E]">
-                    From Procurement
-                  </TabsTrigger>
-                  <TabsTrigger value="MANUAL" className="rounded-lg px-4 py-1.5 text-sm font-semibold data-[state=active]:bg-white data-[state=active]:text-[#5C6AC4]">
-                    Manual
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
+              <div className="flex-1 overflow-y-auto px-6 py-4">
+                <div className="space-y-4">
 
               {purchaseMode === "PROCUREMENT" ? (
                 <div className="space-y-3">
@@ -500,17 +641,6 @@ export default function Purchases() {
                     </div>
                   ) : (
                     <>
-                      <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                        <Input
-                          value={purchaseSearch}
-                          onChange={(event) => setPurchaseSearch(event.target.value)}
-                          placeholder="Search purchase number, SKU, variant, order, or customer"
-                          className="pl-9"
-                          data-testid="input-purchase-search"
-                        />
-                      </div>
-
                       <div className="border border-slate-200 rounded-xl overflow-hidden">
                         <div className="grid grid-cols-12 gap-3 px-4 py-3 bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
                           <div className="col-span-1">
@@ -523,7 +653,7 @@ export default function Purchases() {
                           <div className="col-span-2 text-center">Qty</div>
                           <div className="col-span-4">Reference</div>
                         </div>
-                        <div className="max-h-[320px] overflow-y-auto divide-y divide-slate-100">
+                        <div className="divide-y divide-slate-100">
                           {filteredToBuyItems.length === 0 ? (
                             <div className="px-4 py-10 text-center text-sm text-slate-500">No to-buy items found.</div>
                           ) : (
@@ -564,73 +694,76 @@ export default function Purchases() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <Input
-                      value={manualSearch}
-                      onChange={(event) => setManualSearch(event.target.value)}
-                      placeholder="Search product or SKU"
-                      className="pl-9"
-                    />
-                  </div>
-
-                  <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1">
-                    {manualRows.map((row) => (
-                      <div key={row.key} className="grid grid-cols-12 gap-2 items-end rounded-xl border border-slate-200 p-3">
-                        <div className="col-span-6">
-                          <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-slate-500">Variant</p>
-                          <Select value={row.variantId} onValueChange={(value) => updateManualRow(row.key, { variantId: value })}>
-                            <SelectTrigger className="h-9">
-                              <SelectValue placeholder="Select variant" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {filteredVariantOptions.map((option) => (
-                                <SelectItem key={option.id} value={String(option.id)}>
-                                  {option.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="col-span-2">
-                          <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-slate-500">Qty</p>
-                          <Input
-                            type="number"
-                            min={1}
-                            value={row.qty}
-                            onChange={(event) => updateManualRow(row.key, { qty: event.target.value })}
-                            className="h-9"
-                          />
-                        </div>
-                        <div className="col-span-3">
-                          <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-slate-500">Unit Capital</p>
-                          <Input
-                            type="number"
-                            min={1}
-                            value={row.unitCapital}
-                            onChange={(event) => updateManualRow(row.key, { unitCapital: event.target.value })}
-                            className="h-9"
-                          />
-                        </div>
-                        <div className="col-span-1 flex justify-end">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="h-9 w-9 text-slate-500 hover:text-rose-600"
-                            onClick={() => removeManualRow(row.key)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
+                  <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+                    <div className="grid grid-cols-12 items-center gap-2 border-b border-slate-100 bg-slate-50/70 px-3 py-2">
+                      <p className="col-span-1 text-xs font-semibold uppercase tracking-wider text-slate-500">#</p>
+                      <p className="col-span-6 text-xs font-semibold uppercase tracking-wider text-slate-500">Variant</p>
+                      <p className="col-span-2 text-xs font-semibold uppercase tracking-wider text-slate-500">Qty</p>
+                      <p className="col-span-2 text-xs font-semibold uppercase tracking-wider text-slate-500">Unit Capital</p>
+                      <div className="col-span-1 flex justify-end">
+                        <Button type="button" variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={addManualRow}>
+                          <Plus className="mr-1 h-3.5 w-3.5" />
+                          Add Item
+                        </Button>
                       </div>
-                    ))}
+                    </div>
+                    <div className="divide-y divide-slate-100">
+                      {manualRows.map((row, index) => {
+                        const rowInvalid = isManualRowTouched(row) && !isManualRowValid(row);
+                        return (
+                          <div
+                            key={row.key}
+                            className={`grid grid-cols-12 items-center gap-2 px-3 py-2 ${rowInvalid ? "bg-amber-50/60" : "bg-white"}`}
+                          >
+                            <p className="col-span-1 text-xs font-medium text-slate-500">{index + 1}</p>
+                            <div className="col-span-6">
+                              <Select value={row.variantId} onValueChange={(value) => updateManualRow(row.key, { variantId: value })}>
+                                <SelectTrigger className="h-8">
+                                  <SelectValue placeholder="Select variant" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {filteredVariantOptions.map((option) => (
+                                    <SelectItem key={option.id} value={String(option.id)}>
+                                      {option.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="col-span-2">
+                              <Input
+                                type="number"
+                                min={1}
+                                value={row.qty}
+                                onChange={(event) => updateManualRow(row.key, { qty: event.target.value })}
+                                className="h-8"
+                              />
+                            </div>
+                            <div className="col-span-2">
+                              <Input
+                                type="number"
+                                min={1}
+                                value={row.unitCapital}
+                                onChange={(event) => updateManualRow(row.key, { unitCapital: event.target.value })}
+                                className="h-8"
+                              />
+                            </div>
+                            <div className="col-span-1 flex justify-end">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-slate-500 hover:text-rose-600"
+                                onClick={() => removeManualRow(row.key)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-
-                  <Button type="button" variant="outline" onClick={addManualRow} className="w-full">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Item
-                  </Button>
 
                   {manualRows.length > 0 && !canSubmitManual ? (
                     <p className="text-xs text-amber-700">Each manual row requires variant, qty &gt; 0, and unit capital &gt; 0.</p>
@@ -638,36 +771,155 @@ export default function Purchases() {
                 </div>
               )}
 
+              <div className="rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2.5">
+                <div className="flex items-center justify-between gap-3">
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-700 hover:text-slate-900"
+                    onClick={() => setAdditionalCostsExpanded((prev) => !prev)}
+                  >
+                    <ChevronDown
+                      className={`h-4 w-4 text-slate-400 transition-transform ${additionalCostsExpanded ? "rotate-180" : ""}`}
+                    />
+                    Additional costs (optional)
+                  </button>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-slate-500">{formatCapital(extraCapital)}</span>
+                    <Button type="button" variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={addAdditionalCostRow}>
+                      <Plus className="mr-1 h-3.5 w-3.5" />
+                      Add
+                    </Button>
+                  </div>
+                </div>
+
+                {additionalCostsExpanded ? (
+                  <div className="mt-2 overflow-hidden rounded-lg border border-slate-200 bg-white">
+                    <div className="grid grid-cols-12 gap-2 border-b border-slate-100 bg-slate-50/70 px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                      <p className="col-span-6">Cost Type</p>
+                      <p className="col-span-5">Amount</p>
+                      <p className="col-span-1 text-right">Delete</p>
+                    </div>
+                    <div className="divide-y divide-slate-100">
+                      {additionalCostRows.length === 0 ? (
+                        <p className="px-3 py-3 text-xs text-slate-500">No additional costs added yet.</p>
+                      ) : (
+                        additionalCostRows.map((row) => {
+                          const rowAmount = Number(row.amount || 0);
+                          const rowInvalid = Number.isNaN(rowAmount) || rowAmount < 0 || (rowAmount > 0 && !row.type);
+                          return (
+                            <div key={row.key} className={`grid grid-cols-12 gap-2 items-center px-2 py-1.5 ${rowInvalid ? "bg-amber-50/60" : "bg-white"}`}>
+                              <div className="col-span-6">
+                                <Select
+                                  value={row.type || "__empty"}
+                                  onValueChange={(value) =>
+                                    updateAdditionalCostRow(row.key, {
+                                      type: value === "__empty" ? "" : (value as AdditionalCostType),
+                                    })
+                                  }
+                                >
+                                  <SelectTrigger className="h-8">
+                                    <SelectValue placeholder="Select cost type" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="__empty">No type</SelectItem>
+                                    {ADDITIONAL_COST_TYPE_OPTIONS.map((option) => (
+                                      <SelectItem key={option.value} value={option.value}>
+                                        {option.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div className="col-span-5">
+                                <div className="relative">
+                                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400">
+                                    IDR
+                                  </span>
+                                  <Input
+                                    ref={(node) => {
+                                      additionalCostAmountRefs.current[row.key] = node;
+                                    }}
+                                    type="number"
+                                    min={0}
+                                    placeholder="0"
+                                    value={row.amount}
+                                    onChange={(event) => updateAdditionalCostRow(row.key, { amount: event.target.value })}
+                                    className="h-8 pl-12"
+                                  />
+                                </div>
+                              </div>
+                              <div className="col-span-1 flex justify-end">
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-slate-500 hover:text-rose-600"
+                                  onClick={() => removeAdditionalCostRow(row.key)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+
               <div className="space-y-1.5">
                 <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Notes</p>
                 <Textarea
                   value={purchaseNotes}
                   onChange={(event) => setPurchaseNotes(event.target.value)}
                   placeholder="Add notes for this purchase"
-                  className="min-h-[84px] resize-y"
+                  rows={2}
+                  className="min-h-[64px] resize-y"
                   data-testid="input-purchase-notes"
                 />
               </div>
             </div>
 
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setPurchaseOpen(false)} disabled={isSubmittingPurchase}>
-                Cancel
-              </Button>
-              <Button
-                onClick={handlePurchaseSubmit}
-                disabled={
-                  isSubmittingPurchase ||
-                  (purchaseMode === "PROCUREMENT" ? !canSubmitProcurement : !canSubmitManual)
-                }
-                data-testid="button-confirm-purchase-items"
-              >
-                {isSubmittingPurchase ? <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-r-transparent" /> : null}
-                {purchaseMode === "PROCUREMENT"
-                  ? `Purchase Selected (${selectedProcurementIds.length})`
-                  : `Record Manual Purchase (${validManualRows.length})`}
-              </Button>
+            <DialogFooter className="shrink-0 border-t border-slate-100 bg-white px-6 py-4 flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div className="w-full text-sm sm:max-w-[260px] sm:order-2 sm:text-right">
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-slate-500 sm:justify-end sm:gap-4">
+                    <span>Items capital</span>
+                    <span>{formatCapital(itemsCapital)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-slate-500 sm:justify-end sm:gap-4">
+                    <span>Additional costs</span>
+                    <span>{formatCapital(extraCapital)}</span>
+                  </div>
+                  <div className="flex items-center justify-between font-semibold text-slate-900 sm:justify-end sm:gap-4">
+                    <span>Grand total capital</span>
+                    <span>{formatCapital(grandTotalCapital)}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex w-full justify-end gap-2 sm:order-3 sm:w-auto">
+                <Button variant="outline" onClick={() => setPurchaseOpen(false)} disabled={isSubmittingPurchase}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handlePurchaseSubmit}
+                  disabled={
+                    isSubmittingPurchase ||
+                    hasInvalidAdditionalCost ||
+                    (purchaseMode === "PROCUREMENT" ? !canSubmitProcurement : !canSubmitManual)
+                  }
+                  data-testid="button-confirm-purchase-items"
+                >
+                  {isSubmittingPurchase ? <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-r-transparent" /> : null}
+                  {purchaseMode === "PROCUREMENT"
+                    ? `Purchase Selected (${selectedProcurementIds.length})`
+                    : `Record Manual Purchase (${validManualRows.length})`}
+                </Button>
+              </div>
             </DialogFooter>
+            </div>
+            </div>
           </DialogContent>
         </Dialog>
       </div>

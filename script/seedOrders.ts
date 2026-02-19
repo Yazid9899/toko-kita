@@ -27,6 +27,7 @@ type OrderSeed = {
 };
 
 const CURRENCY = "IDR";
+const SEED_CREATED_AT = new Date("2026-01-28T12:00:00.000Z");
 
 const seeds: OrderSeed[] = [
  {
@@ -652,6 +653,7 @@ async function seedOrder(seed: OrderSeed) {
       packingStatus: seed.packingStatus ?? "NOT_READY",
       discount: (seed.discount ?? 0).toString(),
       notes: seed.notes,
+      createdAt: SEED_CREATED_AT,
     })
     .returning();
 
